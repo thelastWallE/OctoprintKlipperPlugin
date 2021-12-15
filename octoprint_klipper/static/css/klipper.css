@@ -341,7 +341,7 @@ div#klipper_editor .modal-body {
   display: inline-block;
 }
 
-div#klipper_editor .modal-footer input[type="text"] {
+input[type="text"].OctoKlipper-input-mb0 {
   margin-bottom: 0px !important;
 }
 

@@ -1,16 +1,18 @@
 <div id="klipper_editor" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="klipper_editor_label" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-bind="click: closeEditor">&times;</button>
-    <h3 id="klipper_dialog_label">Editor
-      <div class="pull-right">
-        <button data-bind="click: minusFontsize" title="{{ _('Decrease Fontsize') }}" class="btn">
-          <i class="fas fa-search-minus"></i>
-        </button>
-        <button data-bind="click: plusFontsize" title="{{ _('Increase Fontsize') }}" class="btn">
-          <i class="fas fa-search-plus"></i>
-        </button>
-      </div>
-    </h3>
+  <div class="modal-header text-align-center" style="display: flex; align-items: center;">
+    <h3 id="klipper_dialog_label" style="flex-grow: 1;">Editor</h3>
+    <div style="align-items: center; display: flex;">
+      <button data-bind="click: function() { fontSize(fontSize() - 1); }" title="Verringere Schriftgröße" class="btn">
+        <i class="fas fa-search-minus"></i>
+      </button>
+      <input class="OctoKlipper-input-mb0" type="text" style="width: 20px; text-align: center;" data-bind="value: fontSize">
+      <button data-bind="click: function() { fontSize(fontSize() + 1); }" title="Vergrößere Schriftgröße" class="btn">
+        <i class="fas fa-search-plus"></i>
+      </button>
+      <button type="button" class="close" data-bind="click: closeEditor" style="margin: 0; margin-left: 13px;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
   </div>
   <div class="modal-body">
     <script src="plugin/klipper/static/js/lib/ace/ace.min.js" type="text/javascript" charset="utf-8"></script>
@@ -26,7 +28,7 @@
   <div class="modal-footer">
     <div class="editor-controls">
       <span class="control-label">{{ _('Filename') }}:</span>
-      <input type="text" data-bind="value: CfgFilename">
+      <input class="OctoKlipper-input-mb0" type="text" data-bind="value: CfgFilename">
       <div class="klipper-btn-group klipper-fluid-item-2">
         <button class="btn btn-small" data-bind="click: reloadFromFile" title="{{ _('Reload from file') }}">
           <i class="fas fa-upload"></i> {{ _('Reload from file') }}

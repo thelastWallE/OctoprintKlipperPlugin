@@ -36,14 +36,6 @@ $(function () {
       self.klipperEditorViewModel.onShown();
     });
 
-    self.checkFontsize = function () {
-      if (self.settings.settings.plugins.klipper.configuration.fontsize() > 20) {
-        self.settings.settings.plugins.klipper.configuration.fontsize(20)
-      } else if (self.settings.settings.plugins.klipper.configuration.fontsize()< 9) {
-        self.settings.settings.plugins.klipper.configuration.fontsize(9)
-      }
-    }
-
     // initialize list helper
     self.configs = new ItemListHelper(
       "klipperCfgFiles",

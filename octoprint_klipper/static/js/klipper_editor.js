@@ -19,6 +19,8 @@ $(function () {
     var editor = null;
     var editordialog = $("#klipper_editor");
     var reloadConfigLock = false;
+    var minLimitFontSize = 6;
+    var maxLimitFontSize = 25;
 
     self.settings = parameters[0];
     self.klipperViewModel = parameters[1];
@@ -27,6 +29,45 @@ $(function () {
     self.CfgContent = ko.observable("");
     self.loadedConfig = "";
     self.CfgChangedExtern = false;
+
+    self.fontSize = ko.observable("");
+
+    var optionsLocalStorageKey = "OctoKlipper.options";
+    
+    self._toLocalStorage = function () {
+      saveToLocalStorage(optionsLocalStorageKey, { fontSize: self.fontSize() });
+    };
+
+    self._fromLocalStorage = function () {
+      var data = loadFromLocalStorage(optionsLocalStorageKey);
+      if (data["fontSize"] !== undefined) {
+        self.fontSize(data["fontSize"]);
+      } else {
+        // get the old setting and save it to the localStorage
+        self.fontSize(self.settings.settings.plugins.klipper.configuration.fontsize());
+      }
+    };
+
+    self.fontSize.subscribe(function () {
+      self.limitFontsize();
+
+      if (editor) {
+        editor.setFontSize(self.fontSize());
+        editor.resize();
+      }
+
+      self._toLocalStorage();
+    });
+
+    self.limitFontsize = function () {
+      if (self.fontSize() < minLimitFontSize) {
+        self.fontSize(minLimitFontSize);
+      }
+
+      if (self.fontSize() > maxLimitFontSize) {
+        self.fontSize(maxLimitFontSize);
+      }
+    };
 
     $(window).on('resize', function() {
       self.klipperViewModel.sleep(200).then(
@@ -103,11 +144,12 @@ $(function () {
         self.CfgFilename(config.file);
         self.CfgContent(config.content);
         reloadConfigLock = false;
+        self._fromLocalStorage();
 
         if (editor) {
           editor.session.setValue(self.CfgContent());
           self.CfgChangedExtern = false;
-          editor.setFontSize(self.settings.settings.plugins.klipper.configuration.fontsize());
+          editor.setFontSize(self.fontSize());
           editor.clearSelection();
           self.klipperViewModel.sleep(500).then(
             function() {
@@ -263,41 +305,6 @@ $(function () {
           }
         );
       }
-    };
-
-    self.minusFontsize = function () {
-      self.settings.settings.plugins.klipper.configuration.fontsize(
-        self.settings.settings.plugins.klipper.configuration.fontsize() - 1
-      );
-
-      if (self.settings.settings.plugins.klipper.configuration.fontsize() < 9) {
-        self.settings.settings.plugins.klipper.configuration.fontsize(9);
-      }
-
-      var fontsize = self.settings.settings.plugins.klipper.configuration.fontsize();
-      if (editor) {
-        editor.setFontSize(fontsize);
-        editor.resize();
-      }
-
-      self.klipperViewModel.saveOption("configuration", "fontsize", fontsize);
-    };
-
-    self.plusFontsize = function () {
-      self.settings.settings.plugins.klipper.configuration.fontsize(
-        self.settings.settings.plugins.klipper.configuration.fontsize() + 1
-      );
-
-      if (self.settings.settings.plugins.klipper.configuration.fontsize() > 20) {
-        self.settings.settings.plugins.klipper.configuration.fontsize(20);
-      }
-
-      var fontsize = self.settings.settings.plugins.klipper.configuration.fontsize();
-      if (editor) {
-        editor.setFontSize(fontsize);
-        editor.resize();
-      }
-      self.klipperViewModel.saveOption("configuration", "fontsize", fontsize);
     };
 
     self.reloadFromFile = function () {
