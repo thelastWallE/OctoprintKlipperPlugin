@@ -26,11 +26,11 @@ $(function () {
     self.CfgContent = ko.observable("");
     self.loadedConfig = "";
     self.CfgChangedExtern = false;
-
     self.header = OctoPrint.getRequestHeaders({
       "content-type": "application/json",
-      "cache-control": "no-cache",
+      "cache-control": "no-cache"
     });
+    self.apiUrl = OctoPrint.getSimpleApiUrl("klipper");
 
     $(window).on('resize', function() {
       self.klipperViewModel.sleep(200).then(
@@ -145,8 +145,14 @@ $(function () {
       var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
       if (self.CfgChangedExtern && self.CfgFilename() == baseconfig) {
         if (editordialog.is(":visible")) {
+          self.CfgChangedExtern = false;
+
+          var cancel = function () {
+            self.reloadConfigUnlock();
+          }
 
           var perform = function () {
+            self.reloadConfigUnlock();
             self.reloadFromFile();
           }
 
@@ -156,10 +162,28 @@ $(function () {
             title: gettext("Externally changed config") + " " + baseconfig,
             html: html,
             proceed: gettext("Proceed"),
+            onclose: cancel,
+            oncancel: cancel,
             onproceed: perform,
           });
         }
       }
+    };
+
+    self.reloadConfigUnlock = function () {
+      var settings = {
+        "crossDomain": true,
+        "url": self.apiUrl,
+        "method": "POST",
+        "headers": self.header,
+        "processData": false,
+        "dataType": "json",
+        "data": JSON.stringify({ command: "reload_config_unlock" })
+      }
+
+      $.ajax(settings).done(function (response) {
+        self.klipperViewModel.consoleMessage("debug", "reload_config_lock unlocked");
+      });
     };
 
     self.askSaveFaulty = function () {

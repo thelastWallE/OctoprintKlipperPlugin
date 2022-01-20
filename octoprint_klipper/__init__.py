@@ -51,6 +51,7 @@ class KlipperPlugin(
     _parsing_response = False
     _parsing_check_response = True
     _message = ""
+    _reload_config_lock = False
 
     def __init__(self):
         self._logger = logging.getLogger("octoprint.plugins.klipper")
@@ -342,8 +343,7 @@ class KlipperPlugin(
     # -- GCODE Hook
     def process_sent_GCODE(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
         if cmd == "SAVE_CONFIG":
-            log_info(self, "SAVE_CONFIG detected")
-            send_message(self, type = "reload", subtype = "config")
+            self.save_config_caught()
 
     def on_parse_gcode(self, comm, line, *args, **kwargs):
 
@@ -356,6 +356,8 @@ class KlipperPlugin(
             msg = line.strip('/')
             log_info(self, msg)
             self.write_parsing_response_buffer()
+        elif "// SAVE_CONFIG" in line:
+            self.save_config_caught()
         elif "//" in line:
             # add lines with // to a buffer
             self._message = self._message + line.strip('/')
@@ -377,10 +379,17 @@ class KlipperPlugin(
             log_info(self, self._message)
             self._message = ""
 
+    def save_config_caught(self):
+        log_info(self, "SAVE_CONFIG detected")
+        if not self._reload_config_lock:
+            send_message(self, type = "reload", subtype = "config")
+            self._reload_config_lock = True
+
     def get_api_commands(self):
         return dict(
             listLogFiles=[],
-            getStats=["logFile"]
+            getStats=["logFile"],
+            reload_config_unlock=[]
         )
 
     def on_api_command(self, command, data):
@@ -404,6 +413,8 @@ class KlipperPlugin(
                 log_analyzer = KlipperLogAnalyzer.KlipperLogAnalyzer(
                     data["logFile"])
                 return flask.jsonify(log_analyzer.analyze())
+        elif command == "reload_config_unlock":
+            self._reload_config_lock = False
 
     def is_blueprint_protected(self):
         return False
