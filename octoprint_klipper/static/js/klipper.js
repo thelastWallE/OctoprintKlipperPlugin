@@ -363,6 +363,12 @@ $(function () {
 
     // trigger tooltip a first time to "enable"
     $("#klipper-copyToClipboard").tooltip('hide');
+    var clipboard = navigator.clipboard;
+
+    // check if clipboard is available and hide icon if not
+    if (clipboard == undefined) {
+      $("#klipper-copyToClipboard").hide();
+    }
 
     $("#klipper-copyToClipboard").click(function(event) {
       const ele = $(this);
@@ -370,7 +376,7 @@ $(function () {
       const icon = document.getElementById("klipper-copyToClipboard");
 
       /* Copy the text inside the text field */
-      navigator.clipboard.writeText(Text[0].value).then(function () {
+      clipboard.writeText(Text[0].value).then(function () {
         ele.attr('data-original-title', gettext("Copied"));
         ele.tooltip('show');
         icon.classList.add("klipper-animate");
