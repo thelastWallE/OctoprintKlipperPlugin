@@ -381,15 +381,12 @@ class KlipperPlugin(
 
     def save_config_caught(self):
         log_info(self, "SAVE_CONFIG detected")
-        if not self._reload_config_lock:
-            send_message(self, type = "reload", subtype = "config")
-            self._reload_config_lock = True
+        send_message(self, type = "reload", subtype = "config")
 
     def get_api_commands(self):
         return dict(
             listLogFiles=[],
-            getStats=["logFile"],
-            reload_config_unlock=[]
+            getStats=["logFile"]
         )
 
     def on_api_command(self, command, data):
@@ -413,8 +410,6 @@ class KlipperPlugin(
                 log_analyzer = KlipperLogAnalyzer.KlipperLogAnalyzer(
                     data["logFile"])
                 return flask.jsonify(log_analyzer.analyze())
-        elif command == "reload_config_unlock":
-            self._reload_config_lock = False
 
     def is_blueprint_protected(self):
         return False

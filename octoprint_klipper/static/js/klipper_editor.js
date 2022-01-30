@@ -18,6 +18,7 @@ $(function () {
     var self = this;
     var editor = null;
     var editordialog = $("#klipper_editor");
+    var reloadConfigLock = false;
 
     self.settings = parameters[0];
     self.klipperViewModel = parameters[1];
@@ -26,11 +27,6 @@ $(function () {
     self.CfgContent = ko.observable("");
     self.loadedConfig = "";
     self.CfgChangedExtern = false;
-    self.header = OctoPrint.getRequestHeaders({
-      "content-type": "application/json",
-      "cache-control": "no-cache"
-    });
-    self.apiUrl = OctoPrint.getSimpleApiUrl("klipper");
 
     $(window).on('resize', function() {
       self.klipperViewModel.sleep(200).then(
@@ -106,6 +102,7 @@ $(function () {
         self.loadedConfig = config.content;
         self.CfgFilename(config.file);
         self.CfgContent(config.content);
+        reloadConfigLock = false;
 
         if (editor) {
           editor.session.setValue(self.CfgContent());
@@ -143,16 +140,18 @@ $(function () {
     //check if the config was externally changed and ask for a reload
     self.checkExternChange = function() {
       var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
-      if (self.CfgChangedExtern && self.CfgFilename() == baseconfig) {
+      if (self.CfgChangedExtern && self.CfgFilename() == baseconfig && !reloadConfigLock) {
+
         if (editordialog.is(":visible")) {
           self.CfgChangedExtern = false;
+          reloadConfigLock = true; //prevent another dialog popUp
 
           var cancel = function () {
-            self.reloadConfigUnlock();
+            reloadConfigLock = false;
           }
 
           var perform = function () {
-            self.reloadConfigUnlock();
+            reloadConfigLock = false;
             self.reloadFromFile();
           }
 
@@ -168,22 +167,6 @@ $(function () {
           });
         }
       }
-    };
-
-    self.reloadConfigUnlock = function () {
-      var settings = {
-        "crossDomain": true,
-        "url": self.apiUrl,
-        "method": "POST",
-        "headers": self.header,
-        "processData": false,
-        "dataType": "json",
-        "data": JSON.stringify({ command: "reload_config_unlock" })
-      }
-
-      $.ajax(settings).done(function (response) {
-        self.klipperViewModel.consoleMessage("debug", "reload_config_lock unlocked");
-      });
     };
 
     self.askSaveFaulty = function () {
