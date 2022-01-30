@@ -38,7 +38,7 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
         include: "#gcode_line"
       }],
       jinja: [{
-        token: "string",
+        token: ["string"],
         regex: /(?:\}\})|(?:\%\})|[\}]+/,
         next: "gcode"
       }, {
@@ -128,7 +128,7 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
         caseInsensitive: true
       }],
       "#known_driver_type": [{
-        token: "support.type",
+        token: ["support.type", "support.type"],
         regex: /\b(?:tmc)(?:2130|2208|2209|2660|5160)\b/,
         caseInsensitive: true,
         push: [{
@@ -195,7 +195,7 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
         caseInsensitive: true
       }],
       "#serial": [{
-        token: "constant.language",
+        token: ["constant.language", "constant.language"],
         regex: /(?:\/dev\/serial\/by-)(?:id\/|path\/)[\d\w\/\-:\.]+/
       }],
       "#known_restart_command": [{
@@ -345,7 +345,7 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
         caseInsensitive: true
       }],
       "#gcode_parameter": [{
-        token: ["variable.parameter", "variable.parameter"],
+        token: "variable.parameter",
         regex: /\b[A-z]+(?![a-z])|(=)/,
         caseInsensitive: true,
         push: [{
