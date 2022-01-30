@@ -242,11 +242,12 @@ $(function () {
         self.settings.settings.plugins.klipper.configuration.debug_logging() === true
       ) {
         if (type == "info") {
-          console.info("OctoKlipper : " + message);
+          console.info('%cOctoKlipper : %c%s', 'background: black; color: green;', '', message);
         } else if (type == "debug") {
-          console.debug("OctoKlipper : " + message);
+          console.debug('%cOctoKlipper : %c%s', 'background: black; color: green;', '', message);
         } else {
-          console.error("OctoKlipper : " + message);
+          //console.error('%cOctoKlipper : ', 'background: black; color: green;', message);
+          console.error('%cOctoKlipper : %c%s', 'background: black; color: green;', '', message);
         }
       }
       return;
