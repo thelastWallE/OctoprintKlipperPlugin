@@ -39,21 +39,36 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
       }],
       jinja: [{
         token: "string",
-        regex: '".*?"'
+        regex: /(?:\}\})|(?:\%\})|[\}]+/,
+        next: "gcode"
       }, {
-        token: "string",
-        regex: "'.*?'"
-      }, {
-        token: "constant.numeric",
-        regex: '[0-9]+'
+        token: "entity.name.function",
+        regex: /[\s\b](?:action_emergency_stop|action_respond_info|action_raise_error|action_call_remote_method)[\s\(\b]/
+        }, {
+          token: "entity.name.function",
+        regex: /[\s\b](?:SET_GCODE_VARIABLE)[\s\(\b]/
+        }, {
+        token: "keyword",
+        regex: /[\s\b](?:and|for|endfor|%\s|if|elif|else|endif|set|endset|range|in|not|or|recursive|as|import|is|filter|endfilter|macro|endmacro|call|endcall|include|ignore missing|with|without context|from|extends)[\s\(\b]/
       }, {
         token: "variable",
-        regex: "[_a-zA-Z:]+"
-      }],
-      'tag': [{
-        token: "entity.name.function",
-        regex: "[a-zA-Z][_a-zA-Z0-9]*",
-        next: "jinja"
+        regex: /([\"[a-zA-Z0-9_.]+\"\])/
+      }, {
+        token: "string",
+        regex: /".*?"(?!\])/
+      }, {
+        token: "string",
+        regex: /'.*?'/
+      }, {
+        include: "#number"
+      }, {
+        include: "#boolean"
+      }, {
+        token: "variable",
+        regex: /[a-zA-Z_][a-zA-Z0-9_.]*/
+      }, {
+        token: "keyword.operator",
+        regex: /[+\-*\/<>=!,:]|[()\[\]]|\./,
       }],
       "#single_line_comment": [{
         token: "comment.line.number-sign",
@@ -74,7 +89,7 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
         regex: /\b(?:true|false)\b/,
         caseInsensitive: true
       }],
-      "#string-single": [{
+      "#string_single": [{
         token: "text",
         regex: /'/,
         push: [{
@@ -83,7 +98,7 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
           next: "pop"
         }]
       }],
-      "#string-double": [{
+      "#string_double": [{
         token: "text",
         regex: /"/,
         push: [{
@@ -340,9 +355,9 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
         }, {
           include: "#number"
         }, {
-          include: "#string-single"
+          include: "#string_single"
         }, {
-          include: "#string-double"
+          include: "#string_double"
         }, {
           include: "#gcode_macro_block"
         }, {
@@ -376,17 +391,8 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
       }],
       "#gcode_macro_block": [{
         token: "string.unquoted",
-        regex: /\{/,
-        caseInsensitive: true,
-        push: [{
-          token: "string.unquoted",
-          regex: /\}/,
-          next: "gcode"
-        }, {
-          include: "jinja"
-        }, {
-          defaultToken: "string.unquoted"
-        }]
+        regex: /(?:\{\{)|(?:\{\%)|\{/,
+        next: "jinja"
       }]
     }
 
