@@ -22,6 +22,8 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
       }, {
         include: "#config_line"
       }, {
+        include: "#pin"
+      }, {
         include: "#number"
       }, {
         include: "#config_line_start_gcode"
@@ -210,7 +212,7 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
       }],
       "#pin": [{
         token: "constant.language",
-        regex: /[\^~!]*(?:EXP|ar|analog)\d{1,2}(?:_*\d{0,2})|(?:probe:z_virtual_endstop|rpi:)/,
+        regex: /([\^~!]*(?:EXP|ar|analog)\d{1,2}(?:_*\d{0,2}))|(?:probe:z_virtual_endstop|rpi:)/,
         caseInsensitive: true
       }, {
         token: "constant.language",
@@ -251,10 +253,10 @@ ace.define("ace/mode/klipper_config_highlight_rules", [], function (require, exp
       }],
       "#config_line": [{
         token: ["variable.name", "variable.name"],
-        regex: /(^(?!\:|gcode|name|sensor_type|rpi:|\w*pins)\w+\s*[=:]\s*\w+[:])|(^(?!\:|gcode|sensor_type|rpi:|\w*pins)\w+\s*[=:])/,
+        regex: /((?!\:|gcode|name|sensor_type|rpi:|\w*pins)\w+\s*[=:]\s*\w+[:])|((?!\:|gcode|sensor_type|rpi:|\w*pins)\w+\s*[=:])/,
         push: [{
           token: "text",
-          regex: /($|\n|\r|,)/,
+          regex: /($|\n|\r|,|^)/,
           next: "pop"
         }, {
           include: "#known_control_type"
