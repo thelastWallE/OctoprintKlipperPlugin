@@ -14,25 +14,28 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+
+import glob
 import logging
+import os
+import platform
+import sys
+import time
+
+import flask
 import octoprint.plugin
 import octoprint.plugin.core
-import glob
-import os
-import time
-import sys
-
-from octoprint.server import NO_CONTENT
-from octoprint.util import is_hidden_path
-from octoprint.util import get_formatted_size
-from octoprint_klipper import cfgUtils
-from octoprint_klipper.util import *
-from octoprint.util.comm import parse_firmware_line
-from octoprint.access.permissions import Permissions, ADMIN_GROUP
-from .modules import KlipperLogAnalyzer
-from octoprint.server.util.flask import restricted_access
-import flask
 from flask_babel import gettext
+from octoprint.access.permissions import ADMIN_GROUP, Permissions
+from octoprint.server import NO_CONTENT
+from octoprint.server.util.flask import restricted_access
+from octoprint.util import get_formatted_size, is_hidden_path
+from octoprint.util.comm import parse_firmware_line
+
+from octoprint_klipper import cfgUtils
+from octoprint_klipper import util
+
+from .modules import KlipperLogAnalyzer
 
 if sys.version_info[0] < 3:
     import StringIO
