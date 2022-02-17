@@ -82,7 +82,7 @@ class KlipperLogAnalyzer():
             out.append(keyparts)
          f.close()
       except IOError:
-          log_error(self, "Couldn't open log file: {}".format(logname))
+          log_error(self, False, "Couldn't open log file: {}".format(logname))
           print("Couldn't open log file")
       return out
 
