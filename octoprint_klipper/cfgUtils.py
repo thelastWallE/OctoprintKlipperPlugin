@@ -4,7 +4,7 @@ import os, time, sys
 import io
 import flask
 
-from octoprint_klipper.util import *
+from octoprint_klipper import util
 from flask_babel import gettext
 from shutil import copy, copyfile
 
@@ -36,7 +36,7 @@ def list_cfg_files(self, path):
         )
         cfg_path = os.path.join(cfg_path, "*.cfg")
     cfg_files = glob.glob(cfg_path)
-    log_debug(self, "list_cfg_files Path: " + cfg_path)
+    util.log_debug(self, False, "list_cfg_files Path: " + cfg_path)
 
     for f in cfg_files:
         filesize = os.path.getsize(f)
@@ -52,7 +52,7 @@ def list_cfg_files(self, path):
             mdate= time.strftime("%d.%m.%Y %H:%M", filemdate),
             url= url,
         ))
-        log_debug(self, "list_cfg_files " + str(len(files)) + ": " + f)
+        util.log_debug(self, False, "list_cfg_files " + str(len(files)) + ": " + f)
     return files
 
 
@@ -75,14 +75,15 @@ def get_cfg(self, file):
             self._settings.get(["configuration", "configpath"])
         )
         file = os.path.join(cfg_path, self._settings.get(["configuration", "baseconfig"]))
-    if file_exist(self, file):
-        log_debug(self, "get_cfg_files Path: " + file)
+    if util.file_exist(self, file):
+        util.log_debug(self, False, "get_cfg_files Path: " + file)
         try:
             with io.open(file, "r", encoding='utf-8') as f:
                 response['config'] = f.read()
         except IOError as Err:
-            log_error(
+            util.log_error(
                 self,
+                False,
                 gettext("Error: Klipper config file not found at:")
                 + " {}".format(file)
                 + "\n"
@@ -91,8 +92,9 @@ def get_cfg(self, file):
             response['text'] = Err
             return response
         except UnicodeDecodeError as Err:
-            log_error(
+            util.log_error(
                 self,
+                False,
                 gettext("Decode Error:")
                 +"\n"
                 + "{}".format(Err)
@@ -121,8 +123,9 @@ def save_cfg(self, content, filename):
         bool: True if the configuration file was saved successfully. Otherwise False
     """
 
-    log_debug(
+    util.log_debug(
         self,
+        False,
         "Save klipper config"
     )
 
@@ -135,15 +138,15 @@ def save_cfg(self, content, filename):
 
     filepath = os.path.join(configpath, filename)
 
-    log_debug(self, "Writing Klipper config to {}".format(filepath))
+    util.log_debug(self, False, "Writing Klipper config to {}".format(filepath))
     try:
         with io.open(filepath, "w", encoding='utf-8') as f:
             f.write(content)
     except IOError:
-        log_error(self, "Error: Couldn't open Klipper config file: {}".format(filepath))
+        util.log_error(self, False, "Error: Couldn't open Klipper config file: {}".format(filepath))
         return False
     else:
-        log_debug(self, "Written Klipper config to {}".format(filepath))
+        util.log_debug(self, False, "Written Klipper config to {}".format(filepath))
         return True
     finally:
         copy_cfg_to_backup(self, filepath)
@@ -168,13 +171,13 @@ def check_cfg_ok(self, data):
             dataToValidated.read_string(data)
     except configparser.Error as error:
         show_error_message(self, error)
-        log_debug(self, 'check_cfg: NOK!')
+        util.log_debug(self, False, 'check_cfg: NOK!')
         return False
     else:
         if not is_float_ok(self, dataToValidated):
-            log_debug(self, "check_cfg: NOK!")
+            util.log_debug(self, False, "check_cfg: NOK!")
             return False
-        log_debug(self, "check_cfg: OK")
+        util.log_debug(self, False, "check_cfg: OK")
         return True
 
 
@@ -187,8 +190,9 @@ def show_error_message(self, error):
     else:
         error.message = error.message.replace('file:', 'Klipper Configuration', 1)
         error.message = error.message.replace("'", '', 2)
-    log_error(
+    util.log_error(
         self,
+        False,
         ('Error: Invalid Klipper config file:\n' + '{}'.format(str(error))),
     )
 
@@ -211,12 +215,13 @@ def is_float_ok(self, dataToValidated):
                 if dataToValidated.has_option(y, x):
                     a_float = dataToValidated.getfloat(y, x)
     except ValueError as error:
-        log_error(
+        util.log_error(
             self,
+            False,
             "Error: Invalid Value for <b>" + x + "</b> in Section: <b>" + y + "</b>\n"
             + "{}".format(str(error))
         )
-        send_message(
+        util.send_message(
             self,
             type = "PopUp",
             subtype = "warning",
@@ -245,14 +250,16 @@ def copy_cfg(self, file, dst):
         try:
             copy(file, dst)
         except IOError:
-            log_error(
+            util.log_error(
                 self,
+                False,
                 "Error: Klipper config file not found at: {}".format(file)
             )
             return False
         else:
-            log_debug(
+            util.log_debug(
                 self,
+                False,
                 "File copied: "
                 + file
             )
@@ -279,23 +286,24 @@ def copy_cfg_to_backup(self, src):
         try:
             os.mkdir(cfg_path)
         except OSError:
-            log_error(self, "Error: Creation of the backup directory {} failed".format(cfg_path))
+            util.log_error(self, False, "Error: Creation of the backup directory {} failed".format(cfg_path))
             return False
         else:
-            log_debug(self, "Directory {} created".format(cfg_path))
+            util.log_debug(self, False, "Directory {} created".format(cfg_path))
 
     dst = os.path.join(cfg_path, filename)
-    log_debug(self, "copy_cfg_to_backup:" + src + " to " + dst)
+    util.log_debug(self, False, "copy_cfg_to_backup:" + src + " to " + dst)
     if src == dst:
         return False
     try:
         copyfile(src, dst)
     except IOError:
-        log_error(
+        util.log_error(
             self,
+            False,
             "Error: Couldn't copy Klipper config file to {}".format(dst)
         )
         return False
     else:
-        log_debug(self, "CfgBackup " + dst + " written")
+        util.log_debug(self, False, "CfgBackup " + dst + " written")
         return True

@@ -80,8 +80,9 @@ class KlipperPlugin(
             self._settings.global_set(
                 ["serial", "additionalPorts"], additional_ports)
             self._settings.save()
-            log_info(
+            util.log_info(
                 self,
+                False,
                 "Added klipper serial port {} to list of additional ports.".format(klipper_port)
             )
 
@@ -187,7 +188,7 @@ class KlipperPlugin(
     def on_settings_migrate(self, target, current):
         settings = self._settings
         if current is None:
-            migrate_old_settings(settings)
+            util.migrate_old_settings(settings)
 
         if current is not None and current < 3:
             self.migrate_settings_3(settings)
@@ -196,7 +197,7 @@ class KlipperPlugin(
             self.migrate_settings_4(settings)
 
     def migrate_settings_3(self, settings):
-        migrate_settings_configuration(
+        util.migrate_settings_configuration(
             settings,
             "shortStatus_navbar",
             "navbar",
@@ -206,8 +207,8 @@ class KlipperPlugin(
         if settings.has(["configuration", "configpath"]):
             cfg_path = settings.get(["configuration", "configpath"])
             new_cfg_path, baseconfig = os.path.split(cfg_path)
-            log_info(self, "migrate setting for 'configuration/config_path': " + cfg_path + " -> " + new_cfg_path)
-            log_info(self, "migrate setting for 'configuration/baseconfig': printer.cfg -> " + baseconfig)
+            util.log_info(self, False,"migrate setting for 'configuration/config_path': " + cfg_path + " -> " + new_cfg_path)
+            util.log_info(self, False, "migrate setting for 'configuration/baseconfig': printer.cfg -> " + baseconfig)
             settings.set(["configuration", "config_path"], new_cfg_path)
             settings.set(["configuration", "baseconfig"], baseconfig)
             settings.remove(["configuration", "configpath"])
@@ -215,16 +216,16 @@ class KlipperPlugin(
             settings.has(["configuration", "reload_command"])
             and settings.get(["configuration", "reload_command"]) == "manually"
         ):
-            log_info(self, "migrate setting for 'configuration/restart_onsave': True -> False")
+            util.log_info(self, False, "migrate setting for 'configuration/restart_onsave': True -> False")
             settings.set(["configuration", "restart_onsave"], False)
             settings.remove(["configuration", "reload_command"])
 
         if settings.has(["config"]):
-            log_info(self, "remove old setting for 'config'")
+            util.log_info(self, False, "remove old setting for 'config'")
             settings.remove(["config"])
 
         if settings.has(["configuration", "old_config"]):
-            log_info(self, "remove old setting for 'configuration/old_config'")
+            util.log_info(self, False, "remove old setting for 'configuration/old_config'")
             settings.remove(["configuration", "old_config"])
 
 
@@ -318,26 +319,40 @@ class KlipperPlugin(
 
     def on_event(self, event, payload):
         if event == "UserLoggedIn":
-            log_info(self, "Klipper: Standby")
+            util.log_info(self, False, "Klipper: Standby")
         if event == "Connecting":
-            log_info(self, "Klipper: Connecting ...")
+            util.log_info(self, False, "Klipper: Connecting ...")
         elif event == "Connected":
-            log_info(self, "Klipper: Connected to host")
-            log_info(
+            util.log_info(
                 self,
-                "Connected to host via {} @{}bps".format(payload["port"], payload["baudrate"]))
+                False,
+                "Klipper: Connected to host via {} @{}bps".format(payload["port"], payload["baudrate"]))
         elif event == "Disconnected":
-            log_info(self, "Klipper: Disconnected from host")
+            util.log_info(self, False, "Klipper: Disconnected from host")
 
         elif event == "Error":
-            log_error(self, payload["error"])
+            util.log_error(self, False, payload["error"])
+        elif event == "PrinterStateChanged":
+            util.log_info(self, False, "Printer: " + payload["state_string"])
+        elif event == "PrintStarted":
+            util.log_info(self, False, "Klipper: Printing " + payload["name"])
+        elif event == "PrintDone":
+            util.log_info(self, False, "Klipper: Print finished " + payload["name"])
+        elif event == "PrintCancelling":
+            util.log_info(self, False, "Klipper: Print cancelling " + payload["name"])
+        elif event == "PrintCancelled":
+            util.log_info(self, False, "Klipper: Print cancelled " + payload["name"])
+        elif event == "PrintPaused":
+            util.log_info(self, False, "Klipper: Print paused " + payload["name"])
+        elif event == "PrintResumed":
+            util.log_info(self, False, "Klipper: Print resumed " + payload["name"])
 
     def processAtCommand(self, comm_instance, phase, command, parameters, tags=None, *args, **kwargs):
         if command != "SWITCHCONFIG":
             return
 
         config = parameters
-        log_info(self, "SWITCHCONFIG detected config:{}".format(config))
+        util.log_info(self, False, "SWITCHCONFIG detected config:{}".format(config))
         return None
 
     # -- GCODE Hook
@@ -350,11 +365,12 @@ class KlipperPlugin(
         if "FIRMWARE_VERSION" in line:
             printerInfo = parse_firmware_line(line)
             if "FIRMWARE_VERSION" in printerInfo:
-                log_info(self, "Firmware version: {}".format(
+                util.send_message(self, type = "version", subtype = "firmware", payload = printerInfo["FIRMWARE_VERSION"])
+                util.log_info(self, False, "Firmware version: {}".format(
                     printerInfo["FIRMWARE_VERSION"]))
         elif "// probe" in line or "// Failed to verify BLTouch" in line:
             msg = line.strip('/')
-            log_info(self, msg)
+            util.log_info(self, False, msg)
             self.write_parsing_response_buffer()
         elif "// SAVE_CONFIG" in line:
             self.save_config_caught()
@@ -362,11 +378,11 @@ class KlipperPlugin(
             # add lines with // to a buffer
             self._message = self._message + line.strip('/')
             if not self._parsing_response:
-                update_status(self, "info", self._message)
+                util.update_status(self, "info", self._message)
             self._parsing_response = True
         elif "!!" in line:
             msg = line.strip('!')
-            log_error(self, msg)
+            util.log_error(self, False, msg)
             self.write_parsing_response_buffer()
         else:
             self.write_parsing_response_buffer()
@@ -376,12 +392,12 @@ class KlipperPlugin(
         # write buffer with // lines after a gcode response without //
         if self._parsing_response:
             self._parsing_response = False
-            log_info(self, self._message)
+            util.log_info(self, False, self._message)
             self._message = ""
 
     def save_config_caught(self):
-        log_info(self, "SAVE_CONFIG detected")
-        send_message(self, type = "reload", subtype = "config")
+        util.log_info(self, False, "SAVE_CONFIG detected")
+        util.send_message(self, type = "reload", subtype = "config")
 
     def get_api_commands(self):
         return dict(
@@ -395,7 +411,7 @@ class KlipperPlugin(
             logpath = os.path.expanduser(
                 self._settings.get(["configuration", "logpath"])
             )
-            if file_exist(self, logpath):
+            if util.file_exist(self, logpath):
                 for f in glob.glob(self._settings.get(["configuration", "logpath"]) + "*"):
                     filesize = os.path.getsize(f)
                     filemdate = time.strftime("%d.%m.%Y %H:%M",time.localtime(os.path.getctime(f)))
@@ -553,7 +569,7 @@ class KlipperPlugin(
         Filecontent = data.get("DataToSave", [])
         saved = cfgUtils.save_cfg(self, Filecontent, filename)
         if saved == True:
-            send_message(self, type = "reload", subtype = "configlist")
+            util.send_message(self, type = "reload", subtype = "configlist")
         return flask.jsonify(saved = saved)
 
     # restart klipper
@@ -567,7 +583,7 @@ class KlipperPlugin(
 
             # Restart klippy to reload config
             self._printer.commands(reload_command)
-            log_info(self, "Restarting Klipper.")
+            util.log_info(self, False, "Restarting Klipper.")
         return flask.jsonify(command = reload_command)
 # APIs end
 
