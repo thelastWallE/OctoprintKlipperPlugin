@@ -55,10 +55,13 @@ class KlipperPlugin(
     _parsing_check_response = True
     _message = ""
     _reload_config_lock = False
+    _latest_klipper_remote_tag = ""
+    _repo_klipper="https://github.com/Klipper3D/klipper.git"
 
     def __init__(self):
         self._logger = logging.getLogger("octoprint.plugins.klipper")
         self._octoklipper_logger = logging.getLogger("octoprint.plugins.klipper.debug")
+        self._get_throttled = lambda: False
 
     # -- Startup Plugin
     def on_startup(self, host, port):
@@ -72,6 +75,18 @@ class KlipperPlugin(
         self._octoklipper_logger.setLevel(
             logging.DEBUG if self._settings.get_boolean(["debug_logging"]) else logging.INFO)
         self._octoklipper_logger.propagate = False
+
+        helpers = self._plugin_manager.get_helpers("pi_support", "get_throttled")
+        if helpers and "get_throttled" in helpers:
+            self._get_throttled = helpers["get_throttled"]
+            if self._settings.get_boolean(["configuration", "ignore_throttled"]):
+                self._logger.warning(
+                    "!!! THROTTLE STATE IGNORED !!! You have configured the OctoKlipper plugin to ignore an active throttle state of the underlying system. You might run into stability issues or outright corrupt your install. Consider fixing the throttling issue instead of suppressing it."
+                )
+                self._octoklipper_logger.warning(
+                    "!!! THROTTLE STATE IGNORED !!! You have configured the OctoKlipper plugin to ignore an active throttle state of the underlying system. You might run into stability issues or outright corrupt your install. Consider fixing the throttling issue instead of suppressing it."
+                )
+
 
     def on_after_startup(self):
         klipper_port = self._settings.get(["connection", "port"])
@@ -138,6 +153,8 @@ class KlipperPlugin(
             ),
             configuration=dict(
                 debug_logging=False,
+                ignore_throttled=False,
+                klipper_path="~/klipper/",
                 config_path="~/",
                 baseconfig="printer.cfg",
                 logpath="/tmp/klippy.log",
@@ -452,7 +469,7 @@ class KlipperPlugin(
                                                                                                    status_code=404)))
         ]
 
-# API for Backups
+#region [rgba(20,40,20,0.5)] APIs
     # Get Content of a Backupconfig
     @octoprint.plugin.BlueprintPlugin.route("/backup/<filename>", methods=["GET"])
     @restricted_access
@@ -588,7 +605,50 @@ class KlipperPlugin(
             self._printer.commands(reload_command)
             util.log_info(self, False, "Restarting Klipper.")
         return flask.jsonify(command = reload_command)
-# APIs end
+
+    # restart klipper
+    @octoprint.plugin.BlueprintPlugin.route("/update", methods=["POST"])
+    @restricted_access
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def update_klipper(self):
+
+        throttled = self._get_throttled()
+        if (
+            throttled
+            and isinstance(throttled, dict)
+            and throttled.get("current_issue", False)
+            and not self._settings.get_boolean(["configuration", "ignore_throttled"])
+        ):
+            # currently throttled, we refuse to run
+            message = (
+                "System is currently throttled, refusing to update "
+                "anything due to possible stability issues"
+            )
+            util.log_error(self, False, message)
+            flask.abort(
+                409,
+                description=message,
+            )
+
+        if self._printer.is_printing() or self._printer.is_paused():
+            # do not update while a print job is running
+            flask.abort(409, description="Printer is currently printing or paused")
+
+        return flask.jsonify(
+            output=util.update_klipper_host(self, self._latest_klipper_remote_tag),
+        )
+
+    # get klipper version
+    @octoprint.plugin.BlueprintPlugin.route("/", methods=["GET"])
+    @restricted_access
+    def get_state(self):
+        klipper_version = util.get_software_version(self)
+        self._latest_klipper_remote_tag = util.retrieve_remote_git_tag(self, "klipper")
+        return flask.jsonify(
+            klipper_version=klipper_version,
+            klipper_remote_version=self._latest_klipper_remote_tag
+        )
+#endregion APIs end
 
 
     def get_update_information(self):

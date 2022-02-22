@@ -269,6 +269,10 @@ div#settings_plugin_klipper div.tab-content div#conf.tab-pane div.control-group 
   flex-direction: column;
 }
 
+div#settings_plugin_klipper div.control-group div.controls p{
+  padding-top: 5px;
+}
+
 .klipper-settings-tab {
   height: 100%;
   width: 100%;
