@@ -386,7 +386,7 @@ $(function () {
     };
 
     self.requestUpdate = function () {
-      if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_KLIPPER_CONFIG)) return;
+      if (!self.hasRight("CONFIG")) return;
       if (self._updateClicked) return;
       self._updateClicked = true;
 
