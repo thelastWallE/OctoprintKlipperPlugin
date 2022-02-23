@@ -70,7 +70,7 @@ class KlipperPlugin(
 
         self._octoklipper_logger.addHandler(octoklipper_logging_handler)
         self._octoklipper_logger.setLevel(
-            logging.DEBUG if self._settings.get_boolean(["debug_logging"]) else logging.INFO)
+            logging.DEBUG if self._settings.get_boolean(["configuration", "debug_logging"]) else logging.INFO)
         self._octoklipper_logger.propagate = False
 
     def on_after_startup(self):
