@@ -33,7 +33,7 @@ def log_error(self, only_logging, error):
             payload = error
         )
 
-def migrate_old_settings(self, settings):
+def migrate_old_settings(settings):
     '''
     For Old settings
     '''
