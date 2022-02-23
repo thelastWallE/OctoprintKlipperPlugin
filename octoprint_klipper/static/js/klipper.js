@@ -58,12 +58,11 @@ $(function () {
       }
     };
 
-    self.showPopUp = function (popupType, popupTitle, message) {
-      var title = "OctoKlipper: <br />" + popupTitle + "<br />";
-      var options = undefined;
-      var errorOpts = {};
+    self.showPopUp = function (popupType="info", popupTitle, message) {
+      popupTitle ? popupTitle + "<br />" : popupTitle="";
 
-      options = {
+      let title = "OctoKlipper: <br />" + popupTitle;
+      var options = {
         title: title,
         text: message,
         type: popupType,
@@ -72,8 +71,7 @@ $(function () {
       };
 
       if (popupType == "error") {
-
-        errorOpts = {
+        let errorOpts = {
           mouse_reset: true,
           delay: 5000,
           animation: "none"
@@ -81,9 +79,7 @@ $(function () {
         FullOptions = Object.assign(options, errorOpts);
         self._showPopup(FullOptions);
       } else {
-        if (options !== undefined) {
-          new PNotify(options);
-        }
+        new PNotify(options);
       }
     };
 
