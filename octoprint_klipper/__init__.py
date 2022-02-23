@@ -141,6 +141,7 @@ class KlipperPlugin(
                 config_path="~/",
                 baseconfig="printer.cfg",
                 logpath="/tmp/klippy.log",
+                restart_host_command="sudo service klipper restart",
                 reload_command="RESTART",
                 restart_onsave=True,
                 confirm_reload=True,
@@ -169,7 +170,8 @@ class KlipperPlugin(
             admin=[
                 ["connection", "port"],
                 ["configuration", "config_path"],
-                ["configuration", "replace_connection_panel"]
+                ["configuration", "replace_connection_panel"],
+                ["configuration", "restart_host_command"]
             ],
             user=[
                 ["macros"],
@@ -590,6 +592,17 @@ class KlipperPlugin(
         return flask.jsonify(command = reload_command)
 # APIs end
 
+    def get_additional_commands(self, *args, **kwargs):
+        return [
+            {
+                "name": gettext('Restart Klipper'),
+                "action": "octoklipper_restart",
+                "command": self._settings.get(["configuration", "restart_host_command"]),
+                "ignore": False,
+                "confirm": '<h3><center><b>' + gettext("You are about to restart Klipper!") + '<br>' + gettext("This will stop ongoing prints!") + '</b></center></h3><br>Command = '+ self._settings.get(["configuration", "restart_host_command"])+''
+            }
+        ]
+
 
     def get_update_information(self):
         return dict(
@@ -617,22 +630,13 @@ class KlipperPlugin(
 
 __plugin_name__ = "OctoKlipper"
 __plugin_pythoncompat__ = ">=2.7,<4"
-__plugin_settings_overlay__ = {
-    'system': {
-        'actions': [{
-            'action': 'octoklipper_restart',
-            'command': 'sudo service klipper restart',
-            'name': gettext('Restart Klipper'),
-            'confirm': '<h3><center><b>' + gettext("You are about to restart Klipper!") + '<br>' + gettext("This will stop ongoing prints!") + '</b></center></h3><br>Command = "sudo service klipper restart"'
-        }]
-    }
-}
 
 def __plugin_load__():
     global __plugin_implementation__
     global __plugin_hooks__
     __plugin_implementation__ = KlipperPlugin()
     __plugin_hooks__ = {
+        "octoprint.system.additional_commands": __plugin_implementation__.get_additional_commands,
         "octoprint.server.http.routes": __plugin_implementation__.route_hook,
         "octoprint.access.permissions": __plugin_implementation__.get_additional_permissions,
         "octoprint.comm.protocol.atcommand.sending": __plugin_implementation__.processAtCommand,
