@@ -222,7 +222,7 @@ $(function () {
       var options = options || {};
       var closing = options.closing || false;
 
-      if (self.CfgFilename() != "") {
+      if (self.CfgFilename() != "" && self.CfgFilename() != "Change Filename") {
         if (editor.session) {
           if (self.settings.settings.plugins.klipper.configuration.parse_check() == true) {
 
