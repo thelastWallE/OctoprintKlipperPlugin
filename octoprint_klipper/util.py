@@ -194,7 +194,7 @@ def retrieve_remote_git_tag(self, remote):
     # TODO Drop python2.7 support like a hot potatoe
     # Klipper Repo: https://github.com/Klipper3D/klipper.git
     # OctoKlipper Repo: https://github.com/thelastWallE/OctoprintKlipperPlugin.git
-    if self._connectivity_checker.online:
+    if not self._connectivity_checker.online:
         return gettext("We are not online")
     repo = self._repo_klipper if remote=="klipper" else remote
     cmd = 'git ls-remote --exit-code --refs --sort="version:refname" --tags ' + repo + ' "*.*.*" | tail --lines=1 | cut --delimiter="/" --fields=3'
