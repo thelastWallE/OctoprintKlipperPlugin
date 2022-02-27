@@ -267,30 +267,12 @@ $(function () {
       return self.connectionState.isOperational();
     };
 
-    self.hasRight = function (right_role) {
-      //if (self.loginState.isAdmin) return true;
-      if (right_role == "CONFIG") {
-        return self.loginState.hasPermission(
-          self.access.permissions.PLUGIN_KLIPPER_CONFIG
-        );
-      } else if (right_role == "MACRO") {
-        return self.loginState.hasPermission(
-          self.access.permissions.PLUGIN_KLIPPER_MACRO
-        );
-      }
+    self.hasRight = function (role) {
+      return self.loginState.hasPermission(self.access.permissions[`PLUGIN_KLIPPER_${role}`]);
     };
 
-    self.hasRightKo = function (right_role) {
-      //if (self.loginState.isAdmin) return true;
-      if (right_role == "CONFIG") {
-        return self.loginState.hasPermissionKo(
-          self.access.permissions.PLUGIN_KLIPPER_CONFIG
-        );
-      } else if (right_role == "MACRO") {
-        return self.loginState.hasPermissionKo(
-          self.access.permissions.PLUGIN_KLIPPER_MACRO
-        );
-      }
+    self.hasRightKo = function (role) {
+      return self.loginState.hasPermissionKo(self.access.permissions[`PLUGIN_KLIPPER_${role}`]);
     };
 
     self.saveOption = function(dir, option, value) {
