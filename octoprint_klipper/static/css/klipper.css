@@ -10,6 +10,16 @@
   overflow: auto;
 }
 
+.KlipperShortStatusWarning{
+  background-color: #f2f60084;
+  color: #000 !important;
+}
+
+.KlipperShortStatusError{
+  background-color: #f2000084;
+  color: #000 !important;
+}
+
 li#navbar_plugin_klipper {
   cursor: pointer;
   max-width: 360px;

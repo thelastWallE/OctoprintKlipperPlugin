@@ -1,3 +1,5 @@
 <!-- ko if: settings.settings.plugins.klipper.configuration.shortStatus_navbar -->
-  <a data-bind="attr: { title: shortStatus_navbar_hover }, text: shortStatus_navbar, click: navbarClicked"></a>
+  <a data-bind="attr: { title: shortStatus_navbar_hover }, click: navbarClicked, css: { KlipperShortStatusWarning: shortStatus_type()=='warning', KlipperShortStatusError: shortStatus_type()=='error' }, style: { color: shortStatus_type()=='warning' || shortStatus_type()=='error' ? 'black' : '' }">
+    <span data-bind="text: shortStatus_navbar"></span>
+  </a>
 <!-- /ko -->

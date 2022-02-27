@@ -35,6 +35,7 @@ $(function () {
     self.shortStatus_navbar = ko.observable();
     self.shortStatus_navbar_hover = ko.observable();
     self.shortStatus_sidebar = ko.observable();
+    self.shortStatus_type = ko.observable('');
     self.logMessages = ko.observableArray();
 
     self.popup = undefined;
@@ -154,6 +155,7 @@ $(function () {
 
     self.navbarClicked = function () {
       $("#tab_plugin_klipper_main_link").find("a").click();
+      self.clearShortStatus();
     };
 
     self.onGetStatus = function () {
@@ -172,6 +174,7 @@ $(function () {
       self.connectionState.selectedPort(
         self.settings.settings.plugins.klipper.connection.port()
       );
+      self.shortStatus(gettext("No Messages"), "");
     };
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
@@ -198,20 +201,26 @@ $(function () {
     };
 
 
-    self.shortStatus = function(msg, type) {
+    self.shortStatus = function(msg, type=null) {
 
-      var baseText = gettext("Go to OctoKlipper Tab");
       if (msg.length > 36) {
-        var shortText = msg.substring(0, 31) + " [..]";
-        self.shortStatus_navbar(shortText);
+        self.shortStatus_navbar(msg.substring(0, 31) + " [..]");
         self.shortStatus_navbar_hover(msg);
       } else {
         self.shortStatus_navbar(msg);
-        self.shortStatus_navbar_hover(baseText);
+        self.shortStatus_navbar_hover(gettext("Go to OctoKlipper Tab"));
       }
       message = msg.replace(/\n/gi, "<br />");
       self.shortStatus_sidebar(message);
+      self.shortStatus_type(type);
     };
+
+    self.clearShortStatus = function () {
+      setTimeout(function () {
+        self.shortStatus(gettext("No Messages"), "");
+    }, 1000);
+
+    }
 
 
     self.logMessage = function (timestamp, type = "info", message) {
@@ -251,6 +260,7 @@ $(function () {
 
     self.onClearLog = function () {
       self.logMessages.removeAll();
+      self.clearShortStatus();
     };
 
     self.isActive = function () {

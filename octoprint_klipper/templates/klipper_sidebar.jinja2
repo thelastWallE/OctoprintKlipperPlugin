@@ -9,10 +9,8 @@
  </div>
 </div>
 <!-- ko if: settings.settings.plugins.klipper.configuration.shortStatus_sidebar -->
-  <div id="shortStatus_SideBar" class="plugin-klipper-sidebar">
-    <a title="{{ _('Go to OctoKlipper Tab') }}" data-bind="click: navbarClicked">
-      <div data-bind="html: shortStatus_sidebar" class="msg"></div>
-    </a>
+  <div  id="shortStatus_SideBar" class="plugin-klipper-sidebar" data-bind="css: { KlipperShortStatusWarning: shortStatus_type()=='warning', KlipperShortStatusError: shortStatus_type()=='error' }">
+    <a class="msg" title="{{ _('Go to OctoKlipper Tab') }}" data-bind="click: navbarClicked, html: shortStatus_sidebar, style: { color: shortStatus_type()=='warning' || shortStatus_type()=='error' ? 'black' : '' }"></a>
   </div>
 <!-- /ko -->
 <div class="control-group" data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.PLUGIN_KLIPPER_MACRO)">
