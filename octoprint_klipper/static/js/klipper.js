@@ -31,14 +31,35 @@ $(function () {
     self.levelingViewModel = parameters[3];
     self.paramMacroViewModel = parameters[4];
     self.access = parameters[5];
+    self.printerState=parameters[6];
+    // optional
+    self.piSupport = parameters[7];
 
     self.shortStatus_navbar = ko.observable();
     self.shortStatus_navbar_hover = ko.observable();
     self.shortStatus_sidebar = ko.observable();
     self.shortStatus_type = ko.observable('');
+    self.host_version = ko.observable();
+    self.host_remote_version = ko.observable();
     self.logMessages = ko.observableArray();
 
+    self.throttled = ko.pureComputed(function () {
+      return (
+        self.piSupport &&
+        self.piSupport.currentIssue() &&
+        !self.settings.settings.plugins.klipper.configuration.ignore_throttled()
+      );
+    });
+
     self.popup = undefined;
+
+    self.updateAccess = function () {
+      return (
+        self.loginState.hasPermission(
+          self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE
+        ) || CONFIG_FIRST_RUN
+      );
+    };
 
     self._showPopup = function (options) {
       self._closePopup();
@@ -83,6 +104,20 @@ $(function () {
         new PNotify(options);
       }
     };
+
+    self.requestData = function () {
+      OctoPrint.plugins.klipper.get().done(self.fromResponse);
+    };
+
+    self.fromResponse = function (response) {
+      self.host_version(response.klipper_version);
+      self.host_remote_version(response.klipper_remote_version);
+      self.logMessage(null, null, "<b>Klipper Host Version:</b> " + response.klipper_version);
+    };
+
+    self.onStartup = function () {
+      self.requestData();
+    }
 
     self.showEditorDialog = function () {
       if (!self.hasRight("CONFIG")) return;
@@ -337,6 +372,63 @@ $(function () {
       }
     };
 
+    self.requestUpdate = function () {
+      if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_KLIPPER_CONFIG)) return;
+      if (self._updateClicked) return;
+      self._updateClicked = true;
+
+      if (self.printerState.isPrinting()) {
+        self._showPopup({
+          title: gettext("Can't update while printing"),
+          text: gettext(
+            "A print job is currently in progress. Updating will be prevented until it is done."
+          ),
+          type: "error"
+        });
+        self._updateClicked = false;
+        return;
+      }
+
+      if (self.throttled()) {
+        self._showPopup({
+          title: gettext("Can't update while throttled"),
+          text: gettext(
+            "Your system is currently throttled. OctoPrint refuses to run updates while in this state due to possible stability issues."
+          ),
+          type: "error"
+        });
+        self._updateClicked = false;
+        return;
+      }
+
+      var request = function () {
+        OctoPrint.plugins.klipper.updateKlipper().done(function (response) {
+          self.consoleMessage("debug", "updatingKlipper:");
+          if (response.output!==false) {
+            self.consoleMessage("debug", "Response: "+ response.output);
+            self.showPopUp("success", null, "Response: " + response.output);
+            self.logMessage(null, null, "Update Response: "+ response.output);
+            if (response.output != "Already up to date.\n") {
+              self.requestRestart();
+              self.requestData();
+            }
+          }
+          self._updateClicked = false;
+        });
+      };
+
+      var html = "<h4>" +
+        gettext("All ongoing Prints will be stopped!") +
+        "</h4>";
+
+      showConfirmationDialog({
+        title: gettext("Update Klipper?"),
+        html: html,
+        proceed: gettext("Update"),
+        onproceed: request
+      });
+    };
+
     // OctoKlipper settings link
     self.openOctoKlipperSettings = function (profile_type) {
       if (!self.hasRight("CONFIG")) return;
@@ -397,7 +489,10 @@ $(function () {
       "klipperLevelingViewModel",
       "klipperMacroDialogViewModel",
       "accessViewModel",
+      "printerStateViewModel",
+      "piSupportViewModel"
     ],
+    optional: ["piSupportViewModel"],
     elements: [
       "#tab_plugin_klipper_main",
       "#sidebar_plugin_klipper",

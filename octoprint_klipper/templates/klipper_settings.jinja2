@@ -4,6 +4,7 @@
     <li><a href="#macros" data-toggle="tab" data-profile-type="klipper-macros">{{ _('Macros') }}</a></li>
     <li><a href="#level" data-toggle="tab" data-profile-type="klipper-bed">{{ _('Bed Leveling') }}</a></li>
     <li><a href="#conf" data-toggle="tab" data-profile-type="klipper-config">{{ _('Klipper Configuration') }}</a></li>
+    <li><a href="#update" data-toggle="tab" data-profile-type="klipper-update">{{ _('Klipper Update') }}</a></li>
   </ul>
   <div class="tab-content">
     <!-- Basics -->
@@ -64,9 +65,17 @@
         </div>
       </div>
       <div class="control-group">
+        <label class="control-label">{{ _('Klipper Directory') }}</label>
+        <div class="controls">
+          <input type="text" class="input-block-level"
+            data-bind="value: settings.settings.plugins.klipper.configuration.klipper_path" />
+        </div>
+      </div>
+      <div class="control-group">
         <label class="control-label">{{ _('Klipper Config Directory') }}</label>
         <div class="controls">
-          <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.klipper.configuration.config_path" />
+          <input type="text" class="input-block-level"
+            data-bind="value: settings.settings.plugins.klipper.configuration.config_path" />
         </div>
       </div>
       <div class="control-group">
@@ -364,7 +373,32 @@
         </div>
       </div>
     </div>
+
+    <!-- Klipper Update Tab-->
+    <div class="tab-pane" id="update">
+      <div class="klipper-column-fluid klipper-settings-tab">
+        <h3 class="text-center m-0">{{ _('Updates') }}</h3>
+        <div class="control-group">
+          <label class="control-label">{{ _('Installed Host Version:') }}</label>
+          <div class="controls">
+            <p data-bind="text:klipperViewModel.host_version()" title="{{ _('Version of the Klipper host')}}"></p>
+            <button class="btn btn-small" data-bind="click: function() {klipperViewModel.requestData()}" title="{{ _('Get Installed Version') }}">
+              <i class="icon-refresh"></i>
+            </button>
+          </div>
+          <label class="control-label">{{ _('Available Host Version:') }}</label>
+          <div class="controls">
+            <p data-bind="text:klipperViewModel.host_remote_version" title="{{ _('Version of the Klipper host')}}"></p>
+            <button class="btn btn-block btn-small" data-bind="click: function() { klipperViewModel.requestUpdate() }"
+              title="{{ _('This will cause the host software to update and perform an internal reset') }}">
+              {{ _("Update Host") }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
   <div class="tab-footer">
     <a href="https://www.paypal.com/donate/?business=7P63W664NF8LA&item_name=OctoKlipper" class="btn btn-mini" target="_blank">
       <i class="fab fa-paypal"> {{ _('Donate') }}</i>

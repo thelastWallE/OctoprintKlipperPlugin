@@ -10,8 +10,16 @@
     this.url = this.base.getBlueprintUrl("klipper");
   };
 
+  OctoKlipperClient.prototype.get = function (refresh, opts) {
+    return this.base.get(this.url, opts);
+  };
+
   OctoKlipperClient.prototype.restartKlipper = function (opts) {
     return this.base.post(this.url + "restart", opts);
+  };
+
+  OctoKlipperClient.prototype.updateKlipper = function (opts) {
+    return this.base.post(this.url + "update", opts);
   };
 
   OctoKlipperClient.prototype.getCfg = function (config, opts) {
