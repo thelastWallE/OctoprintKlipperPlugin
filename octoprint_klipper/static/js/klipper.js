@@ -226,8 +226,8 @@ $(function () {
     self.logMessage = function (timestamp, type = "info", message) {
 
       if (!timestamp) {
-        var today = new Date();
-        var timestamp =
+        let today = new Date();
+        timestamp =
           today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
       }
 
@@ -251,7 +251,6 @@ $(function () {
         } else if (type == "debug") {
           console.debug('%cOctoKlipper : %c%s', 'background: black; color: green;', '', message);
         } else {
-          //console.error('%cOctoKlipper : ', 'background: black; color: green;', message);
           console.error('%cOctoKlipper : %c%s', 'background: black; color: green;', '', message);
         }
       }
