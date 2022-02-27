@@ -102,13 +102,22 @@ def update_status(self, subtype, status):
         subtype = subtype,
         payload = status)
 
-def file_exist(self, filepath):
+def file_exist(self, filepath, **kwargs):
     '''
-    Returns if a file exists and shows PopUp if not
+    Returns if a file exists and shows default a PopUp if not
     '''
+    #TODO rework this to a more general function, maybe just use the one from octoprint
+    PopUp = kwargs.get('PopUp',True)
     from os import path
     if not path.isfile(filepath):
         log_debug(self, False, gettext("File")+ ": <br />" + filepath + "<br /> "+ gettext("does not exist!"))
+        if PopUp:
+            send_message(
+                self,
+                type = "PopUp",
+                subtype = "warning",
+                title = "OctoKlipper Settings",
+                payload = gettext("File")+": <br />" + filepath + "<br /> "+ gettext("does not exist!"))
         return False
     else:
         return True
