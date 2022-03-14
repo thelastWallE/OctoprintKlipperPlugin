@@ -2,7 +2,7 @@
   aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">&times;</button>
-    <h3 id="klipper_dialog_label">{{ _('Backups') }}</h3>
+    <h3 >{{ _('Backups') }}</h3>
   </div>
   <div class="modal-body">
     <div class="editor-controls">
@@ -106,5 +106,11 @@
     <div class="textarea">
       <textarea rows="21" readonly data-bind="value: CfgContent" id="klipper_bak_text"></textarea>
     </div>
+  </div>
+  <div class="modal-footer">
+    <a href="https://www.paypal.com/donate/?business=7P63W664NF8LA&item_name=OctoKlipper" class="btn btn-mini"
+      target="_blank">
+      <i class="fab fa-paypal"> {{ _('Donate') }}</i>
+    </a>
   </div>
 </div>
