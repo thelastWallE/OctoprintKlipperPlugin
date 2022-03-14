@@ -163,21 +163,11 @@ def run(self, cmd):
         i += 1
     (output, err) = p[i-1].communicate()
     exit_code = p[0].wait()
-    out_text = format_stream(output)
-    err_text = format_stream(err)
-    response=out_text+err_text
+    response = output + "\n" + err if output != "" else output + err
     log_info(self, True, "Response: "+response+" exit_code:"+str(exit_code))
     if exit_code==0:
         return response
     log_error(self, False, "<b>"+gettext("Failed to run command")+":</b> \""+cmd+"\" <b>"+gettext("Output")+":</b> "+response)
-
-def format_stream(output):
-    out=output.splitlines()
-    for line in out:
-        line=line.rsplit('\n')
-        if line=='':
-            break
-    return ''.join(out)
 
 
 def retrieve_git_tag(self, source_path):
