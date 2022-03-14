@@ -21,6 +21,7 @@ import os
 import platform
 import sys
 import time
+import re
 
 import flask
 import octoprint.plugin
@@ -636,8 +637,15 @@ class KlipperPlugin(
             # do not update while a print job is running
             flask.abort(409, description="Printer is currently printing or paused")
 
+        output=util.update_klipper_host(self, self._latest_klipper_remote_tag)
+        util.log_debug(self, True, output)
+        for m in re.finditer(r"HEAD is now at \S*", output):
+            output_multiline=output[:m.end()] + '\n' + output[m.end():]
+        if not output_multiline:
+            output_multiline=output
+
         return flask.jsonify(
-            output=util.update_klipper_host(self, self._latest_klipper_remote_tag),
+            output=output_multiline,
         )
 
     # get klipper version
