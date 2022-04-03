@@ -1,4 +1,5 @@
-<div id="klipper_files_dialog" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="klipper_files_label" aria-hidden="true">
+<div id="klipper_files_dialog" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="klipper_files_label"
+  aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">&times;</button>
   </div>
@@ -10,7 +11,8 @@
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu">
-            <li><a href="javascript:void(0)" data-bind="click: markFilesOnPage">{{ _('Select all on this page') }}</a></li>
+            <li><a href="javascript:void(0)" data-bind="click: markFilesOnPage">{{ _('Select all on this page') }}</a>
+            </li>
             <li><a href="javascript:void(0)" data-bind="click: markAllFiles">{{ _('Select all') }}</a></li>
             <li class="divider"></li>
             <li><a href="javascript:void(0)" data-bind="click: clearMarkedFiles">{{ _('Clear selection') }}</a></li>
@@ -19,7 +21,8 @@
         <button class="btn btn-small" data-bind="click: newFile" title="{{ _('Add new File') }}">
           <i class="far fa-file"></i> {{ _('New File') }}
         </button>
-        <button class="btn btn-small" data-bind="click: $root.klipperViewModel.showEditorDialog()" title="{{ _('Open last config') }}">
+        <button class="btn btn-small" data-bind="click: $root.klipperViewModel.showEditorDialog()"
+          title="{{ _('Open last config') }}">
           <i class="fas fa-file-code"></i> {{ _('Open last Editor') }}
         </button>
         <button class="btn btn-small" data-bind="click: listCfgFiles" title="{{ _('Refresh file list') }}">
@@ -31,20 +34,27 @@
       </div>
       <div class="pull-right">
         <div class="btn-group">
-          <button class="btn btn-small dropdown-toggle" data-toggle="dropdown"><i class="fas fa-wrench"></i> <span class="caret"></span>
+          <button class="btn btn-small dropdown-toggle" data-toggle="dropdown"><i class="fas fa-wrench"></i> <span
+              class="caret"></span>
           </button>
           <ul class="dropdown-menu dropdown-menu-right">
-            <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('name'); }"><i class="fas fa-check"
-                    data-bind="style: {visibility: configs.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i> {{ _('Sort by name') }}
-                  ({{ _('ascending') }})</a>
+            <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('name'); }"><i
+                  class="fas fa-check"
+                  data-bind="style: {visibility: configs.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i>
+                {{ _('Sort by name') }}
+                ({{ _('ascending') }})</a>
             </li>
-            <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('date'); }"><i class="fas fa-check"
-                    data-bind="style: {visibility: configs.currentSorting() == 'date' ? 'visible' : 'hidden'}"></i> {{ _('Sort by date') }}
-                  ({{ _('descending') }})</a>
+            <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('date'); }"><i
+                  class="fas fa-check"
+                  data-bind="style: {visibility: configs.currentSorting() == 'date' ? 'visible' : 'hidden'}"></i>
+                {{ _('Sort by date') }}
+                ({{ _('descending') }})</a>
             </li>
-            <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('size'); }"><i class="fas fa-check"
-                    data-bind="style: {visibility: configs.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i> {{ _('Sort by file size') }}
-                  ({{ _('descending') }})</a>
+            <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('size'); }"><i
+                  class="fas fa-check"
+                  data-bind="style: {visibility: configs.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i>
+                {{ _('Sort by file size') }}
+                ({{ _('descending') }})</a>
             </li>
           </ul>
         </div>
@@ -85,24 +95,26 @@
     </div>
     <div class="pagination pagination-mini pagination-centered">
       <ul>
-        <li data-bind="css: {disabled: configs.currentPage() === 0}"><a href="javascript:void(0)" data-bind="click: configs.prevPage">«</a></li>
+        <li data-bind="css: {disabled: configs.currentPage() === 0}"><a href="javascript:void(0)"
+            data-bind="click: configs.prevPage">«</a></li>
       </ul>
       <ul data-bind="foreach: configs.pages">
         <li data-bind="css: {active: $data.number === $root.configs.currentPage(), disabled: $data.number === -1 }">
-          <a href="javascript:void(0)" data-bind="text: $data.text, click: function() { $root.configs.changePage($data.number); }"></a>
+          <a href="javascript:void(0)"
+            data-bind="text: $data.text, click: function() { $root.configs.changePage($data.number); }"></a>
         </li>
       </ul>
       <ul>
         <li data-bind="css: {disabled: configs.currentPage() === configs.lastPage()}">
-          <a href="javascript:void(0)"
-            data-bind="click: configs.nextPage">»
+          <a href="javascript:void(0)" data-bind="click: configs.nextPage">»
           </a>
         </li>
       </ul>
     </div>
   </div>
   <div class="modal-footer">
-    <a href="https://www.paypal.com/donate/?business=7P63W664NF8LA&item_name=OctoKlipper" class="btn btn-mini" target="_blank">
+    <a href="https://www.paypal.com/donate/?business=7P63W664NF8LA&item_name=OctoKlipper" class="btn btn-mini"
+      target="_blank">
       <i class="fab fa-paypal"> {{ _('Donate') }}</i>
     </a>
   </div>
