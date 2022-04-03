@@ -314,6 +314,14 @@ $(function () {
       return self.loginState.hasPermission(self.access.permissions[`PLUGIN_KLIPPER_${role}`]);
     };
 
+    self.hasAllPerms = function (roles) {
+      var result = true;
+      for (var role in roles) {
+        result = result && self.loginState.hasPermission(self.access.permissions[`PLUGIN_KLIPPER_${role}`]);
+      }
+      return result;
+    };
+
     self.hasRightKo = function (role) {
       return self.loginState.hasPermissionKo(self.access.permissions[`PLUGIN_KLIPPER_${role}`]);
     };
