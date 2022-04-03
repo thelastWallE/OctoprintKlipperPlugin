@@ -31,7 +31,7 @@ $(function () {
     self.levelingViewModel = parameters[3];
     self.paramMacroViewModel = parameters[4];
     self.access = parameters[5];
-    self.printerState=parameters[6];
+    self.printerState = parameters[6];
     // optional
     self.piSupport = parameters[7];
 
@@ -80,8 +80,8 @@ $(function () {
       }
     };
 
-    self.showPopUp = function (popupType="info", popupTitle, message) {
-      popupTitle ? popupTitle + "<br />" : popupTitle="";
+    self.showPopUp = function (popupType = "info", popupTitle, message) {
+      popupTitle ? popupTitle + "<br />" : popupTitle = "";
 
       let title = "OctoKlipper: <br />" + popupTitle;
       var options = {
@@ -120,7 +120,7 @@ $(function () {
     }
 
     self.showEditorDialog = function () {
-      if (!self.hasRight("CONFIG")) return;
+      if (!self.hasPerm("CONFIG")) return;
       var editorDialog = $("#klipper_editor");
       editorDialog.modal({
         show: "true",
@@ -178,7 +178,7 @@ $(function () {
     self.executeMacro = function (macro) {
       var paramObjRegex = /{(.*?)}/g;
 
-      if (!self.hasRight("MACRO")) return;
+      if (!self.hasPerm("MACRO")) return;
 
       if (macro.macro().match(paramObjRegex) == null) {
         OctoPrint.control.sendGcode(
@@ -245,7 +245,7 @@ $(function () {
     };
 
 
-    self.shortStatus = function(msg, type=null) {
+    self.shortStatus = function (msg, type = null) {
 
       if (msg.length > 36) {
         self.shortStatus_navbar(msg.substring(0, 31) + " [..]");
@@ -262,7 +262,7 @@ $(function () {
     self.clearShortStatus = function () {
       setTimeout(function () {
         self.shortStatus(gettext("No Messages"), "");
-    }, 1000);
+      }, 1000);
 
     }
 
@@ -310,7 +310,7 @@ $(function () {
       return self.connectionState.isOperational();
     };
 
-    self.hasRight = function (role) {
+    self.hasPerm = function (role) {
       return self.loginState.hasPermission(self.access.permissions[`PLUGIN_KLIPPER_${role}`]);
     };
 
@@ -322,19 +322,19 @@ $(function () {
       return result;
     };
 
-    self.hasRightKo = function (role) {
+    self.hasPermKo = function (role) {
       return self.loginState.hasPermissionKo(self.access.permissions[`PLUGIN_KLIPPER_${role}`]);
     };
 
-    self.saveOption = function(dir, option, value) {
-      if (! (_.includes(["fontsize", "confirm_reload", "parse_check"], option)) ) {
+    self.saveOption = function (dir, option, value) {
+      if (!(_.includes(["fontsize", "confirm_reload", "parse_check"], option))) {
         return;
       }
 
       if (option && dir) {
         let data = {
           plugins: {
-            klipper:{
+            klipper: {
               [dir]: {
                 [option]: value
               }
@@ -345,12 +345,12 @@ $(function () {
           .save(data);
       } else if (option) {
         let data = {
-              plugins: {
-                klipper:{
-                    [option]: value
-                }
-              }
-          };
+          plugins: {
+            klipper: {
+              [option]: value
+            }
+          }
+        };
         OctoPrint.settings
           .save(data);
       }
@@ -370,8 +370,8 @@ $(function () {
       };
 
       var html = "<h4>" +
-                  gettext("All ongoing Prints will be stopped!") +
-                  "</h4>";
+        gettext("All ongoing Prints will be stopped!") +
+        "</h4>";
 
       if (self.settings.settings.plugins.klipper.configuration.confirm_reload() == true) {
         showConfirmationDialog({
@@ -380,7 +380,7 @@ $(function () {
           proceed: [gettext("Restart"), gettext("Restart and don't ask this again.")],
           onproceed: function (idx) {
             if (idx > -1) {
-                request(idx);
+              request(idx);
             }
           },
         });
@@ -390,7 +390,7 @@ $(function () {
     };
 
     self.requestUpdate = function () {
-      if (!self.hasRight("CONFIG")) return;
+      if (!self.hasPerm("CONFIG")) return;
       if (self._updateClicked) return;
       self._updateClicked = true;
 
@@ -421,10 +421,10 @@ $(function () {
       var request = function () {
         OctoPrint.plugins.klipper.updateKlipper().done(function (response) {
           self.consoleMessage("debug", "updatingKlipper:");
-          if (response.output!==false) {
-            self.consoleMessage("debug", "Response: "+ response.output);
+          if (response.output !== false) {
+            self.consoleMessage("debug", "Response: " + response.output);
             self.showPopUp("success", null, "Response: " + response.output);
-            self.logMessage(null, null, "Update Response: "+ response.output);
+            self.logMessage(null, null, "Update Response: " + response.output);
             if (response.output != "Already up to date.\n") {
               self.requestRestart();
               self.requestData();
@@ -448,7 +448,7 @@ $(function () {
 
     // OctoKlipper settings link
     self.openOctoKlipperSettings = function (profile_type) {
-      if (!self.hasRight("CONFIG")) return;
+      if (!self.hasPerm("CONFIG")) return;
 
       $("a#navbar_show_settings").click();
       $("li#settings_plugin_klipper_link a").click();
@@ -467,7 +467,7 @@ $(function () {
       $("#klipper-copyToClipboard").hide();
     }
 
-    $("#klipper-copyToClipboard").click(function(event) {
+    $("#klipper-copyToClipboard").click(function (event) {
       const ele = $(this);
       const Text = $(this).prev();
       const icon = document.getElementById("klipper-copyToClipboard");

@@ -32,7 +32,7 @@ $(function () {
     self.markedForFileRemove = ko.observableArray([]);
     self.PathToConfigs = ko.observable("");
 
-    $(document).on('shown.bs.modal','#klipper_editor', function () {
+    $(document).on('shown.bs.modal', '#klipper_editor', function () {
       self.klipperEditorViewModel.onShown();
     });
 
@@ -83,7 +83,7 @@ $(function () {
     };
 
     self.loadBaseConfig = function () {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
       if (baseconfig != "") {
@@ -99,7 +99,7 @@ $(function () {
     };
 
     self.removeCfg = function (config) {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       var perform = function () {
         OctoPrint.plugins.klipper
@@ -215,7 +215,7 @@ $(function () {
     };
 
     self.showEditor = function () {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       var editorDialog = $("#klipper_editor");
       editorDialog.modal({
@@ -226,18 +226,18 @@ $(function () {
     }
 
     self.newFile = function () {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
       var config = {
         content: "",
         file: "Change Filename",
       };
       self.klipperEditorViewModel.process(config).then(
-        function() { self.showEditor(); }
+        function () { self.showEditor(); }
       );
     };
 
     self.openConfig = function (file) {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       OctoPrint.plugins.klipper.getCfg(file).done(function (response) {
         var config = {
@@ -245,7 +245,7 @@ $(function () {
           file: file,
         };
         self.klipperEditorViewModel.process(config).then(
-          function() { self.showEditor(); }
+          function () { self.showEditor(); }
         );
       });
     };

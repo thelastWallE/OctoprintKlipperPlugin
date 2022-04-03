@@ -33,7 +33,7 @@ $(function () {
     self.fontSize = ko.observable("");
 
     var optionsLocalStorageKey = "OctoKlipper.options";
-    
+
     self._toLocalStorage = function () {
       saveToLocalStorage(optionsLocalStorageKey, { fontSize: self.fontSize() });
     };
@@ -69,7 +69,7 @@ $(function () {
       }
     };
 
-    $(window).on('resize', function() {
+    $(window).on('resize', function () {
       self.klipperViewModel.sleep(200).then(
         function () {
           self.setEditorDivSize();
@@ -92,7 +92,7 @@ $(function () {
           self.editorFocusDelay(1000);
           break;
         case 2:
-          self.saveCfg({closing: true});
+          self.saveCfg({ closing: true });
           break;
       }
     };
@@ -109,13 +109,13 @@ $(function () {
           selections: [gettext("Close"), gettext("Do not close"), gettext("Save & Close")],
           maycancel: false,
           onselect: function (index) {
-              if (index > -1) {
-                  self.close_selection(index);
-              }
+            if (index > -1) {
+              self.close_selection(index);
+            }
           },
         };
 
-          showSelectionDialog(opts);
+        showSelectionDialog(opts);
       } else {
         editordialog.modal('hide');
       }
@@ -126,8 +126,8 @@ $(function () {
     };
 
     self.setEditorDivSize = function () {
-      var klipper_modal_body= $('#klipper_editor .modal-body');
-      var klipper_config= $('#plugin-klipper-config');
+      var klipper_modal_body = $('#klipper_editor .modal-body');
+      var klipper_config = $('#plugin-klipper-config');
 
       var height = $(window).height() - $('#klipper_editor .modal-header').outerHeight() - $('#klipper_editor .modal-footer').outerHeight() - 118;
       self.addStyleAttribute(klipper_modal_body, 'height: ' + height + 'px !important;');
@@ -152,7 +152,7 @@ $(function () {
           editor.setFontSize(self.fontSize());
           editor.clearSelection();
           self.klipperViewModel.sleep(500).then(
-            function() {
+            function () {
               self.setEditorDivSize();
               resolve("done");
             }
@@ -171,7 +171,7 @@ $(function () {
 
     //set externally changed config flag if the current file is the base config
     self.ConfigChangedAfterSave_Config = function () {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       if (self.CfgFilename() == self.settings.settings.plugins.klipper.configuration.baseconfig()) {
         self.CfgChangedExtern = true;
@@ -180,7 +180,7 @@ $(function () {
     };
 
     //check if the config was externally changed and ask for a reload
-    self.checkExternChange = function() {
+    self.checkExternChange = function () {
       var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
       if (self.CfgChangedExtern && self.CfgFilename() == baseconfig && !reloadConfigLock) {
 
@@ -214,8 +214,8 @@ $(function () {
     self.askSaveFaulty = function () {
       return new Promise(function (resolve) {
         var html = "<h5>" +
-        gettext("Your configuration seems to be faulty.") +
-        "</h5>";
+          gettext("Your configuration seems to be faulty.") +
+          "</h5>";
 
         showConfirmationDialog({
           title: gettext("Save faulty Configuration?"),
@@ -310,34 +310,34 @@ $(function () {
     self.reloadFromFile = function () {
       if (self.CfgFilename() != "") {
         OctoPrint.plugins.klipper.getCfg(self.CfgFilename())
-        .done(function (response) {
-          self.klipperViewModel.consoleMessage("debug", "reloadFromFile done");
-          if (response.response.text != "") {
+          .done(function (response) {
+            self.klipperViewModel.consoleMessage("debug", "reloadFromFile done");
+            if (response.response.text != "") {
+              showMessageDialog(
+                response.response.text,
+                {
+                  title: gettext("Reload File")
+                }
+              );
+            } else {
+              self.klipperViewModel.showPopUp("success", gettext("Reload Config"), gettext("File reloaded."));
+              self.CfgChangedExtern = false;
+              if (editor) {
+                editor.session.setValue(response.response.config);
+                self.loadedConfig = response.response.config;
+                editor.clearSelection();
+                editor.focus();
+              }
+            }
+          })
+          .fail(function (response) {
             showMessageDialog(
-              response.response.text,
+              response,
               {
                 title: gettext("Reload File")
               }
             );
-          } else {
-            self.klipperViewModel.showPopUp("success", gettext("Reload Config"), gettext("File reloaded."));
-            self.CfgChangedExtern = false;
-            if (editor) {
-              editor.session.setValue(response.response.config);
-              self.loadedConfig = response.response.config;
-              editor.clearSelection();
-              editor.focus();
-            }
-          }
-        })
-        .fail(function (response) {
-          showMessageDialog(
-            response,
-            {
-              title: gettext("Reload File")
-            }
-          );
-        });
+          });
       } else {
         showMessageDialog(
           gettext("No filename set"),

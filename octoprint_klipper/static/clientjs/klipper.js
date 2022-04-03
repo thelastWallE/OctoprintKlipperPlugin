@@ -39,10 +39,6 @@
   };
 
 
-  var downloadUrl ="downloads/files";
-  var url = this.url;
-
-
   var resourceForLocation = function (location) {
     return url + "/" + OctoPrintClient.escapePath(location);
   };
@@ -91,6 +87,7 @@
     if (force) {
       query.force = force;
     }
+    var url = this.url + "config/list";
 
     return this.base.getWithQuery(url, query, opts).done(preProcessList);
   };

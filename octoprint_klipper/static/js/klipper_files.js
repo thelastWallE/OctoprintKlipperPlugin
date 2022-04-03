@@ -95,7 +95,7 @@ $(function () {
         self.addFolderName = ko.observable(undefined);
         self.enableAddFolder = ko.pureComputed(function () {
             return (
-                self.klipperViewModel.hasRight("CONFIG") &&
+                self.klipperViewModel.hasPerm("CONFIG") &&
                 self.addFolderName() &&
                 self.addFolderName().trim() !== "" &&
                 !self.addingFolder()
@@ -112,6 +112,7 @@ $(function () {
         self.uploadProgressText = ko.observable();
         self.uploadProgressPercentage = ko.observable();
 
+        //localStorage
         var optionsLocalStorageKey = "OctoKlipper.options";
         var defaultListStyle = "folders_files";
         self._toLocalStorage = function () {
@@ -128,30 +129,30 @@ $(function () {
         self.listStyle = ko.observable(defaultListStyle);
         self.listStyle.subscribe(self._toLocalStorage)
 
-        var saveListStyleToLocalStorage = function () {
-            if (initListStyleLocalStorage()) {
-                localStorage[listStyleStorageKey] = self.listStyle();
-            }
-        };
-        var loadListStyleFromLocalStorage = function () {
-            if (initListStyleLocalStorage()) {
-                self.listStyle(localStorage[listStyleStorageKey]);
-            }
-        };
-        var initListStyleLocalStorage = function () {
-            if (!Modernizr.localstorage) return false;
-
-            if (localStorage[listStyleStorageKey] !== undefined) return true;
-
-            localStorage[listStyleStorageKey] = defaultListStyle;
-            return true;
-        };
-
-        self.listStyle = ko.observable(defaultListStyle);
-        self.listStyle.subscribe(saveListStyleToLocalStorage);
-        loadListStyleFromLocalStorage();
-
-
+        // initialize list helper
+        self.configs = new ItemListHelper(
+            "klipperCfgFiles",
+            {
+                name: sortByName,
+                date: function (a, b) {
+                    // sorts descending
+                    if (b["date"] === undefined || a["date"] > b["date"]) return -1;
+                    if (a["date"] === undefined || a["date"] < b["date"]) return 1;
+                    return 0;
+                },
+                size: function (a, b) {
+                    // sorts descending
+                    if (b["size"] === undefined || a["size"] > b["size"]) return -1;
+                    if (a["size"] === undefined || a["size"] < b["size"]) return 1;
+                    return 0;
+                },
+            },
+            {},
+            "name",
+            [],
+            [],
+            15
+        );
 
         var sortByName = function (a, b) {
             // sorts ascending
@@ -202,51 +203,23 @@ $(function () {
             }
         });
 
-        self.highlightCurrentFilename = function () {
-            self.highlightFilename(self.printerState.filepath());
-        };
-
-        self.highlightFilename = function (filename) {
-            if (filename === undefined || filename === null) {
-                self.configs.selectNone();
-            } else {
-                self.configs.selectItem(function (item) {
-                    if (item.type === "folder") {
-                        return _.startsWith(filename, item.path + "/");
-                    } else {
-                        return item.path === filename;
-                    }
-                });
-            }
-        };
-
-        // initialize list helper
-        self.configs = new ItemListHelper(
-            "klipperCfgFiles",
-            {
-                name: sortByName,
-                date: function (a, b) {
-                    // sorts descending
-                    if (b["date"] === undefined || a["date"] > b["date"]) return -1;
-                    if (a["date"] === undefined || a["date"] < b["date"]) return 1;
-                    return 0;
-                },
-                size: function (a, b) {
-                    // sorts descending
-                    if (b["size"] === undefined || a["size"] > b["size"]) return -1;
-                    if (a["size"] === undefined || a["size"] < b["size"]) return 1;
-                    return 0;
-                },
-            },
-            {},
-            "name",
-            [],
-            [],
-            15
-        );
+        /* self.highlightFilename = function (filename) {
+          if (filename === undefined || filename === null) {
+            self.configs.selectNone();
+          } else {
+            self.configs.selectItem(function (item) {
+              if (item.type === "folder") {
+                return _.startsWith(filename, item.path + "/");
+              } else {
+                return item.path === filename;
+              }
+            });
+          }
+        }; */
 
         self.onStartupComplete = function () {
-            self.listCfgFiles();
+            //self.listCfgFiles();
+            self.requestData();
             self._fromLocalStorage();
             self.loadBaseConfig();
         };
@@ -254,14 +227,17 @@ $(function () {
         self._otherRequestInProgress = undefined;
         self._focus = undefined;
         self._switchToPath = undefined;
+
         self.requestData = function (params) {
-            if (!self.klipperViewModel.hasRight("CONFIG")) return;
+            if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
             var focus, switchToPath, force;
 
-            focus = params.focus;
-            switchToPath = params.switchToPath;
-            force = params.force;
+            if (_.isObject(params)) {
+                focus = params.focus;
+                switchToPath = params.switchToPath;
+                force = params.force;
+            }
 
             self._focus = self._focus || focus;
             self._switchToPath = self._switchToPath || switchToPath;
@@ -375,7 +351,6 @@ $(function () {
                 self.totalSpace(response.total);
             }
 
-            self.highlightCurrentFilename();
         };
 
         self.changeFolder = function (data) {
@@ -388,7 +363,6 @@ $(function () {
 
             self.currentPath(data.path);
             self.configs.updateItems(data.children);
-            self.highlightCurrentFilename();
         };
 
         self.navigateUp = function () {
@@ -406,11 +380,10 @@ $(function () {
                 self.currentPath("");
                 self.configs.updateItems(self.allItems());
             }
-            self.highlightCurrentFilename();
         };
 
         self.addFolder = function () {
-            if (!self.klipperViewModel.hasRight("CONFIG")) return;
+            if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
             var name = self.addFolderName();
 
@@ -445,7 +418,7 @@ $(function () {
         };
 
         self.removeFolder = function (folder, event) {
-            if (!self.klipperViewModel.hasRight("CONFIG")) return;
+            if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
             if (!folder) {
                 return;
@@ -513,7 +486,7 @@ $(function () {
         };
 
         self.removeFile = function (file, event) {
-            if (!self.klipperViewModel.hasRight("CONFIG")) return;
+            if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
             if (!file) {
                 return;
@@ -633,7 +606,7 @@ $(function () {
             }
 
             return (
-                self.klipperViewModel.hasRight("CONFIG")
+                self.klipperViewModel.hasPerm("CONFIG")
             );
         };
 
@@ -710,7 +683,7 @@ $(function () {
         };
 
         self.updateButtons = function () {
-            if (self.klipperViewModel.hasRight("CONFIG")) {
+            if (self.klipperViewModel.hasPerm("CONFIG")) {
                 self.uploadButton.fileupload("enable");
                 if (self.uploadSdButton) {
                     self.uploadSdButton.fileupload("enable");
@@ -776,18 +749,18 @@ $(function () {
         };
 
         /* self.listCfgFiles = function () {
-          self.klipperViewModel.consoleMessage("debug", "listCfgFiles started");
-    
-          OctoPrint.plugins.klipper.listCfg().done(function (response) {
+            self.klipperViewModel.consoleMessage("debug", "listCfgFiles started");
+
+            OctoPrint.plugins.klipper.listCfg().done(function (response) {
             self.klipperViewModel.consoleMessage("debug", "listCfgFiles done");
             self.configs.updateItems(response.files);
             self.PathToConfigs(gettext("Path: ") + response.path);
             self.configs.resetPage();
-          });
+            });
         }; */
 
         self.loadBaseConfig = function () {
-            if (!self.klipperViewModel.hasRight("CONFIG")) return;
+            if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
             var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
             if (baseconfig != "") {
@@ -799,264 +772,92 @@ $(function () {
                     };
                     self.klipperEditorViewModel.process(config).then();
                 });
+            }
+        };
 
-                /* self.removeCfg = function (config) {
-                  if (!self.klipperViewModel.hasRight("CONFIG")) return;
-            
-                  var perform = function () {
-                    OctoPrint.plugins.klipper
-                      .deleteCfg(config)
-                      .done(function () {
-                        self.listCfgFiles();
-                      })
-                      .fail(function (response) {
-                        var html = "<p>" + _.sprintf(gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"), { name: _.escape(config) });
-                        html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
-                        new PNotify({
-                          title: gettext("Could not remove config"),
-                          text: html,
-                          type: "error",
-                          hide: false,
-                        });
-                      });
-                  };
-            
-                  showConfirmationDialog(
-                    _.sprintf(gettext('You are about to delete config file "%(name)s".'), {
-                      name: _.escape(config),
-                    }),
-                    perform
-                  );
-                }; */
+        /* self.removeCfg = function (config) {
+            if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
-                self.markFilesOnPage = function () {
-                    self.markedForFileRemove(_.uniq(self.markedForFileRemove().concat(_.map(self.configs.paginatedItems(), "file"))));
-                };
-
-                self.markAllFiles = function () {
-                    self.markedForFileRemove(_.map(self.configs.allItems, "file"));
-                };
-
-                self.clearMarkedFiles = function () {
-                    self.markedForFileRemove.removeAll();
-                };
-
-                self.removeMarkedFiles = function () {
-                    var perform = function () {
-                        self._bulkRemove(self.markedForFileRemove()).done(function () {
-                            self.markedForFileRemove.removeAll();
-                        });
-
-                        // initialize list helper
-                        self.configs = new ItemListHelper(
-                            "klipperCfgFiles",
-                            {
-                                name: function (a, b) {
-                                    // sorts ascending
-                                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase()) return -1;
-                                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase()) return 1;
-                                    return 0;
-                                },
-                                date: function (a, b) {
-                                    // sorts descending
-                                    if (a["date"] > b["date"]) return -1;
-                                    if (a["date"] < b["date"]) return 1;
-                                    return 0;
-                                },
-                                size: function (a, b) {
-                                    // sorts descending
-                                    if (a["bytes"] > b["bytes"]) return -1;
-                                    if (a["bytes"] < b["bytes"]) return 1;
-                                    return 0;
-                                },
-                            },
-                            {},
-                            "name",
-                            [],
-                            [],
-                            15
-                        );
-
-                        self.onStartupComplete = function () {
-                            self.listCfgFiles();
-                            self.loadBaseConfig();
-                        };
-
-                        self.listCfgFiles = function () {
-                            self.klipperViewModel.consoleMessage("debug", "listCfgFiles started");
-
-                            OctoPrint.plugins.klipper.listCfg().done(function (response) {
-                                self.klipperViewModel.consoleMessage("debug", "listCfgFiles done");
-                                self.configs.updateItems(response.files);
-                                self.PathToConfigs(gettext("Path: ") + response.path);
-                                self.configs.resetPage();
-                            });
-                        };
-
-                        self.loadBaseConfig = function () {
-                            if (!self.klipperViewModel.hasRight("CONFIG")) return;
-
-                            var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
-                            if (baseconfig != "") {
-                                self.klipperViewModel.consoleMessage("debug", "loadBaseConfig:" + baseconfig);
-                                OctoPrint.plugins.klipper.getCfg(baseconfig).done(function (response) {
-                                    var config = {
-                                        content: response.response.config,
-                                        file: baseconfig,
-                                    };
-                                    self.klipperEditorViewModel.process(config).then();
-                                });
-                            }
-                        };
-
-                        self.removeCfg = function (config) {
-                            if (!self.klipperViewModel.hasRight("CONFIG")) return;
-
-                            var perform = function () {
-                                OctoPrint.plugins.klipper
-                                    .deleteCfg(config)
-                                    .done(function () {
-                                        self.listCfgFiles();
-                                    })
-                                    .fail(function (response) {
-                                        var html = "<p>" + _.sprintf(gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"), { name: _.escape(config) });
-                                        html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
-                                        new PNotify({
-                                            title: gettext("Could not remove config"),
-                                            text: html,
-                                            type: "error",
-                                            hide: false,
-                                        });
-                                    });
-                            };
-
-                            showConfirmationDialog(
-                                _.sprintf(gettext('You are about to delete config file "%(name)s".'), {
-                                    name: _.escape(config),
-                                }),
-                                perform
-                            );
-                        };
-
-                        self.markFilesOnPage = function () {
-                            self.markedForFileRemove(_.uniq(self.markedForFileRemove().concat(_.map(self.configs.paginatedItems(), "file"))));
-                        };
-
-                        self.markAllFiles = function () {
-                            self.markedForFileRemove(_.map(self.configs.allItems, "file"));
-                        };
-
-                        self.clearMarkedFiles = function () {
-                            self.markedForFileRemove.removeAll();
-                        };
-
-                        self.removeMarkedFiles = function () {
-                            var perform = function () {
-                                self._bulkRemove(self.markedForFileRemove()).done(function () {
-                                    self.markedForFileRemove.removeAll();
-                                });
-                            };
-
-                            showConfirmationDialog(
-                                _.sprintf(gettext("You are about to delete %(count)d config files."), {
-                                    count: self.markedForFileRemove().length,
-                                }),
-                                perform
-                            );
-                        };
-
-                        self._bulkRemove = function (files) {
-                            var title, message, handler;
-
-                            title = gettext("Deleting config files");
-                            message = _.sprintf(gettext("Deleting %(count)d config files..."), {
-                                count: files.length,
-                            });
-
-                            handler = function (filename) {
-                                return OctoPrint.plugins.klipper
-                                    .deleteCfg(filename)
-                                    .done(function () {
-                                        deferred.notify(
-                                            _.sprintf(gettext("Deleted %(filename)s..."), {
-                                                filename: _.escape(filename),
-                                            }),
-                                            true
-                                        );
-                                        self.markedForFileRemove.remove(function (item) {
-                                            return item.name == filename;
-                                        });
-                                    })
-                                    .fail(function () {
-                                        deferred.notify(_.sprintf(gettext("Deleting of %(filename)s failed, continuing..."), { filename: _.escape(filename) }), false);
-                                    });
-                            };
-
-                            var deferred = $.Deferred();
-                            var promise = deferred.promise();
-                            var options = {
-                                title: title,
-                                message: message,
-                                max: files.length,
-                                output: true,
-                            };
-                            showProgressModal(options, promise);
-
-                            var requests = [];
-                            _.each(files, function (filename) {
-                                var request = handler(filename);
-                                requests.push(request);
-                            });
-
-                            $.when.apply($, _.map(requests, wrapPromiseWithAlways)).done(function () {
-                                deferred.resolve();
-                                self.listCfgFiles();
-                            });
-
-                            return promise;
-                        };
-
-
-                        self.newFile = function () {
-                            if (!self.klipperViewModel.hasRight("CONFIG")) return;
-                            var config = {
-                                content: "",
-                                file: "Change Filename",
-                            };
-                            self.klipperEditorViewModel.process(config).then(
-                                function () { self.klipperViewModel.showEditorDialog(); }
-                            );
-                        };
-
-                        self.openConfig = function (file) {
-                            if (!self.klipperViewModel.hasRight("CONFIG")) return;
-
-                            OctoPrint.plugins.klipper.getCfg(file).done(function (response) {
-                                var config = {
-                                    content: response.response.config,
-                                    file: file,
-                                };
-                                self.klipperEditorViewModel.process(config).then(
-                                    function () { self.klipperViewModel.showEditorDialog(); }
-                                );
-                            });
-                        };
-
-                        self.onDataUpdaterPluginMessage = function (plugin, data) {
-                            if (plugin == "klipper" && data.type == "reload" && data.subtype == "configlist") {
-                                self.klipperViewModel.consoleMessage("debug", "onDataUpdaterPluginMessage klipper reload configlist");
-                                self.listCfgFiles();
-                            }
-                        };
-                    }
-
-                    OCTOPRINT_VIEWMODELS.push({
-                        construct: KlipperFilesViewModel,
-                        dependencies: [
-                            "settingsViewModel",
-                            "klipperViewModel",
-                            "klipperEditorViewModel"
-                        ],
-                        elements: ["#klipper_files_dialog"],
-                    });
+            var perform = function () {
+            OctoPrint.plugins.klipper
+                .deleteCfg(config)
+                .done(function () {
+                self.listCfgFiles();
+                })
+                .fail(function (response) {
+                var html = "<p>" + _.sprintf(gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"), { name: _.escape(config) });
+                html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
+                new PNotify({
+                    title: gettext("Could not remove config"),
+                    text: html,
+                    type: "error",
+                    hide: false,
                 });
+                });
+            };
+
+            showConfirmationDialog(
+            _.sprintf(gettext('You are about to delete config file "%(name)s".'), {
+                name: _.escape(config),
+            }),
+            perform
+            );
+        }; */
+
+        self.markFilesOnPage = function () {
+            self.markedForFileRemove(_.uniq(self.markedForFileRemove().concat(_.map(self.configs.paginatedItems(), "file"))));
+        };
+
+        self.markAllFiles = function () {
+            self.markedForFileRemove(_.map(self.configs.allItems, "file"));
+        };
+
+        self.clearMarkedFiles = function () {
+            self.markedForFileRemove.removeAll();
+        };
+
+
+
+        self.newFile = function () {
+            if (!self.klipperViewModel.hasPerm("CONFIG")) return;
+            var config = {
+                content: "",
+                file: "Change Filename",
+            };
+            self.klipperEditorViewModel.process(config).then(
+                function () { self.klipperViewModel.showEditorDialog(); }
+            );
+        };
+
+        self.openConfig = function (file) {
+            if (!self.klipperViewModel.hasPerm("CONFIG")) return;
+
+            OctoPrint.plugins.klipper.getCfg(file).done(function (response) {
+                var config = {
+                    content: response.response.config,
+                    file: file,
+                };
+                self.klipperEditorViewModel.process(config).then(
+                    function () { self.klipperViewModel.showEditorDialog(); }
+                );
+            });
+        };
+
+        self.onDataUpdaterPluginMessage = function (plugin, data) {
+            if (plugin == "klipper" && data.type == "reload" && data.subtype == "configlist") {
+                self.klipperViewModel.consoleMessage("debug", "onDataUpdaterPluginMessage klipper reload configlist");
+                self.listCfgFiles();
+            }
+        };
+    }
+
+    OCTOPRINT_VIEWMODELS.push({
+        construct: KlipperFilesViewModel,
+        dependencies: [
+            "settingsViewModel",
+            "klipperViewModel",
+            "klipperEditorViewModel"
+        ],
+        elements: ["#klipper_files_dialog"],
+    });
+});
