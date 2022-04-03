@@ -1,0 +1,110 @@
+<div id="klipper_files" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="klipper_files_label" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-bind="click: closeModal">&times;</button>
+    <h3 id="klipper_dialog_label">{{ _('Config Files') }}</h3>
+  </div>
+  <div class="modal-body">
+    <div class="klipper-row-fluid">
+      <div class="klipper-fluid-item-2" data-bind="visible: $root.klipperViewModel.hasRightKo('CONFIG')">
+        <div class="btn-group">
+          <button class="btn btn-small dropdown-toggle" data-toggle="dropdown"><i class="far fa-square"></i>
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a href="javascript:void(0)" data-bind="click: markFilesOnPage">{{ _('Select all on this page') }}</a></li>
+            <li><a href="javascript:void(0)" data-bind="click: markAllFiles">{{ _('Select all') }}</a></li>
+            <li class="divider"></li>
+            <li><a href="javascript:void(0)" data-bind="click: clearMarkedFiles">{{ _('Clear selection') }}</a></li>
+          </ul>
+        </div>
+        <button class="btn btn-small" data-bind="click: newFile" title="{{ _('Add new File') }}">
+          <i class="far fa-file"></i> {{ _('New File') }}
+        </button>
+        <button class="btn btn-small" data-bind="click: showEditor" title="{{ _('Open last config') }}">
+          <i class="fas fa-file-code"></i> {{ _('Open last Editor') }}
+        </button>
+        <button class="btn btn-small" data-bind="click: listCfgFiles" title="{{ _('Refresh file list') }}">
+          <i class="icon-refresh"></i> {{ _('Refresh Files') }}
+        </button>
+        <button class="btn btn-small"
+          data-bind="click: removeMarkedFiles, enable: markedForFileRemove().length > 0">{{ _('Delete selected') }}
+        </button>
+      </div>
+      <div class="pull-right">
+        <div class="btn-group">
+          <button class="btn btn-small dropdown-toggle" data-toggle="dropdown"><i class="fas fa-wrench"></i> <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-right">
+            <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('name'); }"><i class="fas fa-check"
+                    data-bind="style: {visibility: configs.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i> {{ _('Sort by name') }}
+                  ({{ _('ascending') }})</a>
+            </li>
+            <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('date'); }"><i class="fas fa-check"
+                    data-bind="style: {visibility: configs.currentSorting() == 'date' ? 'visible' : 'hidden'}"></i> {{ _('Sort by date') }}
+                  ({{ _('descending') }})</a>
+            </li>
+            <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('size'); }"><i class="fas fa-check"
+                    data-bind="style: {visibility: configs.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i> {{ _('Sort by file size') }}
+                  ({{ _('descending') }})</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <p class="klipper-inline" data-bind="text: actualPath" title="{{ _('Actual Path')}}"></p>
+    <div class="scroll-y">
+      <table class="table table-striped table-hover table-condensed table-hover table-fixed" id="klipper_cfg_files">
+        <thead>
+          <tr>
+            <th class="klipper_cfgs_checkbox span1"></th>
+            <th class="klipper_cfgs_name">{{ _('Name') }}</th>
+            <th class="klipper_cfgs_size">{{ _('Size') }}</th>
+            <th class="klipper_cfgs_action">{{ _('Action') }}</th>
+          </tr>
+        </thead>
+        <tbody data-bind="foreach: configs.paginatedItems">
+          <tr data-bind="attr: {title: name}">
+            <td class="klipper_cfgs_checkbox">
+              <input type="checkbox"
+                data-bind="value: name, checked: $root.markedForFileRemove, invisible: !$root.klipperViewModel.hasRightKo('CONFIG')">
+            </td>
+            <td class="klipper_cfgs_name" data-bind="text: name"></td>
+            <td class="klipper_cfgs_size" data-bind="text: size"></td>
+            <td class="klipper_cfgs_action">
+              <a href="javascript:void(0)" class="far fa-trash-alt" title="{{ _('Delete') }}"
+                data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, click: function() { $parent.removeCfg($data.name);}"></a>
+              &nbsp;|&nbsp;
+              <a href="javascript:void(0)" class="fas fa-download" title="{{ _('Download') }}"
+                data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, attr: { href: ($root.klipperViewModel.hasRightKo('CONFIG')()) ? $data.url : 'javascript:void(0)'}"></a>
+              &nbsp;|&nbsp;
+              <a href="javascript:void(0)" class="fas fa-pencil-alt" title="{{ _('Edit') }}"
+                data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, click: function() { $parent.openConfig($data.name);}"></a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination pagination-mini pagination-centered">
+      <ul>
+        <li data-bind="css: {disabled: configs.currentPage() === 0}"><a href="javascript:void(0)" data-bind="click: configs.prevPage">«</a></li>
+      </ul>
+      <ul data-bind="foreach: configs.pages">
+        <li data-bind="css: {active: $data.number === $root.configs.currentPage(), disabled: $data.number === -1 }">
+          <a href="javascript:void(0)" data-bind="text: $data.text, click: function() { $root.configs.changePage($data.number); }"></a>
+        </li>
+      </ul>
+      <ul>
+        <li data-bind="css: {disabled: configs.currentPage() === configs.lastPage()}">
+          <a href="javascript:void(0)"
+            data-bind="click: configs.nextPage">»
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a href="https://www.paypal.com/donate/?business=7P63W664NF8LA&item_name=OctoKlipper" class="btn btn-mini" target="_blank">
+      <i class="fab fa-paypal"> {{ _('Donate') }}</i>
+    </a>
+  </div>
+</div>
