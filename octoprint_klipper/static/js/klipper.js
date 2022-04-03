@@ -129,6 +129,15 @@ $(function () {
       });
     }
 
+    self.showFilesDialog = function () {
+      self.consoleMessage("debug", "showFilesDialog");
+      var dialog = $("#klipper_files_dialog");
+      dialog.modal({
+        show: "true",
+        backdrop: "static",
+      });
+    };
+
     self.showLevelingDialog = function () {
       var dialog = $("#klipper_leveling_dialog");
       dialog.modal({

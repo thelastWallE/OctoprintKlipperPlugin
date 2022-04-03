@@ -321,6 +321,12 @@ class KlipperPlugin(
             ),
             dict(
                 type="generic",
+                name="Config Files",
+                template="klipper_files.jinja2",
+                custom_bindings=True,
+            ),
+            dict(
+                type="generic",
                 name="Config Editor",
                 template="klipper_editor.jinja2",
                 custom_bindings=True,
@@ -353,6 +359,7 @@ class KlipperPlugin(
                 "js/klipper_graph.js",
                 "js/klipper_backup.js",
                 "js/klipper_editor.js",
+                "js/klipper_files.js",
             ],
             clientjs=["clientjs/klipper.js"],
             css=["css/klipper.css"],
