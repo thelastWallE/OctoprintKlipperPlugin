@@ -6,13 +6,19 @@
             title="{{ _('Open the OctoKlipper Settings') }}">
             <i class="fa icon-black fa-wrench"></i>
     </button>
-    <div class="plugin-klipper-log" data-bind="foreach: logMessages">
+    <div id="octoklipper-log" class="plugin-klipper-log" data-bind="foreach: logMessages, visible: fancyFunctionality(), event: { scroll: logScrollEvent }">
       <div class="log-item" data-bind="css: type">
         <div data-bind="text: time" class="ts"></div>
         <div data-bind="html: msg" class="msg"></div>
       </div>
     </div>
     &nbsp;
+    
+    <small id="octoklipper-log-autoscroll-panel" class="pull-left" data-bind="visible: fancyFunctionality()">
+        <button class="btn btn-mini terminal-autoscroll" data-bind="click: toggleAutoscroll, css: {active: autoscrollEnabled}">{{ _('Autoscroll') }}</button>
+        <span data-bind="text: lineCount, visible: enableFancyFunctionality"></span>
+        <span data-bind="visible: !autoscrollEnabled() && enableFancyFunctionality()" style="display: none">(<a href="javascript:void(0)" data-bind="click: scrollToEnd">{{ _("Scroll to end") }}</a>)</span>
+    </small>
     <button class="btn btn-mini pull-right clear-btn" data-bind="click: onClearLog" title="{{ _('Clear Log') }}">
       <i class="fa fa-trash"></i> {{ _('Clear Log') }}
     </button>
