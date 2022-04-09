@@ -36,6 +36,27 @@ $(function () {
     self.shortStatus_navbar_hover = ko.observable();
     self.shortStatus_sidebar = ko.observable();
     self.logMessages = ko.observableArray();
+    
+    self.tabActive = false;
+    self.autoscrollEnabled = ko.observable(true);
+    self.enableFancyFunctionality = ko.observable(true);
+    self.acceptableFancyTime = 500;
+    self.acceptableUnfancyTime = 300;
+    self.reenableTimeout = 5000;
+
+    self.forceFancyFunctionality = ko.observable(false);
+    self.forceTerminalLogDuringPrinting = ko.observable(false);
+
+    self.fancyFunctionality = ko.pureComputed(function () {
+        return self.enableFancyFunctionality() || self.forceFancyFunctionality();
+    });
+    self.terminalLogDuringPrinting = ko.pureComputed(function () {
+        return (
+            !self.disableTerminalLogDuringPrinting() ||
+            self.forceTerminalLogDuringPrinting()
+        );
+    });
+
 
     self.popup = undefined;
 
@@ -177,6 +198,15 @@ $(function () {
         self.settings.settings.plugins.klipper.connection.port()
       );
     };
+    
+    self.onAfterTabChange = function (current, previous) {
+      self.tabActive = current === "#tab_plugin_klipper_main";
+      self.updateOutput();
+    };
+    
+    self.onBrowserTabVisibilityChange = function (status) {
+      self.updateOutput();
+    };
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
 
@@ -236,6 +266,51 @@ $(function () {
         msg: message.replace(/\n/gi, "<br />"),
       });
     };
+    
+    self.scrollToEnd = function () {
+    	var container = self.fancyFunctionality()
+                ? $("#octoklipper-log")
+                : $("#octoklipper-log-lowfi");
+            if (container.length) {
+                container.scrollTop(container[0].scrollHeight);
+            }
+    };
+    
+    self.updateOutput = function () {
+      if (
+        self.tabActive &&
+        OctoPrint.coreui.browserTabVisible &&
+        self.autoscrollEnabled()
+      ) {
+        self.scrollToEnd();
+      }
+    };
+    
+    self.toggleAutoscroll = function () {
+      self.autoscrollEnabled(!self.autoscrollEnabled());
+
+      if (self.autoscrollEnabled()) {
+        self.updateOutput();
+      }
+    };
+    
+    self.logScrollEvent = _.throttle(function () {
+      var container = self.fancyFunctionality()
+        ? $("#octoklipper-log")
+        : $("#octoklipper-log-lowfi");
+      var pos = container.scrollTop();
+      var scrollingUp = self.previousScroll !== undefined && pos < self.previousScroll;
+	
+      if (self.autoscrollEnabled() && scrollingUp) {
+        var maxScroll = container[0].scrollHeight - container[0].offsetHeight;
+
+        if (pos <= maxScroll) {
+          self.autoscrollEnabled(false);
+        }
+      }
+
+      self.previousScroll = pos;
+	  }, 250);
 
     self.consoleMessage = function (type, message) {
       if (
