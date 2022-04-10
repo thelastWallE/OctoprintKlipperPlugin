@@ -37,7 +37,13 @@ $(function () {
     self.shortStatus_sidebar = ko.observable();
     self.logMessages = ko.observableArray();
     
+    self.log = ko.observableArray([]);
+    self.log.extend({throttle: 500});
+    self.plainLogLines = ko.observableArray([]);
+    self.plainLogLines.extend({throttle: 500});
+
     self.tabActive = false;
+    self.previousScroll = undefined;
     self.autoscrollEnabled = ko.observable(true);
     self.enableFancyFunctionality = ko.observable(true);
     self.acceptableFancyTime = 500;
@@ -266,16 +272,16 @@ $(function () {
         msg: message.replace(/\n/gi, "<br />"),
       });
     };
-    
+
     self.scrollToEnd = function () {
-    	var container = self.fancyFunctionality()
-                ? $("#octoklipper-log")
-                : $("#octoklipper-log-lowfi");
-            if (container.length) {
-                container.scrollTop(container[0].scrollHeight);
-            }
+      var container = self.fancyFunctionality()
+          ? $("#octoklipper-log")
+          : $("#octoklipper-log-lowfi");
+      if (container.length) {
+          container.scrollTop(container[0].scrollHeight);
+      }
     };
-    
+
     self.updateOutput = function () {
       if (
         self.tabActive &&
@@ -285,7 +291,7 @@ $(function () {
         self.scrollToEnd();
       }
     };
-    
+
     self.toggleAutoscroll = function () {
       self.autoscrollEnabled(!self.autoscrollEnabled());
 
@@ -293,7 +299,33 @@ $(function () {
         self.updateOutput();
       }
     };
-    
+
+    self.displayedLines = ko.pureComputed(function () {
+      if (!self.enableFancyFunctionality()) {
+        return self.log();
+      }
+
+      var regex = self.filterRegex();
+      var lineVisible = function (entry) {
+        return regex === undefined || !entry.line.match(regex);
+      };
+
+      var filtered = false;
+      var result = [];
+      var lines = self.log();
+      _.each(lines, function (entry) {
+        if (lineVisible(entry)) {
+          result.push(entry);
+          filtered = false;
+        } else if (!filtered) {
+          result.push(self._toInternalFormat("[...]", "filtered"));
+          filtered = true;
+        }
+      });
+
+      return result;
+    });
+
     self.logScrollEvent = _.throttle(function () {
       var container = self.fancyFunctionality()
         ? $("#octoklipper-log")
