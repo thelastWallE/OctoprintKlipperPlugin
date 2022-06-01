@@ -32,7 +32,7 @@ $(function () {
       "cache-control": "no-cache",
     });
 
-    $(window).on('resize', function() {
+    $(window).on('resize', function () {
       self.klipperViewModel.sleep(200).then(
         function () {
           self.setEditorDivSize();
@@ -55,7 +55,7 @@ $(function () {
           self.editorFocusDelay(1000);
           break;
         case 2:
-          self.saveCfg({closing: true});
+          self.saveCfg({ closing: true });
           break;
       }
     };
@@ -72,13 +72,13 @@ $(function () {
           selections: [gettext("Close"), gettext("Do not close"), gettext("Save & Close")],
           maycancel: false,
           onselect: function (index) {
-              if (index > -1) {
-                  self.close_selection(index);
-              }
+            if (index > -1) {
+              self.close_selection(index);
+            }
           },
         };
 
-          showSelectionDialog(opts);
+        showSelectionDialog(opts);
       } else {
         editordialog.modal('hide');
       }
@@ -89,8 +89,8 @@ $(function () {
     };
 
     self.setEditorDivSize = function () {
-      var klipper_modal_body= $('#klipper_editor .modal-body');
-      var klipper_config= $('#plugin-klipper-config');
+      var klipper_modal_body = $('#klipper_editor .modal-body');
+      var klipper_config = $('#plugin-klipper-config');
 
       var height = $(window).height() - $('#klipper_editor .modal-header').outerHeight() - $('#klipper_editor .modal-footer').outerHeight() - 118;
       self.addStyleAttribute(klipper_modal_body, 'height: ' + height + 'px !important;');
@@ -113,7 +113,7 @@ $(function () {
           editor.setFontSize(self.settings.settings.plugins.klipper.configuration.fontsize());
           editor.clearSelection();
           self.klipperViewModel.sleep(500).then(
-            function() {
+            function () {
               self.setEditorDivSize();
               resolve("done");
             }
@@ -141,7 +141,7 @@ $(function () {
     };
 
     //check if the config was externally changed and ask for a reload
-    self.checkExternChange = function() {
+    self.checkExternChange = function () {
       var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
       if (self.CfgChangedExtern && self.CfgFilename() == baseconfig) {
         if (editordialog.is(":visible")) {
@@ -165,8 +165,8 @@ $(function () {
     self.askSaveFaulty = function () {
       return new Promise(function (resolve) {
         var html = "<h5>" +
-        gettext("Your configuration seems to be faulty.") +
-        "</h5>";
+          gettext("Your configuration seems to be faulty.") +
+          "</h5>";
 
         showConfirmationDialog({
           title: gettext("Save faulty Configuration?"),
@@ -190,24 +190,31 @@ $(function () {
 
     self.checkSyntax = function () {
       return new Promise((resolve, reject) => {
-        if (editor.session) {
-          self.klipperViewModel.consoleMessage("debug", "checkSyntax started");
+        if (self.CfgFilename() == "Servicefile") {
+          self.klipperViewModel.showPopUp("success", gettext("SyntaxCheck"), gettext("Can't check syntax of Servicefile"));
+          self.editorFocusDelay(1000);
+          resolve(true);
+        } else {
 
-          OctoPrint.plugins.klipper.checkCfg(editor.session.getValue())
-            .done(function (response) {
-              if (response.is_syntax_ok == true) {
-                self.klipperViewModel.showPopUp("success", gettext("SyntaxCheck"), gettext("SyntaxCheck OK"));
-                self.editorFocusDelay(1000);
-                resolve(true);
-              } else {
-                self.editorFocusDelay(1000);
-                resolve(false);
-              }
-            })
-            .fail(function () {
-              reject(false);
-            });
-        } else { reject(false); }
+          if (editor.session) {
+            self.klipperViewModel.consoleMessage("debug", "checkSyntax started");
+
+            OctoPrint.plugins.klipper.checkCfg(editor.session.getValue())
+              .done(function (response) {
+                if (response.is_syntax_ok == true) {
+                  self.klipperViewModel.showPopUp("success", gettext("SyntaxCheck"), gettext("SyntaxCheck OK"));
+                  self.editorFocusDelay(1000);
+                  resolve(true);
+                } else {
+                  self.editorFocusDelay(1000);
+                  resolve(false);
+                }
+              })
+              .fail(function () {
+                reject(false);
+              });
+          } else { reject(false); }
+        }
       });
     };
 
@@ -215,7 +222,9 @@ $(function () {
       var options = options || {};
       var closing = options.closing || false;
 
-      if (self.CfgFilename() != "") {
+      if (self.CfgFilename() == "Servicefile" && editor.session) {
+        self.saveRequest(closing);
+      } else if (self.CfgFilename() != "") {
         if (editor.session) {
           if (self.settings.settings.plugins.klipper.configuration.parse_check() == true) {
 
@@ -295,35 +304,69 @@ $(function () {
 
     self.reloadFromFile = function () {
       if (self.CfgFilename() != "") {
-        OctoPrint.plugins.klipper.getCfg(self.CfgFilename())
-        .done(function (response) {
-          self.klipperViewModel.consoleMessage("debug", "reloadFromFile done");
-          if (response.response.text != "") {
-            showMessageDialog(
-              response.response.text,
-              {
-                title: gettext("Reload File")
+        if (self.CfgFilename() == "Servicefile") {
+          self.klipperViewModel.consoleMessage("debug", "Reload Servicefile");
+          OctoPrint.plugins.klipper.getServicefile()
+            .done(function (response) {
+              self.klipperViewModel.consoleMessage("debug", "Reload Servicefile done");
+              if (response.status == "error") {
+                showMessageDialog(
+                  response.data["body"],
+                  {
+                    title: gettext("Reload File")
+                  }
+                );
+              } else {
+                if (editor) {
+                  editor.setValue(response.data["body"]);
+
+                  //reset content for the is_dirty check on editor closing
+                  self.loadedConfig = response.data["body"];
+                  editor.clearSelection();
+                  editor.focus();
+                }
               }
-            );
-          } else {
-            self.klipperViewModel.showPopUp("success", gettext("Reload Config"), gettext("File reloaded."));
-            self.CfgChangedExtern = false;
-            if (editor) {
-              editor.session.setValue(response.response.config);
-              self.loadedConfig = response.response.config;
-              editor.clearSelection();
-              editor.focus();
-            }
-          }
-        })
-        .fail(function (response) {
-          showMessageDialog(
-            response,
-            {
-              title: gettext("Reload File")
-            }
-          );
-        });
+            })
+            .fail(function (response) {
+              showMessageDialog(
+                gettext("Error loading Servicefile:") + "<br>" + response,
+                {
+                  title: gettext("Reload File")
+                }
+              );
+            });
+        } else {
+          self.klipperViewModel.consoleMessage("debug", "Reload " + self.CfgFilename());
+          OctoPrint.plugins.klipper.getCfg(self.CfgFilename())
+            .done(function (response) {
+              self.klipperViewModel.consoleMessage("debug", "reloadFromFile done");
+              if (response.status == "error") {
+                showMessageDialog(
+                  response.data["body"],
+                  {
+                    title: gettext("Reload File")
+                  }
+                );
+              } else {
+                self.klipperViewModel.showPopUp("success", gettext("Reload Config"), gettext("File reloaded."));
+                self.CfgChangedExtern = false;
+                if (editor) {
+                  editor.session.setValue(response.data["body"]);
+                  self.loadedConfig = response.data["body"];
+                  editor.clearSelection();
+                  editor.focus();
+                }
+              }
+            })
+            .fail(function (response) {
+              showMessageDialog(
+                gettext("Error loading file:") + "<br>" + response,
+                {
+                  title: gettext("Reload File")
+                }
+              );
+            });
+        }
       } else {
         showMessageDialog(
           gettext("No filename set"),
@@ -366,29 +409,74 @@ $(function () {
     self.saveRequest = function (closing) {
       self.klipperViewModel.consoleMessage("debug", "SaveCfg start");
 
-      OctoPrint.plugins.klipper.saveCfg(editor.session.getValue(), self.CfgFilename())
-        .done(function (response) {
-          if (response.saved === true) {
-            self.klipperViewModel.showPopUp("success", gettext("Save Config"), gettext("File saved."));
-            self.loadedConfig = editor.session.getValue(); //set loaded config to current for resetting dirtyEditor
-            if (closing) {
-              editordialog.modal('hide');
+      if (self.CfgFilename() == "Servicefile") {
+        self.klipperViewModel.consoleMessage("debug", "Save Servicefile");
+        OctoPrint.plugins.klipper.saveServicefile(editor.session.getValue())
+          .done(function (response) {
+            self.klipperViewModel.consoleMessage("debug", "Save Servicefile done");
+            if (response.saved === true) {
+              self.klipperViewModel.showPopUp("success", gettext("Save Servicefile"), gettext("Servicefile saved."));
+              if (response.hostsystem == "Linux") {
+                showMessageDialog(
+                  gettext("Run this command in your linux shell to reload the servicefile for klipper.")
+                  + "<br><b>Warning: This will stop ongoing prints!</b>"
+                  + "<br><br>"
+                  + "    sudo cp -T -v " + response.path + " /etc/default/klipper<br>    sudo systemctl restart klipper<br><br>",
+                  {
+                    title: gettext("Manually action needed")
+                  }
+                );
+              }
+              self.loadedConfig = editor.session.getValue(); //set loaded config to current for resetting dirtyEditor
+              if (closing) {
+                editordialog.modal('hide');
+              }
+            } else {
+              showMessageDialog(
+                gettext('File not saved!'),
+                {
+                  title: gettext("Save Servicefile"),
+                  onclose: function () { self.editorFocusDelay(1000); }
+                }
+              );
             }
-            if (self.settings.settings.plugins.klipper.configuration.restart_onsave() == true) {
-              self.klipperViewModel.requestRestart();
-            }
-          } else {
+          })
+          .fail(function (response) {
             showMessageDialog(
-              gettext('File not saved!'),
+              response,
               {
-                title: gettext("Save Config"),
-                onclose: function () { self.editorFocusDelay(1000); }
+                title: gettext("Save Servicefile")
               }
             );
-          }
-        });
+          });
+      } else {
+
+        OctoPrint.plugins.klipper.saveCfg(editor.session.getValue(), self.CfgFilename())
+          .done(function (response) {
+            if (response.status == "success") {
+              self.klipperViewModel.showPopUp("success", gettext("Save Config"), gettext("File saved."));
+              self.loadedConfig = editor.session.getValue(); //set loaded config to current for resetting dirtyEditor
+              if (closing) {
+                editordialog.modal('hide');
+              }
+              if (self.settings.settings.plugins.klipper.configuration.restart_onsave() == true) {
+                self.klipperViewModel.requestRestart();
+              }
+            } else {
+              showMessageDialog(
+                gettext('File not saved!')
+                + "<br>" + response.error["message"],
+                {
+                  title: gettext("Save Config"),
+                  onclose: function () { self.editorFocusDelay(1000); }
+                }
+              );
+            }
+          });
+      };
     };
-  }
+
+  };// end KlipperEditorViewModel
 
   OCTOPRINT_VIEWMODELS.push({
     construct: KlipperEditorViewModel,

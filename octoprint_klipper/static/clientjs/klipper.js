@@ -10,12 +10,36 @@
     this.url = this.base.getBlueprintUrl("klipper");
   };
 
+  OctoKlipperClient.prototype.getServerInfo = function (opts) {
+    return this.base.get(this.url + "/serverinfo", opts);
+  };
+
   OctoKlipperClient.prototype.restartKlipper = function (opts) {
     return this.base.post(this.url + "restart", opts);
   };
 
   OctoKlipperClient.prototype.getCfg = function (config, opts) {
     return this.base.get(this.url + "config/" + config, opts);
+  };
+
+  OctoKlipperClient.prototype.modifyServicefile = function (path, opts) {
+    path = path || [];
+
+    var data = {
+      PathToConfigs: path,
+    };
+
+    return this.base.postJson(this.url + "servicefile/modify", data, opts);
+  };
+
+  OctoKlipperClient.prototype.saveServicefile = function (content, opts) {
+    content = content || [];
+
+    var data = {
+      DataToSave: content,
+    };
+
+    return this.base.postJson(this.url + "servicefile/save", data, opts);
   };
 
   OctoKlipperClient.prototype.getCfgBak = function (backup, opts) {

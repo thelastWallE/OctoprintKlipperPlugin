@@ -31,15 +31,27 @@ $(function () {
 
     self.markedForFileRemove = ko.observableArray([]);
     self.PathToConfigs = ko.observable("");
+    self.serverOS = ko.observable("");
 
-    $(document).on('shown.bs.modal','#klipper_editor', function () {
+    var changeConfigPath = function () {
+      self.settings.settings.plugins.klipper.configuration.config_path(self.configPath());
+    };
+
+    self.getConfigPath = function () {
+      self.configPath(self.settings.settings.plugins.klipper.configuration.config_path());
+    };
+    self.configPath = ko.observable("");
+    self.configPath.subscribe(changeConfigPath);
+
+
+    $(document).on('shown.bs.modal', '#klipper_editor', function () {
       self.klipperEditorViewModel.onShown();
     });
 
     self.checkFontsize = function () {
       if (self.settings.settings.plugins.klipper.configuration.fontsize() > 20) {
         self.settings.settings.plugins.klipper.configuration.fontsize(20)
-      } else if (self.settings.settings.plugins.klipper.configuration.fontsize()< 9) {
+      } else if (self.settings.settings.plugins.klipper.configuration.fontsize() < 9) {
         self.settings.settings.plugins.klipper.configuration.fontsize(9)
       }
     }
@@ -75,8 +87,27 @@ $(function () {
     );
 
     self.onStartupComplete = function () {
+      self.getConfigPath();
+      self.getServerInfo();
       self.listCfgFiles();
       self.loadBaseConfig();
+    };
+
+    self.getServerInfo = function () {
+      self.klipperViewModel.consoleMessage("debug", "getServerInfo started");
+      // version 1 get OS of Server
+      OctoPrint.plugins.klipper.getServerInfo()
+        .done(function (response) {
+          if (response.status == "success") {
+            self.klipperViewModel.consoleMessage("debug", "getServerInfo response: " + JSON.stringify(response));
+            self.serverOS(response.data.body);
+          } else {
+            self.klipperViewModel.consoleMessage("error", "getServerInfo response: " + JSON.stringify(response));
+          }
+        })
+        .fail(function (response) {
+          self.klipperViewModel.consoleMessage("error", "getServerInfo response: " + JSON.stringify(response));
+        });
     };
 
     self.listCfgFiles = function () {
@@ -96,14 +127,51 @@ $(function () {
       var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
       if (baseconfig != "") {
         self.klipperViewModel.consoleMessage("debug", "loadBaseConfig:" + baseconfig);
-        OctoPrint.plugins.klipper.getCfg(baseconfig).done(function (response) {
-          var config = {
-            content: response.response.config,
-            file: baseconfig,
-          };
-          self.klipperEditorViewModel.process(config).then();
-        });
+        OctoPrint.plugins.klipper.getCfg(baseconfig)
+          .done(function (response) {
+            if (response.status == "success") {
+              var config = {
+                content: response.data["body"],
+                file: baseconfig,
+              };
+              self.klipperEditorViewModel.process(config).then();
+            } else {
+              self.klipperViewModel.consoleMessage("error", "loadBaseConfig failed: " + response.data["body"]);
+            }
+          })
+          .fail(function (response) {
+            self.klipperViewModel.consoleMessage("error", "loadBaseConfig failed: " + response);
+          });
       }
+    };
+
+    self.modifyServicefile = function () {
+      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+
+      self.klipperViewModel.consoleMessage("debug", "modifyServiceFile");
+      OctoPrint.plugins.klipper.modifyServicefile(self.configPath())
+        .done(function (response) {
+          if (response.data) {
+            self.klipperViewModel.consoleMessage("debug", "modifyServiceFile done");
+            self.klipperViewModel.showPopUp("success", gettext("Modify Servicefile"), gettext("Servicefile modified."));
+            showMessageDialog(
+              gettext("Copy and run these commands in your linux shell to copy the new servicefile for Klipper.")
+              + "<br><b>Warning: This will stop ongoing prints!</b>"
+              + "<br><br>"
+              + "    sudo cp -T -v " + response.data.path + " /etc/default/klipper<br>    sudo systemctl restart klipper<br><br>",
+              {
+                title: gettext("Manually action needed")
+              }
+            );
+          } else if (response.error) {
+            self.klipperViewModel.consoleMessage("error", "modifyServiceFile failed: " + response.error.message);
+            self.klipperViewModel.showPopUp("error", gettext("Modify Servicefile"), response.error.message);
+          }
+        })
+        .fail(function (response) {
+          self.klipperViewModel.consoleMessage("error", "modifyServiceFile failed: " + response.responseJSON.error);
+          self.klipperViewModel.showPopUp("error", gettext("Modify Servicefile"), response.responseJSON.error);
+        });
     };
 
     self.removeCfg = function (config) {
@@ -240,22 +308,30 @@ $(function () {
         file: "Change Filename",
       };
       self.klipperEditorViewModel.process(config).then(
-        function() { self.showEditor(); }
+        function () { self.showEditor(); }
       );
     };
 
     self.openConfig = function (file) {
       if (!self.klipperViewModel.hasRight("CONFIG")) return;
 
-      OctoPrint.plugins.klipper.getCfg(file).done(function (response) {
-        var config = {
-          content: response.response.config,
-          file: file,
-        };
-        self.klipperEditorViewModel.process(config).then(
-          function() { self.showEditor(); }
-        );
-      });
+      OctoPrint.plugins.klipper.getCfg(file)
+        .done(function (response) {
+          if (response.status == "success") {
+            var config = {
+              content: response.data["body"],
+              file: file,
+            };
+            self.klipperEditorViewModel.process(config).then(
+              function () { self.showEditor(); }
+            );
+          } else {
+            self.klipperViewModel.consoleMessage("error", "openConfig failed: " + response.data["body"]);
+          }
+        })
+        .fail(function (response) {
+          self.klipperViewModel.consoleMessage("error", "openConfig failed: " + response);
+        });
     };
 
     self.addMacro = function () {
