@@ -33,7 +33,7 @@ $(function () {
     self.fontSize = ko.observable("");
 
     var optionsLocalStorageKey = "OctoKlipper.options";
-    
+
     self._toLocalStorage = function () {
       saveToLocalStorage(optionsLocalStorageKey, { fontSize: self.fontSize() });
     };

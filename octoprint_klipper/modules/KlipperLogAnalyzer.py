@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # <Octoprint Klipper Plugin>
 
 # This program is free software: you can redistribute it and/or modify
@@ -45,9 +46,11 @@ class KlipperLogAnalyzer:
 
     def analyze(self):
         data = self.parse_log(self.log_file, None)
-        result1 = self.plot_mcu(data, self.MAXBANDWIDTH) if data else dict(
-                error='No relevant data available in "{}"'.format(self.log_file)
-            )
+        result1 = (
+            self.plot_mcu(data, self.MAXBANDWIDTH)
+            if data
+            else dict(error='No relevant data available in "{}"'.format(self.log_file))
+        )
         return dict(plot=result1, logfiledata=self.read_log_file(self.log_file))
 
     def parse_log(self, logname, mcu):

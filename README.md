@@ -71,4 +71,3 @@ Also for the moment this plugin does what I wanted it to do, it is far from fini
 
 #### Performance Graph
 ![Performance Grap](docs/assets/img/performance-graph.png)
-

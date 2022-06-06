@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import octoprint_klipper.utils.logger as logger
 
 
@@ -40,7 +41,9 @@ def migrate_settings(self, settings, old, new, new2=""):
             )
             settings.set([new, new2], settings.get(old))
         else:
-            logger.log_info(self, False, "migrate setting for '" + old + "' -> '" + new + "'")
+            logger.log_info(
+                self, False, "migrate setting for '" + old + "' -> '" + new + "'"
+            )
             settings.set([new], settings.get(old))
         settings.remove(old)
 

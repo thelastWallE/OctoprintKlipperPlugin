@@ -4,8 +4,11 @@
       <select id="connection_printers" data-bind="options: connectionState.printerOptions, optionsText: 'name', optionsValue: 'id', value: connectionState.selectedPrinter, css: {disabled: !connectionState.isErrorOrClosed()}, enable: connectionState.isErrorOrClosed() && loginState.isUser()"></select>
       <button class="btn btn-block" data-bind="click: connectionState.connect, text: connectionState.buttonText(), enable: loginState.isUser()">{{ _('Connect') }}</button>
       <!-- ko ifnot: settings.settings.plugins.klipper.connection.hide_editor_button -->
-        <button class="btn btn-block" title="{{ _('Open Editor') }}" data-bind="visible: hasRightKo('CONFIG'), click: showEditorDialog">{{ _('Open Editor') }}</button>
-      <!-- /ko -->
+      <div class="btn-group action-buttons klipper-row-fluid">
+        <button class="btn klipper-fluid-item-1" title="{{ _('Configs') }}" data-bind="visible: hasRightKo('CONFIG'), click: showFilesDialog">{{ _('Configs') }}</button>
+        <button class="btn klipper-fluid-item-1" title="{{ _('Open Editor') }}" data-bind="visible: hasRightKo('CONFIG'), click: showEditorDialog">{{ _('Open Editor') }}</button>
+      </div>
+        <!-- /ko -->
  </div>
 </div>
 <!-- ko if: settings.settings.plugins.klipper.configuration.shortStatus_sidebar -->
