@@ -12,10 +12,14 @@
   };
 
   var downloadUrl = "download/configs";
-  var url = OctoKlipperClient.url;
+  var url = this.url;
 
   OctoKlipperClient.prototype.get = function (refresh, opts) {
     return this.base.get(this.url, opts);
+  };
+
+  OctoKlipperClient.prototype.getServerInfo = function (opts) {
+    return this.base.get(this.url + "/serverinfo", opts);
   };
 
   OctoKlipperClient.prototype.restartKlipper = function (opts) {
@@ -30,6 +34,16 @@
     return this.base.get(this.url + "config/" + config, opts);
   };
 
+  OctoKlipperClient.prototype.modifyServicefile = function (path, opts) {
+    path = path || [];
+
+    var data = {
+      PathToConfigs: path,
+    };
+
+    return this.base.postJson(this.url + "servicefile/modify", data, opts);
+  };
+
   OctoKlipperClient.prototype.getCfgBak = function (backup, opts) {
     return this.base.get(this.url + "backup/" + backup, opts);
   };
@@ -37,11 +51,6 @@
   OctoKlipperClient.prototype.listCfg = function (opts) {
     return this.base.get(this.url + "config/list", opts);
   };
-
-
-  var downloadUrl ="downloads/files";
-  var url = this.url;
-
 
   var resourceForLocation = function (location) {
     return url + "/" + OctoPrintClient.escapePath(location);

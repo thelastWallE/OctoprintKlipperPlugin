@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 import platform
+import os
+import datetime
+import glob
+import io
+import re
 import shlex
 import subprocess
 
+from shutil import copy
 from flask_babel import gettext
 
 import logger
@@ -127,3 +133,189 @@ def is_float(value):
         return True
     except ValueError:
         return False
+
+
+def copy_file(self, file, dst):
+    """Copy the file to the destination.
+
+    Args:
+        file (str): Filepath of the file to copy.
+        dst (str): Path to copy the file to.
+
+    Returns:
+        dict: The result as a dict.
+    """
+
+    if os.path.isfile(file):
+        try:
+            copy(file, dst)
+        except IOError as Error:
+            logger.log_error(self, "Error: File not found at: {}".format(file))
+            return {"status": "error", "error": {"message": Error}}
+        else:
+            logger.log_debug(self, "File copied: " + file)
+            return {"status": "success"}
+    return {
+        "status": "error",
+        "error": {"message": "File not found at: {}".format(file)},
+    }
+
+
+def save_servicefile(self, content, config_path):
+    """Save the service file to the configured path for the configs.
+
+    Args:
+        content (str): The content of the servicefile.
+        config_path (str): The path to save the servicefile to.
+
+    Returns:
+        dict: The result as a dict.
+    """
+
+    logger.log_debug(self, "Save klipper servicefile")
+
+    servicefile_basename = "klipper.service"
+    servicefile_path = os.path.join(config_path, servicefile_basename)
+    logger.log_debug(self, "Writing Klipper servicefile to {}".format(servicefile_path))
+
+    if not os.path.exists(config_path):
+        try:
+            os.mkdir(config_path)
+        except OSError as Error:
+            logger.log_error(
+                self,
+                "Error: Creation of the backup directory {} failed".format(config_path),
+            )
+            return {"status": "error", "error": {"message": Error}}
+        else:
+            logger.log_debug(self, "Directory {} created".format(config_path))
+
+    try:
+        with io.open(servicefile_path, "w", encoding="utf-8") as f:
+            f.write(content)
+    except IOError as Error:
+        logger.log_error(
+            self,
+            "Error: Couldn't write Klipper servicefile: {}".format(servicefile_path),
+        )
+        return {"status": "error", "error": {"message": Error}}
+    else:
+        logger.log_debug(self, "Written Klipper config to {}".format(servicefile_path))
+    finally:
+        success, error = copy_servicefile_to_backup(self, servicefile_path)
+        if not success:
+            return {"status": "error", "error": {"message": error}}
+    return {"status": "success", "data": {"path": servicefile_path}}
+
+
+# open servicefile and change it using regex
+def modify_servicefile(self, servicefile_path, replace, config_path):
+    """Open the servicefile and change the content using regex.
+
+    Args:
+        servicefile_path (str): The path to the servicefile.
+        regex (str): The regex to search for.
+        replace (str): The replacement string.
+        config_path (str): The path to the configs.
+
+    Returns:
+        dict: The result as a dict.
+    """
+
+    logger.log_debug(self, "Change Klipper servicefile")
+
+    try:
+        with io.open(servicefile_path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except IOError as error:
+        logger.log_error(
+            self,
+            "Error: Couldn't open Klipper config file: {}".format(servicefile_path),
+        )
+        return dict(error=dict(message=error))
+    else:
+        logger.log_debug(self, "Read Klipper config from {}".format(servicefile_path))
+        splitted_content = re.split(r"klippy\.py", content)
+        after_configpath = re.split(r"^\s?\S*\s?", splitted_content[1])
+        content = (
+            splitted_content[0] + "klippy.py " + replace + " " + after_configpath[1]
+        )
+
+        return save_servicefile(self, content, config_path)
+
+
+def copy_servicefile_to_backup(self, source):
+    """Copy the servicefile to backup directory of OctoKlipper.
+
+    Args:
+        source (str): Path to the file to copy.
+
+    Returns:
+        bool: True if the file was copied successfully. False otherwise.
+        str: Message if the file was not copied.
+    """
+
+    if not os.path.isfile(source):
+        return False, "Couldn't find Klipper servicefile"
+
+    servicefile_bak_path = os.path.join(
+        self.get_plugin_data_folder(), "configs", "servicefile", ""
+    )
+    result, error = create_directory(self, servicefile_bak_path)
+    if not result:
+        return False, error
+
+    logger.log_debug(
+        self, "copy_servicefile_to_backup: " + source + " to " + servicefile_bak_path
+    )
+    if source == servicefile_bak_path:
+        return False, "Source and destination are the same"
+    backups_list = glob.glob1(servicefile_bak_path, "Servicefile*")
+    if len(backups_list) >= 5:
+        logger.log_debug(
+            self, "deleting oldest backup file: {}".format(backups_list[0])
+        )
+        try:
+            os.remove(os.path.join(servicefile_bak_path, backups_list[0]))
+        except OSError as Error:
+            logger.log_error(
+                self,
+                "Error: Couldn't delete oldest backup file: {}".format(backups_list[0]),
+            )
+            return False, Error
+    result, error = copy_file(
+        self,
+        source,
+        servicefile_bak_path
+        + "Servicefile_"
+        + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        + ".bak",
+    )
+    if not result:
+        logger.log_error(self, "Error: Couldn't copy file: {}".format(error))
+        return False, error
+    logger.log_debug(self, "Servicefile Backup " + servicefile_bak_path + " written")
+    return True, None
+
+
+def create_directory(self, path):
+    """Create a directory.
+
+    Args:
+        path (str): The path to the directory.
+
+    Returns:
+        dict: The result of the creation as a dict.
+    """
+
+    if not os.path.exists(path):
+        try:
+            os.mkdir(path)
+        except OSError as Error:
+            logger.log_error(
+                self, "Error: Creation of the directory {} failed".format(path)
+            )
+            return {"status": "error", "error": Error}
+        else:
+            logger.log_debug(self, "Directory {} created".format(path))
+            return {"status": "success"}

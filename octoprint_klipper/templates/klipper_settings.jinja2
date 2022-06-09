@@ -12,7 +12,8 @@
       <div class="control-group">
         <label class="control-label">{{ _('Serial Port') }}</label>
         <div class="controls">
-          <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.klipper.connection.port" />
+          <input type="text" class="input-block-level"
+            data-bind="value: settings.settings.plugins.klipper.connection.port" />
         </div>
       </div>
       <div class="control-group">
@@ -25,17 +26,19 @@
       <div class="control-group">
         <label class="control-label">{{ _('Hide \'Open Editor\' Button\nin the Connection Panel') }}</label>
         <div class="controls">
-          <input class="controls-checkbox" title="{{ _('Hide \'Open Editor\' Button\nin the Connection Panel') }}" type="checkbox"
-            data-bind="checked: settings.settings.plugins.klipper.connection.hide_editor_button">
+          <input class="controls-checkbox" title="{{ _('Hide \'Open Editor\' Button\nin the Connection Panel') }}"
+            type="checkbox" data-bind="checked: settings.settings.plugins.klipper.connection.hide_editor_button">
         </div>
       </div>
       <div class="control-group border">
         <label class="control-label">{{ _('Show Short Messages') }}</label>
         <div class="controls">
           <label class="checkbox" title="{{ _('on NavBar') }}"><input type="checkbox"
-              data-bind="checked: settings.settings.plugins.klipper.configuration.shortStatus_navbar" /> {{ _('on NavBar') }}</label>
+              data-bind="checked: settings.settings.plugins.klipper.configuration.shortStatus_navbar" />
+            {{ _('on NavBar') }}</label>
           <label class="checkbox" title="{{ _('on SideBar') }}"><input type="checkbox"
-              data-bind="checked: settings.settings.plugins.klipper.configuration.shortStatus_sidebar" /> {{ _('on SideBar') }}</label>
+              data-bind="checked: settings.settings.plugins.klipper.configuration.shortStatus_sidebar" />
+            {{ _('on SideBar') }}</label>
         </div>
       </div>
       <div class="control-group">
@@ -56,7 +59,8 @@
         <label class="control-label">{{ _('Config Editor') }}</label>
         <div class="controls">
           <label class="checkbox" title="{{ _('Check parsing on save') }}"><input type="checkbox"
-            data-bind="checked: settings.settings.plugins.klipper.configuration.parse_check" /> {{ _('Check parsing on save') }}
+              data-bind="checked: settings.settings.plugins.klipper.configuration.parse_check" />
+            {{ _('Check parsing on save') }}
           </label>
         </div>
       </div>
@@ -70,20 +74,31 @@
       <div class="control-group">
         <label class="control-label">{{ _('Klipper Config Directory') }}</label>
         <div class="controls">
-          <input type="text" class="input-block-level"
-            data-bind="value: settings.settings.plugins.klipper.configuration.config_path" />
+          <input type="text" class="input-block-level" data-bind="value: configPath" />
         </div>
-      </div>
-      <div class="control-group">
-        <label class="control-label" title="{{ _('The filename of the base config that Klipper is loading. (default is printer.cfg)') }}">{{ _('Klipper Base Config Filename') }}</label>
+        <!-- ko if: serverOS() == "Linux" -->
         <div class="controls">
-          <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.klipper.configuration.baseconfig" />
+          {{ _(' You need to also modify the servicefile for Klipper.') }}
+          <button class="btn btn-small" data-bind="click: modifyServicefile" title="{{ _('Modify Servicefile') }}">
+            {{ _('Modify Klipper Servicefile') }}
+          </button>
+        </div>
+        <!-- /ko -->
+      </div>
+
+      <div class="control-group">
+        <label class="control-label"
+          title="{{ _('The filename of the base config that Klipper is loading. (default is printer.cfg)') }}">{{ _('Klipper Base Config Filename') }}</label>
+        <div class="controls">
+          <input type="text" class="input-block-level"
+            data-bind="value: settings.settings.plugins.klipper.configuration.baseconfig" />
         </div>
       </div>
       <div class="control-group">
         <label class="control-label">{{ _('Klipper Log File') }}</label>
         <div class="controls">
-          <input type="text" class="input-block-level" data-bind="value: settings.settings.plugins.klipper.configuration.logpath" />
+          <input type="text" class="input-block-level"
+            data-bind="value: settings.settings.plugins.klipper.configuration.logpath" />
         </div>
       </div>
       <div class="control-group border">
@@ -97,15 +112,18 @@
             {{ _('The command that is executed if you want to restart klipper.') }}
           </span>
           <label class="checkbox" title="{{ _('Restart klipper on editor save?') }}"><input type="checkbox"
-            data-bind="checked: settings.settings.plugins.klipper.configuration.restart_onsave" /> {{ _('Restart Klipper on editor save?') }}
+              data-bind="checked: settings.settings.plugins.klipper.configuration.restart_onsave" />
+            {{ _('Restart Klipper on editor save?') }}
           </label>
           <label class="checkbox" title="{{ _('Show Confirmation before restarting Klipper?') }}"><input type="checkbox"
-            data-bind="checked: settings.settings.plugins.klipper.configuration.confirm_reload" /> {{ _('Confirmation before restarting Klipper?') }}
+              data-bind="checked: settings.settings.plugins.klipper.configuration.confirm_reload" />
+            {{ _('Confirmation before restarting Klipper?') }}
           </label>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label" title="{{ _('Restart Host system command') }}">{{ _('Restart Host system command') }}</label>
+        <label class="control-label"
+          title="{{ _('Restart Host system command') }}">{{ _('Restart Host system command') }}</label>
         <div class="controls">
           <input type="text" class="input-block-level"
             data-bind="value: settings.settings.plugins.klipper.configuration.restart_host_command" />
@@ -146,15 +164,20 @@
                 <input type="text" class="input-block-level" data-bind="value: name" />
               </div>
               <div class="span1" style="margin: auto; text-align: center;">
-                <input title="{{ _('Klipper Tab') }}" style="margin: auto;" type="checkbox" class="input-block-level" data-bind="checked: tab" />
+                <input title="{{ _('Klipper Tab') }}" style="margin: auto;" type="checkbox" class="input-block-level"
+                  data-bind="checked: tab" />
               </div>
               <div class="span1" style="margin: auto; text-align: center;">
-                <input title="{{ _('Sidebar') }}" style="margin: auto;" type="checkbox" class="input-block-level" data-bind="checked: sidebar" />
+                <input title="{{ _('Sidebar') }}" style="margin: auto;" type="checkbox" class="input-block-level"
+                  data-bind="checked: sidebar" />
               </div>
               <div class="span2" style="margin: auto; text-align: center;">
-                <a href='#' style="vertical-align: bottom;" data-bind='click: $parent.moveMacroUp' class="fa fa-chevron-up"></a>
-                <a href='#' style="vertical-align: bottom;" data-bind='click: $parent.moveMacroDown' class="fa fa-chevron-down"></a>
-                <a href='#' style="vertical-align: bottom;" data-bind='click: $parent.removeMacro' class="fa fa-trash-o"></a>
+                <a href='#' style="vertical-align: bottom;" data-bind='click: $parent.moveMacroUp'
+                  class="fa fa-chevron-up"></a>
+                <a href='#' style="vertical-align: bottom;" data-bind='click: $parent.moveMacroDown'
+                  class="fa fa-chevron-down"></a>
+                <a href='#' style="vertical-align: bottom;" data-bind='click: $parent.removeMacro'
+                  class="fa fa-trash-o"></a>
               </div>
             </div>
           </div>
@@ -171,7 +194,8 @@
       </div>
       <div class="control-group">
         <div class="controls">
-          <a href='#' data-bind='click: addMacro' title="{{ _('Add Macro') }}" class="fa fa-plus-circle"></a> {{ _('Add Macro') }}
+          <a href='#' data-bind='click: addMacro' title="{{ _('Add Macro') }}" class="fa fa-plus-circle"></a>
+          {{ _('Add Macro') }}
         </div>
       </div>
       <div class="control-group">
@@ -185,8 +209,12 @@
           <div class="row-fluid">
             <div class="span12" style="margin-top:2px;">
               <div style="position: relative;">
-                <textarea readonly style='cursor: text; mix-blend-mode: difference; font-family: "Lucida Console", "Courier New", monospace;' rows="2" class="block klipper-noresize">PID_CALIBRATE HEATER={label:Heater, default:extruder, options:extruder|extruder1} TARGET={label:Target Temperature, unit:°C, default:190} WRITE_FILE={label:Write to File, default:0, options:0|1}</textarea>
-                <i id="klipper-copyToClipboard" class="far fa-clone klipper-copyicon" data-original-title="{{ _('Copy to Clipboard') }}"></i>
+                <textarea readonly
+                  style='cursor: text; mix-blend-mode: difference; font-family: "Lucida Console", "Courier New", monospace;'
+                  rows="2"
+                  class="block klipper-noresize">PID_CALIBRATE HEATER={label:Heater, default:extruder, options:extruder|extruder1} TARGET={label:Target Temperature, unit:°C, default:190} WRITE_FILE={label:Write to File, default:0, options:0|1}</textarea>
+                <i id="klipper-copyToClipboard" class="far fa-clone klipper-copyicon"
+                  data-original-title="{{ _('Copy to Clipboard') }}"></i>
               </div>
             </div>
           </div>
@@ -204,7 +232,8 @@
         <label class="control-label">{{ _('Probe Height') }}</label>
         <div class="controls">
           <div class="input-append">
-            <input type="text" class="input-block-level span3" data-bind="value: settings.settings.plugins.klipper.probe.height" />
+            <input type="text" class="input-block-level span3"
+              data-bind="value: settings.settings.plugins.klipper.probe.height" />
             <span class="add-on">mm</span>
           </div>
           <span class="help-inline">{{ _('Z-height to probe at') }}</span>
@@ -214,7 +243,8 @@
         <label class="control-label">{{ _('Probe Lift') }}</label>
         <div class="controls">
           <div class="input-append">
-            <input type="text" class="input-block-level span3" data-bind="value: settings.settings.plugins.klipper.probe.lift" />
+            <input type="text" class="input-block-level span3"
+              data-bind="value: settings.settings.plugins.klipper.probe.lift" />
             <span class="add-on">mm</span>
           </div>
           <span class="help-inline">{{ _('Lift Head by this amount before moving.') }}</span>
@@ -224,7 +254,8 @@
         <label class="control-label">{{ _('Probe Feedrate Z') }}</label>
         <div class="controls">
           <div class="input-append">
-            <input type="text" class="input-block-level span3" data-bind="value: settings.settings.plugins.klipper.probe.speed_z" />
+            <input type="text" class="input-block-level span3"
+              data-bind="value: settings.settings.plugins.klipper.probe.speed_z" />
             <span class="add-on">mm/min</span>
           </div>
         </div>
@@ -233,7 +264,8 @@
         <label class="control-label">{{ _('Feedrate X/Y') }}</label>
         <div class="controls">
           <div class="input-append">
-            <input type="text" class="input-block-level span3" data-bind="value: settings.settings.plugins.klipper.probe.speed_xy" />
+            <input type="text" class="input-block-level span3"
+              data-bind="value: settings.settings.plugins.klipper.probe.speed_xy" />
             <span class="add-on">mm/min</span>
           </div>
         </div>
@@ -266,7 +298,8 @@
       </div>
       <div class="control-group">
         <div class="controls">
-          <a href='#' data-bind="click: addProbePoint" title="{{ _('Add Point') }}" class="fa fa-plus-circle"></a> {{_ ('Add Point') }}
+          <a href='#' data-bind="click: addProbePoint" title="{{ _('Add Point') }}" class="fa fa-plus-circle"></a>
+          {{_ ('Add Point') }}
         </div>
       </div>
     </div>
@@ -281,7 +314,8 @@
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                <li><a href="javascript:void(0)" data-bind="click: markFilesOnPage">{{ _('Select all on this page') }}</a></li>
+                <li><a href="javascript:void(0)"
+                    data-bind="click: markFilesOnPage">{{ _('Select all on this page') }}</a></li>
                 <li><a href="javascript:void(0)" data-bind="click: markAllFiles">{{ _('Select all') }}</a></li>
                 <li class="divider"></li>
                 <li><a href="javascript:void(0)" data-bind="click: clearMarkedFiles">{{ _('Clear selection') }}</a></li>
@@ -302,16 +336,23 @@
           </div>
           <div class="pull-right">
             <div class="btn-group">
-              <button class="btn btn-small dropdown-toggle" data-toggle="dropdown"><i class="fas fa-wrench"></i> <span class="caret"></span></button>
+              <button class="btn btn-small dropdown-toggle" data-toggle="dropdown"><i class="fas fa-wrench"></i> <span
+                  class="caret"></span></button>
               <ul class="dropdown-menu dropdown-menu-right">
-                <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('name'); }"><i class="fas fa-check"
-                      data-bind="style: {visibility: configs.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i> {{ _('Sort by name') }}
+                <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('name'); }"><i
+                      class="fas fa-check"
+                      data-bind="style: {visibility: configs.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i>
+                    {{ _('Sort by name') }}
                     ({{ _('ascending') }})</a></li>
-                <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('date'); }"><i class="fas fa-check"
-                      data-bind="style: {visibility: configs.currentSorting() == 'date' ? 'visible' : 'hidden'}"></i> {{ _('Sort by date') }}
+                <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('date'); }"><i
+                      class="fas fa-check"
+                      data-bind="style: {visibility: configs.currentSorting() == 'date' ? 'visible' : 'hidden'}"></i>
+                    {{ _('Sort by date') }}
                     ({{ _('descending') }})</a></li>
-                <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('size'); }"><i class="fas fa-check"
-                      data-bind="style: {visibility: configs.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i> {{ _('Sort by file size') }}
+                <li><a href="javascript:void(0)" data-bind="click: function() { configs.changeSorting('size'); }"><i
+                      class="fas fa-check"
+                      data-bind="style: {visibility: configs.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i>
+                    {{ _('Sort by file size') }}
                     ({{ _('descending') }})</a></li>
               </ul>
             </div>
@@ -352,17 +393,18 @@
         </div>
         <div class="pagination pagination-mini pagination-centered">
           <ul>
-            <li data-bind="css: {disabled: configs.currentPage() === 0}"><a href="javascript:void(0)" data-bind="click: configs.prevPage">«</a></li>
+            <li data-bind="css: {disabled: configs.currentPage() === 0}"><a href="javascript:void(0)"
+                data-bind="click: configs.prevPage">«</a></li>
           </ul>
           <ul data-bind="foreach: configs.pages">
             <li data-bind="css: {active: $data.number === $root.configs.currentPage(), disabled: $data.number === -1 }">
-              <a href="javascript:void(0)" data-bind="text: $data.text, click: function() { $root.configs.changePage($data.number); }"></a>
+              <a href="javascript:void(0)"
+                data-bind="text: $data.text, click: function() { $root.configs.changePage($data.number); }"></a>
             </li>
           </ul>
           <ul>
             <li data-bind="css: {disabled: configs.currentPage() === configs.lastPage()}">
-              <a href="javascript:void(0)"
-                data-bind="click: configs.nextPage">»
+              <a href="javascript:void(0)" data-bind="click: configs.nextPage">»
               </a>
             </li>
           </ul>
@@ -378,7 +420,8 @@
           <label class="control-label">{{ _('Installed Host Version:') }}</label>
           <div class="controls">
             <p data-bind="text:klipperViewModel.host_version()" title="{{ _('Version of the Klipper host')}}"></p>
-            <button class="btn btn-small" data-bind="click: function() {klipperViewModel.requestData()}" title="{{ _('Get Installed Version') }}">
+            <button class="btn btn-small" data-bind="click: function() {klipperViewModel.requestData()}"
+              title="{{ _('Get Installed Version') }}">
               <i class="icon-refresh"></i>
             </button>
           </div>
@@ -396,7 +439,8 @@
   </div>
 
   <div class="tab-footer">
-    <a href="https://www.paypal.com/donate/?business=7P63W664NF8LA&item_name=OctoKlipper" class="btn btn-mini" target="_blank">
+    <a href="https://www.paypal.com/donate/?business=7P63W664NF8LA&item_name=OctoKlipper" class="btn btn-mini"
+      target="_blank">
       <i class="fab fa-paypal"> {{ _('Donate') }}</i>
     </a>
   </div>

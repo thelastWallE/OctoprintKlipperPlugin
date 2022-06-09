@@ -15,11 +15,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-
 import glob
 import logging
 import os
 import re
+import platform
 import time
 
 import flask
@@ -545,8 +545,8 @@ class KlipperPlugin(
     def get_backup(self, filename):
         data_folder = self.get_plugin_data_folder()
         full_path = os.path.realpath(os.path.join(data_folder, "configs", filename))
-        response = config_tools.get_cfg(self, full_path)
-        return flask.jsonify(response=response)
+
+        return flask.jsonify(config_tools.get_cfg(self, full_path))
 
     # Delete a Backupconfig
     @octoprint.plugin.BlueprintPlugin.route("/backup/<filename>", methods=["DELETE"])
@@ -566,32 +566,33 @@ class KlipperPlugin(
                 self._octoklipper_logger.exception(
                     "Could not delete {}".format(filename)
                 )
-                raise
-        return NO_CONTENT
+                return flask.jsonify(
+                    status="error",
+                    data=dict(message="Could not delete {}".format(filename)),
+                )
+        return flask.jsonify(status="success")
 
     # Get a list of all backed up configfiles
     @octoprint.plugin.BlueprintPlugin.route("/backup/list", methods=["GET"])
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def list_backups(self):
-        files = config_tools.list_cfg_files(self, "backup")
-        return flask.jsonify(files=files)
+        return flask.jsonify(config_tools.list_config_files(self, "backup"))
 
     # restore a backed up configfile
     @octoprint.plugin.BlueprintPlugin.route(
-        "/backup/restore/<filename>", methods=["GET"]
+        "/backup/restore/<filename>", methods=["POST"]
     )
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def restore_backup(self, filename):
-        configpath = os.path.expanduser(
+        config_path = os.path.expanduser(
             self._settings.get(["configuration", "config_path"])
         )
         data_folder = self.get_plugin_data_folder()
         backupfile = os.path.realpath(os.path.join(data_folder, "configs", filename))
-        return flask.jsonify(
-            restored=config_tools.copy_cfg(self, backupfile, configpath)
-        )
+
+        return flask.jsonify(extra.copy_file(self, backupfile, config_path))
 
     # ------------------ API for Configs ---------------------------------------------
     # Get Content of a Configfile
@@ -603,8 +604,8 @@ class KlipperPlugin(
             self._settings.get(["configuration", "config_path"])
         )
         full_path = os.path.realpath(os.path.join(cfg_path, filename))
-        response = config_tools.get_cfg(self, full_path)
-        return flask.jsonify(response=response)
+
+        return flask.jsonify(config_tools.get_cfg(self, full_path))
 
     # Delete a Configfile
     @octoprint.plugin.BlueprintPlugin.route("/config/<filename>", methods=["DELETE"])
@@ -626,17 +627,23 @@ class KlipperPlugin(
                 self._octoklipper_logger.exception(
                     "Could not delete {}".format(filename)
                 )
-                raise
-        return NO_CONTENT
+                return flask.jsonify(
+                    status="error",
+                    error=dict(message="Could not delete {}".format(filename)),
+                )
+        return flask.jsonify(status="success")
 
     # Get a list of all configfiles
     @octoprint.plugin.BlueprintPlugin.route("/config/list", methods=["GET"])
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def list_configs(self):
-        files = config_tools.list_cfg_files(self, "")
+        files = config_tools.list_config_files(self, "")
         path = os.path.expanduser(self._settings.get(["configuration", "config_path"]))
-        return flask.jsonify(files=files, path=path, max_upload_size=MAX_UPLOAD_SIZE)
+        return flask.jsonify(
+            status="success",
+            data=dict(files=files, path=path, max_upload_size=MAX_UPLOAD_SIZE),
+        )
 
     # check syntax of a given data
     @octoprint.plugin.BlueprintPlugin.route("/config/check", methods=["POST"])
@@ -645,8 +652,8 @@ class KlipperPlugin(
     def check_config(self):
         data = flask.request.json
         data_to_check = data.get("DataToCheck", [])
-        response = config_tools.check_cfg_ok(self, data_to_check)
-        return flask.jsonify(is_syntax_ok=response)
+
+        return flask.jsonify(config_tools.check_config(self, data_to_check))
 
     # save a configfile
     @octoprint.plugin.BlueprintPlugin.route("/config/save", methods=["POST"])
@@ -661,11 +668,32 @@ class KlipperPlugin(
                 description="Invalid request, the filename is not set",
             )
         Filecontent = data.get("DataToSave", [])
-        saved = config_tools.save_cfg(self, Filecontent, filename)
-        if saved == True:
+        results = config_tools.save_cfg(self, Filecontent, filename)
+        if results["status"] == "success":
             extra.send_message(self, type="reload", subtype="configlist")
-        return flask.jsonify(saved=saved)
+        return flask.jsonify(results)
 
+    @octoprint.plugin.BlueprintPlugin.route("/servicefile/modify", methods=["POST"])
+    @restricted_access
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def modify_service_file(self):
+        data = flask.request.json
+        path_to_configs = data.get("PathToConfigs", [])
+        if path_to_configs == []:
+            flask.abort(
+                400,
+                description="Invalid request, the path to configs is not set",
+            )
+        file_path = os.path.realpath(os.path.join("/etc", "default", "klipper"))
+        config_path = os.path.expanduser(path_to_configs)
+        baseconfig = self._settings.get(["configuration", "baseconfig"])
+        replace_path = os.path.join(config_path, baseconfig)
+
+        return flask.jsonify(
+            extra.modify_servicefile(self, file_path, replace_path, config_path)
+        )
+
+    # API for other stuff
     # restart klipper
     @octoprint.plugin.BlueprintPlugin.route("/restart", methods=["POST"])
     @restricted_access
@@ -677,10 +705,18 @@ class KlipperPlugin(
 
             # Restart klippy to reload config
             self._printer.commands(reload_command)
-            logger.log_info(self, False, "Restarting Klipper.")
+            logger.log_info(self, "Restarting Klipper.")
         return flask.jsonify(command=reload_command)
 
-    # restart klipper
+    # get server OS and return a json
+    @octoprint.plugin.BlueprintPlugin.route("/serverinfo", methods=["GET"])
+    @restricted_access
+    def get_server_info(self):
+        return flask.jsonify(status="success", data={"body": platform.system()})
+
+    # APIs end
+
+    # update klipper
     @octoprint.plugin.BlueprintPlugin.route("/update", methods=["POST"])
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
