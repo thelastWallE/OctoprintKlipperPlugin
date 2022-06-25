@@ -31,7 +31,7 @@ $(function () {
     self.levelingViewModel = parameters[3];
     self.paramMacroViewModel = parameters[4];
     self.access = parameters[5];
-    self.printerState=parameters[6];
+    self.printerState = parameters[6];
     // optional
     self.piSupport = parameters[7];
 
@@ -80,8 +80,8 @@ $(function () {
       }
     };
 
-    self.showPopUp = function (popupType="info", popupTitle, message) {
-      popupTitle ? popupTitle + "<br />" : popupTitle="";
+    self.showPopUp = function (popupType = "info", popupTitle, message) {
+      popupTitle ? popupTitle + "<br />" : popupTitle = "";
 
       let title = "OctoKlipper: <br />" + popupTitle;
       var options = {
@@ -245,7 +245,7 @@ $(function () {
     };
 
 
-    self.shortStatus = function(msg, type=null) {
+    self.shortStatus = function (msg, type = null) {
 
       if (msg.length > 36) {
         self.shortStatus_navbar(msg.substring(0, 31) + " [..]");
@@ -262,7 +262,7 @@ $(function () {
     self.clearShortStatus = function () {
       setTimeout(function () {
         self.shortStatus(gettext("No Messages"), "");
-    }, 1000);
+      }, 1000);
 
     }
 
@@ -326,15 +326,15 @@ $(function () {
       return self.loginState.hasPermissionKo(self.access.permissions[`PLUGIN_KLIPPER_${role}`]);
     };
 
-    self.saveOption = function(dir, option, value) {
-      if (! (_.includes(["fontsize", "confirm_reload", "parse_check"], option)) ) {
+    self.saveOption = function (dir, option, value) {
+      if (!(_.includes(["fontsize", "confirm_reload", "parse_check"], option))) {
         return;
       }
 
       if (option && dir) {
         let data = {
           plugins: {
-            klipper:{
+            klipper: {
               [dir]: {
                 [option]: value
               }
@@ -345,12 +345,12 @@ $(function () {
           .save(data);
       } else if (option) {
         let data = {
-              plugins: {
-                klipper:{
-                    [option]: value
-                }
-              }
-          };
+          plugins: {
+            klipper: {
+              [option]: value
+            }
+          }
+        };
         OctoPrint.settings
           .save(data);
       }
@@ -370,8 +370,8 @@ $(function () {
       };
 
       var html = "<h4>" +
-                  gettext("All ongoing Prints will be stopped!") +
-                  "</h4>";
+        gettext("All ongoing Prints will be stopped!") +
+        "</h4>";
 
       if (self.settings.settings.plugins.klipper.configuration.confirm_reload() == true) {
         showConfirmationDialog({
@@ -380,7 +380,7 @@ $(function () {
           proceed: [gettext("Restart"), gettext("Restart and don't ask this again.")],
           onproceed: function (idx) {
             if (idx > -1) {
-                request(idx);
+              request(idx);
             }
           },
         });
@@ -421,10 +421,10 @@ $(function () {
       var request = function () {
         OctoPrint.plugins.klipper.updateKlipper().done(function (response) {
           self.consoleMessage("debug", "updatingKlipper:");
-          if (response.output!==false) {
-            self.consoleMessage("debug", "Response: "+ response.output);
+          if (response.output !== false) {
+            self.consoleMessage("debug", "Response: " + response.output);
             self.showPopUp("success", null, "Response: " + response.output);
-            self.logMessage(null, null, "Update Response: "+ response.output);
+            self.logMessage(null, null, "Update Response: " + response.output);
             if (response.output != "Already up to date.\n") {
               self.requestRestart();
               self.requestData();
@@ -467,7 +467,7 @@ $(function () {
       $("#klipper-copyToClipboard").hide();
     }
 
-    $("#klipper-copyToClipboard").click(function(event) {
+    $("#klipper-copyToClipboard").click(function (event) {
       const ele = $(this);
       const Text = $(this).prev();
       const icon = document.getElementById("klipper-copyToClipboard");

@@ -108,10 +108,10 @@ class KlipperPlugin(
             self._settings.save()
             logger.log_info(
                 self,
-                False,
                 "Added klipper serial port {} to list of additional ports.".format(
                     klipper_port
                 ),
+                only_logging=False,
             )
 
     # -- Settings Plugin
@@ -233,17 +233,17 @@ class KlipperPlugin(
             new_cfg_path, baseconfig = os.path.split(cfg_path)
             logger.log_info(
                 self,
-                False,
                 "migrate setting for 'configuration/config_path': "
                 + cfg_path
                 + " -> "
                 + new_cfg_path,
+                only_logging=False,
             )
             logger.log_info(
                 self,
-                False,
                 "migrate setting for 'configuration/baseconfig': printer.cfg -> "
                 + baseconfig,
+                only_logging=False,
             )
             settings.set(["configuration", "config_path"], new_cfg_path)
             settings.set(["configuration", "baseconfig"], baseconfig)
@@ -254,19 +254,21 @@ class KlipperPlugin(
         ):
             logger.log_info(
                 self,
-                False,
                 "migrate setting for 'configuration/restart_onsave': True -> False",
+                only_logging=False,
             )
             settings.set(["configuration", "restart_onsave"], False)
             settings.remove(["configuration", "reload_command"])
 
         if settings.has(["config"]):
-            logger.log_info(self, False, "remove old setting for 'config'")
+            logger.log_info(self, "remove old setting for 'config'", only_logging=False)
             settings.remove(["config"])
 
         if settings.has(["configuration", "old_config"]):
             logger.log_info(
-                self, False, "remove old setting for 'configuration/old_config'"
+                self,
+                "remove old setting for 'configuration/old_config'",
+                only_logging=False,
             )
             settings.remove(["configuration", "old_config"])
 
@@ -372,36 +374,50 @@ class KlipperPlugin(
 
     def on_event(self, event, payload):
         if event == "UserLoggedIn":
-            logger.log_info(self, False, "Klipper: Standby")
+            logger.log_info(self, "Klipper: Standby", only_logging=False)
         if event == "Connecting":
-            logger.log_info(self, False, "Klipper: Connecting ...")
+            logger.log_info(self, "Klipper: Connecting ...", only_logging=False)
         elif event == "Connected":
             logger.log_info(
                 self,
-                False,
                 "Klipper: Connected to host via {} @{}bps".format(
                     payload["port"], payload["baudrate"]
                 ),
+                only_logging=False,
             )
         elif event == "Disconnected":
-            logger.log_info(self, False, "Klipper: Disconnected from host")
+            logger.log_info(self, "Klipper: Disconnected from host", only_logging=False)
 
         elif event == "Error":
-            logger.log_error(self, False, payload["error"])
+            logger.log_error(self, payload["error"], only_logging=False)
         elif event == "PrinterStateChanged":
-            logger.log_info(self, False, "Printer: " + payload["state_string"])
+            logger.log_info(
+                self, "Printer: " + payload["state_string"], only_logging=False
+            )
         elif event == "PrintStarted":
-            logger.log_info(self, False, "Klipper: Printing " + payload["name"])
+            logger.log_info(
+                self, "Klipper: Printing " + payload["name"], only_logging=False
+            )
         elif event == "PrintDone":
-            logger.log_info(self, False, "Klipper: Print finished " + payload["name"])
+            logger.log_info(
+                self, "Klipper: Print finished " + payload["name"], only_logging=False
+            )
         elif event == "PrintCancelling":
-            logger.log_info(self, False, "Klipper: Print cancelling " + payload["name"])
+            logger.log_info(
+                self, "Klipper: Print cancelling " + payload["name"], only_logging=False
+            )
         elif event == "PrintCancelled":
-            logger.log_info(self, False, "Klipper: Print cancelled " + payload["name"])
+            logger.log_info(
+                self, "Klipper: Print cancelled " + payload["name"], only_logging=False
+            )
         elif event == "PrintPaused":
-            logger.log_info(self, False, "Klipper: Print paused " + payload["name"])
+            logger.log_info(
+                self, "Klipper: Print paused " + payload["name"], only_logging=False
+            )
         elif event == "PrintResumed":
-            logger.log_info(self, False, "Klipper: Print resumed " + payload["name"])
+            logger.log_info(
+                self, "Klipper: Print resumed " + payload["name"], only_logging=False
+            )
 
     def processAtCommand(
         self, comm_instance, phase, command, parameters, tags=None, *args, **kwargs
@@ -410,7 +426,9 @@ class KlipperPlugin(
             return
 
         config = parameters
-        logger.log_info(self, False, "SWITCHCONFIG detected config:{}".format(config))
+        logger.log_info(
+            self, "SWITCHCONFIG detected config:{}".format(config), only_logging=False
+        )
         return None
 
     # -- GCODE Hook
@@ -433,12 +451,12 @@ class KlipperPlugin(
                 )
                 logger.log_info(
                     self,
-                    False,
                     "Firmware version: {}".format(printerInfo["FIRMWARE_VERSION"]),
+                    only_logging=False,
                 )
         elif "// probe" in line or "// Failed to verify BLTouch" in line:
             msg = line.strip("/")
-            logger.log_info(self, False, msg)
+            logger.log_info(self, msg, only_logging=False)
             self.write_parsing_response_buffer()
         elif "// SAVE_CONFIG" in line:
             self.save_config_caught()
@@ -450,7 +468,7 @@ class KlipperPlugin(
             self._parsing_response = True
         elif "!!" in line:
             msg = line.strip("!")
-            logger.log_error(self, False, msg)
+            logger.log_error(self, msg, only_logging=False)
             self.write_parsing_response_buffer()
         else:
             self.write_parsing_response_buffer()
@@ -460,11 +478,11 @@ class KlipperPlugin(
         # write buffer with // lines after a gcode response without //
         if self._parsing_response:
             self._parsing_response = False
-            logger.log_info(self, False, self._message)
+            logger.log_info(self, self._message, only_logging=False)
             self._message = ""
 
     def save_config_caught(self):
-        logger.log_info(self, False, "SAVE_CONFIG detected")
+        logger.log_info(self, "SAVE_CONFIG detected", only_logging=False)
         extra.send_message(self, type="reload", subtype="config")
 
     def get_api_commands(self):
@@ -642,7 +660,9 @@ class KlipperPlugin(
         path = os.path.expanduser(self._settings.get(["configuration", "config_path"]))
         return flask.jsonify(
             status="success",
-            data=dict(files=files, path=path, max_upload_size=MAX_UPLOAD_SIZE),
+            data=dict(
+                files=files["data"]["files"], path=path, max_upload_size=MAX_UPLOAD_SIZE
+            ),
         )
 
     # check syntax of a given data
@@ -705,7 +725,7 @@ class KlipperPlugin(
 
             # Restart klippy to reload config
             self._printer.commands(reload_command)
-            logger.log_info(self, "Restarting Klipper.")
+            logger.log_info(self, "Restarting Klipper.", only_logging=False)
         return flask.jsonify(command=reload_command)
 
     # get server OS and return a json
@@ -734,7 +754,7 @@ class KlipperPlugin(
                 "System is currently throttled, refusing to update "
                 "anything due to possible stability issues"
             )
-            logger.log_error(self, False, message)
+            logger.log_error(self, message, only_logging=False)
             flask.abort(
                 409,
                 description=message,
@@ -745,7 +765,7 @@ class KlipperPlugin(
             flask.abort(409, description="Printer is currently printing or paused")
 
         output = repo_handler.update_klipper_host(self, self._latest_klipper_remote_tag)
-        logger.log_debug(self, True, output)
+        logger.log_debug(self, output, only_logging=True)
         for m in re.finditer(r"HEAD is now at \S*", output):
             output_multiline = output[: m.end()] + "\n" + output[m.end() :]
         if not output_multiline:

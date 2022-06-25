@@ -27,7 +27,7 @@ def list_config_files(self, path_type):
         path (str): Path to the config files.
 
     Returns:
-        list: for every file a dict with keys for name, file, size, mdate, url.
+        dict: Status and the list of config files.
     """
 
     files = []
@@ -39,7 +39,9 @@ def list_config_files(self, path_type):
         )
         cfg_path = os.path.join(cfg_path, "*.cfg")
     cfg_files = glob.glob(cfg_path)
-    logger.log_debug(self, "list_cfg_files " + path_type + " Path: " + cfg_path)
+    logger.log_debug(
+        self, "list_cfg_files " + path_type + " Path: " + cfg_path, only_logging=False
+    )
 
     for f in cfg_files:
         filesize = os.path.getsize(f)
@@ -65,7 +67,9 @@ def list_config_files(self, path_type):
                 url=url,
             )
         )
-        logger.log_debug(self, "list_cfg_files " + str(len(files)) + ": " + f)
+        logger.log_debug(
+            self, "list_cfg_files " + str(len(files)) + ": " + f, only_logging=False
+        )
     return {"status": "success", "data": {"files": files}}
 
 
@@ -76,8 +80,7 @@ def get_cfg(self, file):
         file (str): The name of the file to read
 
     Returns:
-        file_content (str): The configuration of the file
-        error_text (str): The text of the error
+        dict: Status and the content of the file.
     """
 
     if not file:
@@ -88,7 +91,7 @@ def get_cfg(self, file):
             cfg_path, self._settings.get(["configuration", "baseconfig"])
         )
     if extra.file_exist(self, file):
-        logger.log_debug(self, "get_cfg_files Path: " + file)
+        logger.log_debug(self, "get_cfg_files Path: " + file, only_logging=False)
         try:
             with io.open(file, "r", encoding="utf-8") as f:
                 file_content = f.read()
@@ -100,6 +103,7 @@ def get_cfg(self, file):
                 + "\n"
                 + gettext("IOError:")
                 + " {}".format(Err),
+                only_logging=False,
             )
             status = "error"
             error_text = Err
@@ -115,6 +119,7 @@ def get_cfg(self, file):
                 + gettext(
                     "Or you can also paste your config \ninto the Editor and save it."
                 ),
+                only_logging=False,
             )
             status = "error"
             error_text = Err
@@ -140,7 +145,7 @@ def save_cfg(self, content, filename):
         dict: Status and error text.
     """
 
-    logger.log_debug(self, "Save klipper config")
+    logger.log_debug(self, "Save klipper config", only_logging=False)
 
     configpath = os.path.expanduser(
         self._settings.get(["configuration", "config_path"])
@@ -156,13 +161,17 @@ def save_cfg(self, content, filename):
     if results["status"] == "error":
         return results
 
-    logger.log_debug(self, "Writing Klipper config to {}".format(filepath))
+    logger.log_debug(
+        self, "Writing Klipper config to {}".format(filepath), only_logging=False
+    )
     try:
         with io.open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
     except IOError:
         logger.log_error(
-            self, "Error: Couldn't open Klipper config file: {}".format(filepath)
+            self,
+            "Error: Couldn't open Klipper config file: {}".format(filepath),
+            only_logging=False,
         )
         return {
             "status": "error",
@@ -173,7 +182,9 @@ def save_cfg(self, content, filename):
             },
         }
     else:
-        logger.log_debug(self, "Written Klipper config to {}".format(filepath))
+        logger.log_debug(
+            self, "Written Klipper config to {}".format(filepath), only_logging=False
+        )
     finally:
         results = copy_cfg_to_backup(self, filepath)
         if results["status"] == "error":
@@ -204,14 +215,14 @@ def check_config(self, data):
             dataToValidated.read_string(data)
     except configparser.Error as error:
         parsed_error = parse_error_message(self, error)
-        logger.log_debug(self, "check_cfg: NOK!")
+        logger.log_debug(self, "check_cfg: NOK!", only_logging=False)
         return {"status": "error", "error": {"message": parsed_error}}
     else:
         result = check_float(self, dataToValidated)
         if result["status"] == "error":
-            logger.log_debug(self, "check_cfg: NOK!")
+            logger.log_debug(self, "check_cfg: NOK!", only_logging=False)
             return result
-        logger.log_debug(self, "check_cfg: OK")
+        logger.log_debug(self, "check_cfg: OK", only_logging=False)
         return {"status": "success"}
 
 
@@ -279,7 +290,9 @@ def copy_cfg_to_backup(self, src):
     """
 
     if not os.path.isfile(src):
-        logger.log_error(self, "Error: Config file not found: {}".format(src))
+        logger.log_error(
+            self, "Error: Config file not found: {}".format(src), only_logging=False
+        )
         return {
             "status": "error",
             "error": {
@@ -294,7 +307,9 @@ def copy_cfg_to_backup(self, src):
         return results
 
     dst = os.path.join(cfg_path, filename)
-    logger.log_debug(self, "copy_cfg_to_backup:" + src + " to " + dst)
+    logger.log_debug(
+        self, "copy_cfg_to_backup:" + src + " to " + dst, only_logging=False
+    )
     if src == dst:
         return {
             "status": "error",
@@ -304,14 +319,16 @@ def copy_cfg_to_backup(self, src):
         copyfile(src, dst)
     except IOError:
         logger.log_error(
-            self, "Error: Couldn't copy Klipper config file to {}".format(dst)
+            self,
+            "Error: Couldn't copy Klipper config file to {}".format(dst),
+            only_logging=False,
         )
         return {
             "status": "error",
             "error": {"message": "Couldn't copy Klipper config file to {}".format(dst)},
         }
     else:
-        logger.log_debug(self, "CfgBackup " + dst + " written")
+        logger.log_debug(self, "CfgBackup " + dst + " written", only_logging=False)
         return {
             "status": "success",
             "data": {"body": gettext("Klipper config file copied to {}".format(dst))},

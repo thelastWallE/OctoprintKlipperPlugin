@@ -33,12 +33,12 @@ def file_exist(self, filepath, **kwargs):
     if not path.isfile(filepath):
         logger.log_debug(
             self,
-            False,
             gettext("File")
             + ": <br />"
             + filepath
             + "<br /> "
             + gettext("does not exist!"),
+            only_logging=False,
         )
         if PopUp:
             send_message(
@@ -89,7 +89,7 @@ def run(self, cmd):
     cmd_parts = cmd.split("|") if "|" in cmd else [cmd]
     i = 0
     p = {}
-    logger.log_info(self, True, "Run Command:" + cmd)
+    logger.log_info(self, "Run Command:" + cmd, only_logging=True)
     for cmd_part in cmd_parts:
         cmd_part = cmd_part.strip()
         prog = shlex.split(cmd_part) if platform.system() == "posix" else cmd_part
@@ -109,13 +109,14 @@ def run(self, cmd):
     exit_code = p[0].wait()
     response = output + "\n" + err if output != "" else output + err
     logger.log_info(
-        self, True, "Response: " + response + " exit_code:" + str(exit_code)
+        self,
+        "Response: " + response + " exit_code:" + str(exit_code),
+        only_logging=True,
     )
     if exit_code == 0:
         return response
     logger.log_error(
         self,
-        False,
         "<b>"
         + gettext("Failed to run command")
         + ':</b> "'
@@ -124,6 +125,7 @@ def run(self, cmd):
         + gettext("Output")
         + ":</b> "
         + response,
+        only_logging=False,
     )
 
 
@@ -150,10 +152,12 @@ def copy_file(self, file, dst):
         try:
             copy(file, dst)
         except IOError as Error:
-            logger.log_error(self, "Error: File not found at: {}".format(file))
+            logger.log_error(
+                self, "Error: File not found at: {}".format(file), only_logging=False
+            )
             return {"status": "error", "error": {"message": Error}}
         else:
-            logger.log_debug(self, "File copied: " + file)
+            logger.log_debug(self, "File copied: " + file, only_logging=False)
             return {"status": "success"}
     return {
         "status": "error",
@@ -172,11 +176,15 @@ def save_servicefile(self, content, config_path):
         dict: The result as a dict.
     """
 
-    logger.log_debug(self, "Save klipper servicefile")
+    logger.log_debug(self, "Save klipper servicefile", only_logging=False)
 
     servicefile_basename = "klipper.service"
     servicefile_path = os.path.join(config_path, servicefile_basename)
-    logger.log_debug(self, "Writing Klipper servicefile to {}".format(servicefile_path))
+    logger.log_debug(
+        self,
+        "Writing Klipper servicefile to {}".format(servicefile_path),
+        only_logging=False,
+    )
 
     if not os.path.exists(config_path):
         try:
@@ -185,10 +193,13 @@ def save_servicefile(self, content, config_path):
             logger.log_error(
                 self,
                 "Error: Creation of the backup directory {} failed".format(config_path),
+                only_logging=False,
             )
             return {"status": "error", "error": {"message": Error}}
         else:
-            logger.log_debug(self, "Directory {} created".format(config_path))
+            logger.log_debug(
+                self, "Directory {} created".format(config_path), only_logging=False
+            )
 
     try:
         with io.open(servicefile_path, "w", encoding="utf-8") as f:
@@ -197,10 +208,15 @@ def save_servicefile(self, content, config_path):
         logger.log_error(
             self,
             "Error: Couldn't write Klipper servicefile: {}".format(servicefile_path),
+            only_logging=False,
         )
         return {"status": "error", "error": {"message": Error}}
     else:
-        logger.log_debug(self, "Written Klipper config to {}".format(servicefile_path))
+        logger.log_debug(
+            self,
+            "Written Klipper config to {}".format(servicefile_path),
+            only_logging=False,
+        )
     finally:
         success, error = copy_servicefile_to_backup(self, servicefile_path)
         if not success:
@@ -222,7 +238,7 @@ def modify_servicefile(self, servicefile_path, replace, config_path):
         dict: The result as a dict.
     """
 
-    logger.log_debug(self, "Change Klipper servicefile")
+    logger.log_debug(self, "Change Klipper servicefile", only_logging=False)
 
     try:
         with io.open(servicefile_path, "r", encoding="utf-8") as f:
@@ -231,10 +247,15 @@ def modify_servicefile(self, servicefile_path, replace, config_path):
         logger.log_error(
             self,
             "Error: Couldn't open Klipper config file: {}".format(servicefile_path),
+            only_logging=False,
         )
         return dict(error=dict(message=error))
     else:
-        logger.log_debug(self, "Read Klipper config from {}".format(servicefile_path))
+        logger.log_debug(
+            self,
+            "Read Klipper config from {}".format(servicefile_path),
+            only_logging=False,
+        )
         splitted_content = re.split(r"klippy\.py", content)
         after_configpath = re.split(r"^\s?\S*\s?", splitted_content[1])
         content = (
@@ -266,14 +287,18 @@ def copy_servicefile_to_backup(self, source):
         return False, error
 
     logger.log_debug(
-        self, "copy_servicefile_to_backup: " + source + " to " + servicefile_bak_path
+        self,
+        "copy_servicefile_to_backup: " + source + " to " + servicefile_bak_path,
+        only_logging=False,
     )
     if source == servicefile_bak_path:
         return False, "Source and destination are the same"
     backups_list = glob.glob1(servicefile_bak_path, "Servicefile*")
     if len(backups_list) >= 5:
         logger.log_debug(
-            self, "deleting oldest backup file: {}".format(backups_list[0])
+            self,
+            "deleting oldest backup file: {}".format(backups_list[0]),
+            only_logging=False,
         )
         try:
             os.remove(os.path.join(servicefile_bak_path, backups_list[0]))
@@ -281,6 +306,7 @@ def copy_servicefile_to_backup(self, source):
             logger.log_error(
                 self,
                 "Error: Couldn't delete oldest backup file: {}".format(backups_list[0]),
+                only_logging=False,
             )
             return False, Error
     result, error = copy_file(
@@ -292,9 +318,15 @@ def copy_servicefile_to_backup(self, source):
         + ".bak",
     )
     if not result:
-        logger.log_error(self, "Error: Couldn't copy file: {}".format(error))
+        logger.log_error(
+            self, "Error: Couldn't copy file: {}".format(error), only_logging=False
+        )
         return False, error
-    logger.log_debug(self, "Servicefile Backup " + servicefile_bak_path + " written")
+    logger.log_debug(
+        self,
+        "Servicefile Backup " + servicefile_bak_path + " written",
+        only_logging=False,
+    )
     return True, None
 
 
@@ -313,9 +345,13 @@ def create_directory(self, path):
             os.mkdir(path)
         except OSError as Error:
             logger.log_error(
-                self, "Error: Creation of the directory {} failed".format(path)
+                self,
+                "Error: Creation of the directory {} failed".format(path),
+                only_logging=False,
             )
             return {"status": "error", "error": Error}
         else:
-            logger.log_debug(self, "Directory {} created".format(path))
+            logger.log_debug(
+                self, "Directory {} created".format(path), only_logging=False
+            )
             return {"status": "success"}

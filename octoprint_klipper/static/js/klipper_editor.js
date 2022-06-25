@@ -69,7 +69,7 @@ $(function () {
       }
     };
 
-    $(window).on('resize', function() {
+    $(window).on('resize', function () {
       self.klipperViewModel.sleep(200).then(
         function () {
           self.setEditorDivSize();

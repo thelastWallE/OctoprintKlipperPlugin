@@ -36,13 +36,15 @@ def migrate_settings(self, settings, old, new, new2=""):
         if new2 != "":
             logger.log_info(
                 self,
-                False,
                 "migrate setting for '" + old + "' -> '" + new + "/" + new2 + "'",
+                only_logging=False,
             )
             settings.set([new, new2], settings.get(old))
         else:
             logger.log_info(
-                self, False, "migrate setting for '" + old + "' -> '" + new + "'"
+                self,
+                "migrate setting for '" + old + "' -> '" + new + "'",
+                only_logging=False,
             )
             settings.set([new], settings.get(old))
         settings.remove(old)
@@ -62,12 +64,12 @@ def migrate_settings_configuration(self, settings, new, old):
     if settings.has(["configuration", old]):
         logger.log_info(
             self,
-            False,
             "migrate setting for 'configuration/"
             + old
             + "' -> 'configuration/"
             + new
             + "'",
+            only_logging=False,
         )
         settings.set(["configuration", new], settings.get(["configuration", old]))
         settings.remove(["configuration", old])
