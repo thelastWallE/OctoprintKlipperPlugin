@@ -6,7 +6,7 @@
   </div>
   <div class="modal-body">
     <div class="editor-controls">
-      <div class="klipper-btn-group klipper-fluid-item-1" data-bind="visible: $root.klipperViewModel.hasRightKo('CONFIG')">
+        data-bind="visible: $root.klipperViewModel.hasPermKo('CONFIG')">
         <div class="btn-group">
           <button class="btn btn-small dropdown-toggle" data-toggle="dropdown">
             <i class="far fa-square"></i>
@@ -70,22 +70,22 @@
       <tbody data-bind="foreach: backups.paginatedItems">
         <tr data-bind="attr: {title: name}">
           <td class="klipper_baks_checkbox"><input type="checkbox"
-              data-bind="value: file, checked: $root.markedForFileRestore, invisible: !$root.klipperViewModel.hasRightKo('CONFIG')" />
+              data-bind="value: file, checked: $root.markedForFileRestore, invisible: !$root.klipperViewModel.hasPermKo('CONFIG')" />
           </td>
           <td class="klipper_baks_name" data-bind="text: name"></td>
           <td class="klipper_baks_size" data-bind="text: size"></td>
           <td class="klipper_baks_action">
             <a href="javascript:void(0)" class="far fa-trash-alt" title="{{ _('Delete') }}"
-              data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, click: function() { $parent.removeCfg($data.name); }"></a>
+              data-bind="css: {disabled: !$root.klipperViewModel.hasPermKo('CONFIG')()}, click: function() { $parent.removeCfg($data.name); }"></a>
             &nbsp;|&nbsp;
             <a href="javascript:void(0)" class="fas fa-undo" title="{{ _('Restore') }}"
-              data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, click: function() { $parent.restoreBak($data.name); }"></a>
+              data-bind="css: {disabled: !$root.klipperViewModel.hasPermKo('CONFIG')()}, click: function() { $parent.restoreBak($data.name); }"></a>
             &nbsp;|&nbsp;
             <a href="javascript:void(0)" class="fas fa-download" title="{{ _('Download') }}"
-              data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, attr: { href: ($root.klipperViewModel.hasRightKo('CONFIG')()) ? $data.url : 'javascript:void(0)'}"></a>
+              data-bind="css: {disabled: !$root.klipperViewModel.hasPermKo('CONFIG')()}, attr: { href: ($root.klipperViewModel.hasPermKo('CONFIG')()) ? $data.url : 'javascript:void(0)'}"></a>
             &nbsp;|&nbsp;
             <a href="javascript:void(0)" class="fas fa-eye" title="{{ _('Preview') }}"
-              data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, click: function() { $parent.showCfg($data.name); }"></a>
+              data-bind="css: {disabled: !$root.klipperViewModel.hasPermKo('CONFIG')()}, click: function() { $parent.showCfg($data.name); }"></a>
           </td>
         </tr>
       </tbody>

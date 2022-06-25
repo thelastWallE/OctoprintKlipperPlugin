@@ -171,7 +171,7 @@ $(function () {
 
     //set externally changed config flag if the current file is the base config
     self.ConfigChangedAfterSave_Config = function () {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       if (self.CfgFilename() == self.settings.settings.plugins.klipper.configuration.baseconfig()) {
         self.CfgChangedExtern = true;

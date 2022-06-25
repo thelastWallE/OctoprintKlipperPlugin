@@ -114,7 +114,7 @@ $(function () {
     };
 
     self.loadBaseConfig = function () {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
       if (baseconfig != "") {
@@ -138,7 +138,7 @@ $(function () {
     };
 
     self.modifyServicefile = function () {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       self.klipperViewModel.consoleMessage("debug", "modifyServiceFile");
       OctoPrint.plugins.klipper.modifyServicefile(self.configPath())
@@ -167,7 +167,7 @@ $(function () {
     };
 
     self.removeCfg = function (config) {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       var perform = function () {
         OctoPrint.plugins.klipper
@@ -283,7 +283,7 @@ $(function () {
     };
 
     self.showEditor = function () {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       var editorDialog = $("#klipper_editor");
       editorDialog.modal({
@@ -294,7 +294,7 @@ $(function () {
     }
 
     self.newFile = function () {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
       var config = {
         content: "",
         file: "Change Filename",
@@ -305,7 +305,7 @@ $(function () {
     };
 
     self.openConfig = function (file) {
-      if (!self.klipperViewModel.hasRight("CONFIG")) return;
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       OctoPrint.plugins.klipper.getCfg(file)
         .done(function (response) {

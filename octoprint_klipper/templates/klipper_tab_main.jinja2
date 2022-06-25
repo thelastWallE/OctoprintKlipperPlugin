@@ -2,9 +2,9 @@
   <div id="left-side">
     <label class="klipper-inline"> <i class="icon-tasks"></i> {{ _("Messages") }} </label>
     <button class="btn btn-small pull-right"
-            data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.PLUGIN_KLIPPER_CONFIG), click: openOctoKlipperSettings('klipper-basic')"
-            title="{{ _('Open the OctoKlipper Settings') }}">
-            <i class="fa icon-black fa-wrench"></i>
+      data-bind="visible: hasPermKo('CONFIG'), click: openOctoKlipperSettings('klipper-basic')"
+      title="{{ _('Open the OctoKlipper Settings') }}">
+      <i class="fa icon-black fa-wrench"></i>
     </button>
     <div class="plugin-klipper-log" data-bind="foreach: logMessages">
       <div class="log-item" data-bind="css: type">
@@ -26,8 +26,7 @@
             title="{{ _('Query Klipper for its current status') }}">
             <i class="fa icon-black fa-info-circle"></i> {{ _("Get Status") }}
           </button>
-          <button class="btn btn-block btn-small"
-            data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.PLUGIN_KLIPPER_CONFIG), click: showEditorDialog"
+          <button class="btn btn-block btn-small" data-bind="visible: hasPermKo('CONFIG'), click: showEditorDialog"
             title="{{ _('Show the Editor') }}">
             <i class="fa icon-black fa-file-code-o"></i>
             {{ _("Show Editor") }}
@@ -68,11 +67,12 @@
           </button>
         </div>
       </div>
-      <div class="controls" data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.PLUGIN_KLIPPER_MACRO)">
+      <div class="controls" data-bind="visible: hasPermKo('MACRO')">
         <label class="control-label"><i class="icon-list-alt"></i> {{ _("Macros") }}</label>
         <div data-bind="foreach: settings.settings.plugins.klipper.macros">
           <!-- ko if: tab -->
-          <button class="btn btn-block btn-small" data-bind="text: name, click: $parent.executeMacro, enable: $parent.isActive()">
+          <button class="btn btn-block btn-small"
+            data-bind="text: name, click: $parent.executeMacro, enable: $parent.isActive()">
           </button>
           <!-- /ko -->
         </div>

@@ -120,7 +120,7 @@ $(function () {
     }
 
     self.showEditorDialog = function () {
-      if (!self.hasRight("CONFIG")) return;
+      if (!self.hasPerm("CONFIG")) return;
       var editorDialog = $("#klipper_editor");
       editorDialog.modal({
         show: "true",
@@ -178,7 +178,7 @@ $(function () {
     self.executeMacro = function (macro) {
       var paramObjRegex = /{(.*?)}/g;
 
-      if (!self.hasRight("MACRO")) return;
+      if (!self.hasPerm("MACRO")) return;
 
       if (macro.macro().match(paramObjRegex) == null) {
         OctoPrint.control.sendGcode(
@@ -310,7 +310,7 @@ $(function () {
       return self.connectionState.isOperational();
     };
 
-    self.hasRight = function (role) {
+    self.hasPerm = function (role) {
       return self.loginState.hasPermission(self.access.permissions[`PLUGIN_KLIPPER_${role}`]);
     };
 
@@ -322,7 +322,7 @@ $(function () {
       return result;
     };
 
-    self.hasRightKo = function (role) {
+    self.hasPermKo = function (role) {
       return self.loginState.hasPermissionKo(self.access.permissions[`PLUGIN_KLIPPER_${role}`]);
     };
 
@@ -357,7 +357,7 @@ $(function () {
     }
 
     self.requestRestart = function () {
-      if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_KLIPPER_CONFIG)) return;
+      if (!self.hasPerm("CONFIG")) return;
 
       var request = function (index) {
         OctoPrint.plugins.klipper.restartKlipper().done(function (response) {
@@ -390,7 +390,7 @@ $(function () {
     };
 
     self.requestUpdate = function () {
-      if (!self.hasRight("CONFIG")) return;
+      if (!self.hasPerm("CONFIG")) return;
       if (self._updateClicked) return;
       self._updateClicked = true;
 
@@ -448,7 +448,7 @@ $(function () {
 
     // OctoKlipper settings link
     self.openOctoKlipperSettings = function (profile_type) {
-      if (!self.hasRight("CONFIG")) return;
+      if (!self.hasPerm("CONFIG")) return;
 
       $("a#navbar_show_settings").click();
       $("li#settings_plugin_klipper_link a").click();
