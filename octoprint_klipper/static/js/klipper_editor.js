@@ -40,11 +40,17 @@ $(function () {
 
     self._fromLocalStorage = function () {
       var data = loadFromLocalStorage(optionsLocalStorageKey);
-      if (data["fontSize"] !== undefined) {
+      if (data["fontSize"] != undefined) {
         self.fontSize(data["fontSize"]);
       } else {
         // get the old setting and save it to the localStorage
-        self.fontSize(self.settings.settings.plugins.klipper.configuration.fontsize());
+        if (ko.isObservable(self.settings.settings.plugins.klipper.configuration.fontsize)) {
+          self.fontSize(self.settings.settings.plugins.klipper.configuration.fontsize());
+          self._toLocalStorage();
+        } else {
+          self.fontSize(18);
+          self._toLocalStorage();
+        }
       }
     };
 
