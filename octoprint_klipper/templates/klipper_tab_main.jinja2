@@ -44,6 +44,14 @@
             title="{{ _('Similar to a host restart, but also clears any error state from the micro-controller') }}">
             {{ _("Firmware") }}
           </button>
+          </br>
+          <!-- ko if: settings.settings.plugins.klipper.configuration.restart_host_command -->
+          <button class="btn btn-block btn-small"
+            data-bind="visible: hasPermKo('CONFIG'), click: onRestartKlipper, enable: isActive()"
+            title="{{ _('This will cause the host software to immimmediately stop and restart!') }}">
+            {{ _("Host") }}
+          </button>
+          <!-- /ko -->
         </div>
       </div>
       <div class="control-group">

@@ -214,6 +214,10 @@ $(function () {
       OctoPrint.control.sendGcode("RESTART");
     };
 
+    self.onRestartKlipper = function () {
+      self.requestRestart();
+    }
+
     self.onAfterBinding = function () {
       self.connectionState.selectedPort(
         self.settings.settings.plugins.klipper.connection.port()
