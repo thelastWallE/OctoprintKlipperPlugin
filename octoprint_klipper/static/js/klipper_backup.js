@@ -83,8 +83,17 @@ $(function () {
 
       OctoPrint.plugins.klipper.listCfgBak()
         .done(function (response) {
-          self.backups.updateItems(response.files);
-          self.backups.resetPage();
+          if (response.status == "success") {
+            self.backups.updateItems(response.data.files);
+            self.backups.resetPage();
+          } else {
+            self.klipperViewModel.consoleMessage("error", "listBakFiles failed");
+            self.klipperViewModel.consoleMessage("error", response.error.message);
+          }
+        })
+        .fail(function (response) {
+          self.klipperViewModel.consoleMessage("error", "listBakFiles failed");
+          self.klipperViewModel.consoleMessage("error", response.responseText);
         });
     };
 

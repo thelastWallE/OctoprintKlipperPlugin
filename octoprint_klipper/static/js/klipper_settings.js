@@ -105,12 +105,13 @@ $(function () {
     self.listCfgFiles = function () {
       self.klipperViewModel.consoleMessage("debug", "listCfgFiles started");
 
-      OctoPrint.plugins.klipper.listCfg().done(function (response) {
-        self.klipperViewModel.consoleMessage("debug", "listCfgFiles done");
-        self.configs.updateItems(response.files);
-        self.PathToConfigs(gettext("Path: ") + response.path);
-        self.configs.resetPage();
-      });
+      OctoPrint.plugins.klipper.listCfg()
+        .done(function (response) {
+          self.klipperViewModel.consoleMessage("debug", "listCfgFiles done");
+          self.configs.updateItems(response.data.files);
+          self.PathToConfigs(gettext("Path: ") + response.data.path);
+          self.configs.resetPage();
+        });
     };
 
     self.loadBaseConfig = function () {
@@ -123,12 +124,12 @@ $(function () {
           .done(function (response) {
             if (response.status == "success") {
               var config = {
-                content: response.data["body"],
+                content: response.data.body,
                 file: baseconfig,
               };
               self.klipperEditorViewModel.process(config).then();
             } else {
-              self.klipperViewModel.consoleMessage("error", "loadBaseConfig failed: " + response.data["body"]);
+              self.klipperViewModel.consoleMessage("error", "loadBaseConfig failed: " + response.error.message);
             }
           })
           .fail(function (response) {
