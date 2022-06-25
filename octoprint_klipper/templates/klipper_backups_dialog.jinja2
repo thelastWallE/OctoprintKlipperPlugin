@@ -1,11 +1,12 @@
-<div id="klipper_backups_dialog" class="modal hide fade large" tabindex="-1" role="dialog" aria-labelledby="klipper_backups_dialog_label"
-  aria-hidden="true">
+<div id="klipper_backups_dialog" class="modal hide fade large" tabindex="-1" role="dialog"
+  aria-labelledby="klipper_backups_dialog_label" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">&times;</button>
-    <h3 >{{ _('Backups') }}</h3>
+    <h3>{{ _('Backups') }}</h3>
   </div>
   <div class="modal-body">
     <div class="editor-controls">
+      <div class="klipper-btn-group klipper-fluid-item-1"
         data-bind="visible: $root.klipperViewModel.hasPermKo('CONFIG')">
         <div class="btn-group">
           <button class="btn btn-small dropdown-toggle" data-toggle="dropdown">
@@ -42,16 +43,22 @@
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu dropdown-menu-right">
-            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('name'); }"><i class="fas fa-check"
-                  data-bind="style: {visibility: backups.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i> {{ _('Sort by name') }}
+            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('name'); }"><i
+                  class="fas fa-check"
+                  data-bind="style: {visibility: backups.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i>
+                {{ _('Sort by name') }}
                 ({{ _('ascending') }})</a>
             </li>
-            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('date'); }"><i class="fas fa-check"
-                  data-bind="style: {visibility: backups.currentSorting() == 'date' ? 'visible' : 'hidden'}"></i> {{ _('Sort by date') }}
+            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('date'); }"><i
+                  class="fas fa-check"
+                  data-bind="style: {visibility: backups.currentSorting() == 'date' ? 'visible' : 'hidden'}"></i>
+                {{ _('Sort by date') }}
                 ({{ _('descending') }})</a>
             </li>
-            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('size'); }"><i class="fas fa-check"
-                  data-bind="style: {visibility: backups.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i> {{ _('Sort by file size') }}
+            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('size'); }"><i
+                  class="fas fa-check"
+                  data-bind="style: {visibility: backups.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i>
+                {{ _('Sort by file size') }}
                 ({{ _('descending') }})</a>
             </li>
           </ul>
@@ -92,10 +99,12 @@
     </table>
     <div class="pagination pagination-mini pagination-centered">
       <ul>
-        <li data-bind="css: {disabled: backups.currentPage() === 0}"><a href="javascript:void(0)" data-bind="click: backups.prevPage">«</a></li>
+        <li data-bind="css: {disabled: backups.currentPage() === 0}"><a href="javascript:void(0)"
+            data-bind="click: backups.prevPage">«</a></li>
       </ul>
       <ul data-bind="foreach: backups.pages">
-        <li data-bind="css: { active: $data.number === $root.backups.currentPage(), disabled: $data.number === -1 }"><a href="javascript:void(0)"
+        <li data-bind="css: { active: $data.number === $root.backups.currentPage(), disabled: $data.number === -1 }"><a
+            href="javascript:void(0)"
             data-bind="text: $data.text, click: function() { $root.backups.changePage($data.number); }"></a></li>
       </ul>
       <ul>
