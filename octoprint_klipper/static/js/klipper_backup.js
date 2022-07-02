@@ -60,8 +60,8 @@ $(function () {
         },
         date: function (a, b) {
           // sorts descending
-          if (a["date"] > b["date"]) return -1;
-          if (a["date"] < b["date"]) return 1;
+          if (a["mdate"] > b["mdate"]) return -1;
+          if (a["mdate"] < b["mdate"]) return 1;
           return 0;
         },
         size: function (a, b) {
@@ -84,6 +84,10 @@ $(function () {
       OctoPrint.plugins.klipper.listCfgBak()
         .done(function (response) {
           if (response.status == "success") {
+            for (file in response.data.files) {
+              response.data.files[file].size = "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " Kb)";
+              // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
+            }
             self.backups.updateItems(response.data.files);
             self.backups.resetPage();
           } else {

@@ -62,7 +62,7 @@ def list_config_files(self, path_type):
             dict(
                 name=os.path.basename(f),
                 file=f,
-                size=" ({:.1f} KB)".format(filesize / 1000.0),
+                bytes=filesize,
                 mdate=time.strftime("%d.%m.%Y %H:%M", filemdate),
                 url=url,
             )
