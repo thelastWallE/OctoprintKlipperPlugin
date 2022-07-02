@@ -134,6 +134,8 @@ $(function () {
       var dialog = $("#klipper_files_dialog");
       dialog.modal({
         show: "true",
+        width: "60%",
+        minWidth: "500px",
         backdrop: "static",
       });
     };
