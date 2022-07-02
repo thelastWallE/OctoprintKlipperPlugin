@@ -245,31 +245,24 @@ $(function () {
 
     self.checkSyntax = function () {
       return new Promise((resolve, reject) => {
-        if (self.CfgFilename() == "Servicefile") {
-          self.klipperViewModel.showPopUp("success", gettext("SyntaxCheck"), gettext("Can't check syntax of Servicefile"));
-          self.editorFocusDelay(1000);
-          resolve(true);
-        } else {
+        if (editor.session) {
+          self.klipperViewModel.consoleMessage("debug", "checkSyntax started");
 
-          if (editor.session) {
-            self.klipperViewModel.consoleMessage("debug", "checkSyntax started");
-
-            OctoPrint.plugins.klipper.checkCfg(editor.session.getValue())
-              .done(function (response) {
-                if (response.is_syntax_ok == true) {
-                  self.klipperViewModel.showPopUp("success", gettext("SyntaxCheck"), gettext("SyntaxCheck OK"));
-                  self.editorFocusDelay(1000);
-                  resolve(true);
-                } else {
-                  self.editorFocusDelay(1000);
-                  resolve(false);
-                }
-              })
-              .fail(function () {
-                reject(false);
-              });
-          } else { reject(false); }
-        }
+          OctoPrint.plugins.klipper.checkCfg(editor.session.getValue())
+            .done(function (response) {
+              if (response.is_syntax_ok == true) {
+                self.klipperViewModel.showPopUp("success", gettext("SyntaxCheck"), gettext("SyntaxCheck OK"));
+                self.editorFocusDelay(1000);
+                resolve(true);
+              } else {
+                self.editorFocusDelay(1000);
+                resolve(false);
+              }
+            })
+            .fail(function () {
+              reject(false);
+            });
+        } else { reject(false); }
       });
     };
 
@@ -322,69 +315,36 @@ $(function () {
 
     self.reloadFromFile = function () {
       if (self.CfgFilename() != "") {
-        if (self.CfgFilename() == "Servicefile") {
-          self.klipperViewModel.consoleMessage("debug", "Reload Servicefile");
-          OctoPrint.plugins.klipper.getServicefile()
-            .done(function (response) {
-              self.klipperViewModel.consoleMessage("debug", "Reload Servicefile done");
-              if (response.status == "error") {
-                showMessageDialog(
-                  response.data["body"],
-                  {
-                    title: gettext("Reload File")
-                  }
-                );
-              } else {
-                if (editor) {
-                  editor.setValue(response.data["body"]);
-
-                  //reset content for the is_dirty check on editor closing
-                  self.loadedConfig = response.data["body"];
-                  editor.clearSelection();
-                  editor.focus();
-                }
-              }
-            })
-            .fail(function (response) {
+        self.klipperViewModel.consoleMessage("debug", "Reload " + self.CfgFilename());
+        OctoPrint.plugins.klipper.getCfg(self.CfgFilename())
+          .done(function (response) {
+            self.klipperViewModel.consoleMessage("debug", "reloadFromFile done");
+            if (response.status == "error") {
               showMessageDialog(
-                gettext("Error loading Servicefile:") + "<br>" + response,
+                response.data["body"],
                 {
                   title: gettext("Reload File")
                 }
               );
-            });
-        } else {
-          self.klipperViewModel.consoleMessage("debug", "Reload " + self.CfgFilename());
-          OctoPrint.plugins.klipper.getCfg(self.CfgFilename())
-            .done(function (response) {
-              self.klipperViewModel.consoleMessage("debug", "reloadFromFile done");
-              if (response.status == "error") {
-                showMessageDialog(
-                  response.data["body"],
-                  {
-                    title: gettext("Reload File")
-                  }
-                );
-              } else {
-                self.klipperViewModel.showPopUp("success", gettext("Reload Config"), gettext("File reloaded."));
-                self.CfgChangedExtern = false;
-                if (editor) {
-                  editor.session.setValue(response.data["body"]);
-                  self.loadedConfig = response.data["body"];
-                  editor.clearSelection();
-                  editor.focus();
-                }
+            } else {
+              self.klipperViewModel.showPopUp("success", gettext("Reload Config"), gettext("File reloaded."));
+              self.CfgChangedExtern = false;
+              if (editor) {
+                editor.session.setValue(response.data["body"]);
+                self.loadedConfig = response.data["body"];
+                editor.clearSelection();
+                editor.focus();
               }
-            })
-            .fail(function (response) {
-              showMessageDialog(
-                gettext("Error loading file:") + "<br>" + response,
-                {
-                  title: gettext("Reload File")
-                }
-              );
-            });
-        }
+            }
+          })
+          .fail(function (response) {
+            showMessageDialog(
+              gettext("Error loading file:") + "<br>" + response,
+              {
+                title: gettext("Reload File")
+              }
+            );
+          });
       } else {
         showMessageDialog(
           gettext("No filename set"),
