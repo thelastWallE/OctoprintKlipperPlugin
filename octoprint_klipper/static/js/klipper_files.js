@@ -249,6 +249,17 @@ $(function () {
         });
     };
 
+    self.showEditor = function () {
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
+
+      var editorDialog = $("#klipper_editor");
+      editorDialog.modal({
+        show: "true",
+        width: "90%",
+        backdrop: "static",
+      });
+    }
+
     self.onDataUpdaterPluginMessage = function (plugin, data) {
       if (plugin == "klipper" && data.type == "reload" && data.subtype == "configlist") {
         self.klipperViewModel.consoleMessage("debug", "onDataUpdaterPluginMessage klipper reload configlist");
