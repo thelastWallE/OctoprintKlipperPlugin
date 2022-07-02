@@ -1,12 +1,16 @@
-<div id="klipper_editor" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="klipper_editor_label" aria-hidden="true">
+<div id="klipper_editor" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="klipper_editor_label"
+  aria-hidden="true">
   <div class="modal-header text-align-center" style="display: flex; align-items: center;">
-    <h3  style="flex-grow: 1;">Editor</h3>
+    <h3 style="flex-grow: 1;">Editor</h3>
     <div style="align-items: center; display: flex;">
-      <button data-bind="click: function() { fontSize(fontSize() - 1); }" title="Verringere Schriftgröße" class="btn">
+      <button data-bind="click: function() { fontSize(fontSize() - 1); }" title="{{ _('Decrease Fontsize') }}"
+        class="btn">
         <i class="fas fa-search-minus"></i>
       </button>
-      <input class="OctoKlipper-input-mb0" type="text" style="width: 20px; text-align: center;" data-bind="value: fontSize">
-      <button data-bind="click: function() { fontSize(fontSize() + 1); }" title="Vergrößere Schriftgröße" class="btn">
+      <input class="OctoKlipper-input-mb0" type="text" style="width: 20px; text-align: center;"
+        data-bind="value: fontSize" title="{{ _('Fontsize') }}">
+      <button data-bind="click: function() { fontSize(fontSize() + 1); }" title="{{ _('Increase Fontsize') }}"
+        class="btn">
         <i class="fas fa-search-plus"></i>
       </button>
       <button type="button" class="close" data-bind="click: closeEditor" style="margin: 0; margin-left: 13px;">
@@ -36,7 +40,8 @@
         <button class="btn btn-small" data-bind="click: checkSyntax" title="{{ _('Check Syntax') }}">
           <i class="fas fa-spell-check"></i> {{ _('Check Syntax') }}
         </button>
-        <button class="btn btn-small" data-bind="click: function() { $root.saveCfg({closing: true}) }" title="{{ _('Save Config and Close') }}">
+        <button class="btn btn-small" data-bind="click: function() { $root.saveCfg({closing: true}) }"
+          title="{{ _('Save Config and Close') }}">
           <i class="fas fa-save"></i> {{ _('Save & Close') }}
         </button>
         <button class="btn btn-small" data-bind="click: saveCfg" title="{{ _('Save Config') }}">

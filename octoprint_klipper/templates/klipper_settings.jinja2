@@ -102,14 +102,14 @@
         </div>
       </div>
       <div class="control-group border">
-        <label class="control-label">{{ _('Configuration Restart Command') }}</label>
+        <label class="control-label">{{ _('Configuration Restart GCode Command') }}</label>
         <div class="controls">
           <select data-bind="value: settings.settings.plugins.klipper.configuration.reload_command">
             <option value="RESTART">RESTART</option>
             <option value="FIRMWARE_RESTART">FIRMWARE_RESTART</option>
           </select>
           <span class="help-block" style="margin-top:5px;">
-            {{ _('The command that is executed if you want to restart klipper.') }}
+            {{ _('The gcode command that is executed if you want to restart klipper.') }}
           </span>
           <label class="checkbox" title="{{ _('Restart klipper on editor save?') }}"><input type="checkbox"
               data-bind="checked: settings.settings.plugins.klipper.configuration.restart_onsave" />
@@ -128,6 +128,9 @@
           <input type="text" class="input-block-level"
             data-bind="value: settings.settings.plugins.klipper.configuration.restart_host_command" />
         </div>
+        <span class="help-block" style="margin-top:5px;">
+          {{ _('System command for restarting the klipper service.') }}
+        </span>
       </div>
       <div class="control-group">
         <label class="control-label">{{ _('Config Backup') }}</label>

@@ -48,7 +48,7 @@
           <!-- ko if: settings.settings.plugins.klipper.configuration.restart_host_command -->
           <button class="btn btn-block btn-small"
             data-bind="visible: hasPermKo('CONFIG'), click: onRestartKlipper, enable: isActive()"
-            title="{{ _('This will cause the host software to immimmediately stop and restart!') }}">
+            title="{{ _('This will cause the host klipper service to immediately stop and restart!') }}&#13;{{ _('You can set this command in the settings.') }}">
             {{ _("Host") }}
           </button>
           <!-- /ko -->
