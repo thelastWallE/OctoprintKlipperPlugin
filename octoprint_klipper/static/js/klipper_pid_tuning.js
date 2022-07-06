@@ -13,26 +13,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-$(function() {
-    function KlipperPidTuningViewModel(parameters) {
-        var self = this;
+$(function () {
+  function KlipperPidTuningViewModel(parameters) {
+    var self = this;
 
-        self.heaterName = ko.observable();
-        self.targetTemperature = ko.observable();
+    self.heaterName = ko.observable();
+    self.targetTemperature = ko.observable();
 
-        self.onStartup = function() {
-           self.heaterName("");
-           self.targetTemperature(190);
-        }
+    self.onStartup = function () {
+      self.heaterName("");
+      self.targetTemperature(190);
+    };
 
-        self.startTuning = function() {
-           OctoPrint.control.sendGcode("PID_CALIBRATE HEATER=" + self.heaterName() + " TARGET=" + self.targetTemperature());
-        }
-    }
+    self.startTuning = function () {
+      OctoPrint.control.sendGcode("PID_CALIBRATE HEATER=" + self.heaterName() + " TARGET=" + self.targetTemperature());
+    };
+  }
 
-    OCTOPRINT_VIEWMODELS.push({
-        construct: KlipperPidTuningViewModel,
-        dependencies: [],
-        elements: ["#klipper_pid_tuning_dialog"]
-    });
+  OCTOPRINT_VIEWMODELS.push({
+    construct: KlipperPidTuningViewModel,
+    dependencies: [],
+    elements: ["#klipper_pid_tuning_dialog"],
+  });
 });

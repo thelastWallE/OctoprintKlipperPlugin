@@ -5,7 +5,6 @@
     factory(global.OctoPrintClient, global.$, global._);
   }
 })(this, function (OctoPrintClient, $, _) {
-
   var OctoKlipperClient = function (base) {
     this.base = base;
     this.url = this.base.getBlueprintUrl("klipper");
@@ -70,8 +69,7 @@
 
   var preProcessList = function (response) {
     var recursiveCheck = function (element, index, list) {
-      if (!element.hasOwnProperty("parent"))
-        element.parent = { children: list, parent: undefined };
+      if (!element.hasOwnProperty("parent")) element.parent = { children: list, parent: undefined };
       if (!element.hasOwnProperty("size")) element.size = undefined;
       if (!element.hasOwnProperty("date")) element.date = undefined;
 
@@ -108,25 +106,13 @@
     return this.base.delete(resourceForEntry(location, path), opts);
   };
 
-  OctoKlipperClient.prototype.issueEntryCommand = function (
-    location,
-    entryname,
-    command,
-    data,
-    opts
-  ) {
+  OctoKlipperClient.prototype.issueEntryCommand = function (location, entryname, command, data, opts) {
     var url = resourceForEntry(location, entryname);
     return this.base.issueCommand(url, command, data, opts);
   };
 
   OctoKlipperClient.prototype.move = function (location, path, destination, opts) {
-    return this.issueEntryCommand(
-      location,
-      path,
-      "move",
-      { destination: destination },
-      opts
-    );
+    return this.issueEntryCommand(location, path, "move", { destination: destination }, opts);
   };
 
   OctoKlipperClient.prototype.createFolder = function (location, name, path, opts) {
@@ -139,12 +125,7 @@
   };
 
   OctoKlipperClient.prototype.exists = function (location, path, filename, opts) {
-    return this.base.issueCommand(
-      testUrl,
-      "exists",
-      { storage: location, path: path, filename: filename },
-      opts
-    );
+    return this.base.issueCommand(testUrl, "exists", { storage: location, path: path, filename: filename }, opts);
   };
 
   OctoKlipperClient.prototype.listCfgBak = function (opts) {

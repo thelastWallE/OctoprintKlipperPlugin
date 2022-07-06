@@ -43,8 +43,7 @@ $(function () {
     self.configPath = ko.observable("");
     self.configPath.subscribe(changeConfigPath);
 
-
-    $(document).on('shown.bs.modal', '#klipper_editor', function () {
+    $(document).on("shown.bs.modal", "#klipper_editor", function () {
       self.klipperEditorViewModel.onShown();
     });
 
@@ -88,7 +87,8 @@ $(function () {
     self.getServerInfo = function () {
       self.klipperViewModel.consoleMessage("debug", "getServerInfo started");
       // version 1 get OS of Server
-      OctoPrint.plugins.klipper.getServerInfo()
+      OctoPrint.plugins.klipper
+        .getServerInfo()
         .done(function (response) {
           if (response.status == "success") {
             self.klipperViewModel.consoleMessage("debug", "getServerInfo response: " + JSON.stringify(response));
@@ -105,17 +105,16 @@ $(function () {
     self.listCfgFiles = function () {
       self.klipperViewModel.consoleMessage("debug", "listCfgFiles started");
 
-      OctoPrint.plugins.klipper.listCfg()
-        .done(function (response) {
-          self.klipperViewModel.consoleMessage("debug", "listCfgFiles done");
-          for (file in response.data.files) {
-            response.data.files[file].size = "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " Kb)";
-            // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
-          }
-          self.configs.updateItems(response.data.files);
-          self.PathToConfigs(gettext("Path: ") + response.data.path);
-          self.configs.resetPage();
-        });
+      OctoPrint.plugins.klipper.listCfg().done(function (response) {
+        self.klipperViewModel.consoleMessage("debug", "listCfgFiles done");
+        for (file in response.data.files) {
+          response.data.files[file].size = "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " Kb)";
+          // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
+        }
+        self.configs.updateItems(response.data.files);
+        self.PathToConfigs(gettext("Path: ") + response.data.path);
+        self.configs.resetPage();
+      });
     };
 
     self.loadBaseConfig = function () {
@@ -124,7 +123,8 @@ $(function () {
       var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
       if (baseconfig != "") {
         self.klipperViewModel.consoleMessage("debug", "loadBaseConfig:" + baseconfig);
-        OctoPrint.plugins.klipper.getCfg(baseconfig)
+        OctoPrint.plugins.klipper
+          .getCfg(baseconfig)
           .done(function (response) {
             if (response.status == "success") {
               var config = {
@@ -146,18 +146,21 @@ $(function () {
       if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       self.klipperViewModel.consoleMessage("debug", "modifyServiceFile");
-      OctoPrint.plugins.klipper.modifyServicefile(self.configPath())
+      OctoPrint.plugins.klipper
+        .modifyServicefile(self.configPath())
         .done(function (response) {
           if (response.data) {
             self.klipperViewModel.consoleMessage("debug", "modifyServiceFile done");
             self.klipperViewModel.showPopUp("success", gettext("Modify Servicefile"), gettext("Servicefile modified."));
             showMessageDialog(
-              gettext("Copy and run these commands in your linux shell to copy the new servicefile for Klipper.")
-              + "<br><b>Warning: This will stop ongoing prints!</b>"
-              + "<br><br>"
-              + "    sudo cp -T -v " + response.data.path + " /etc/default/klipper<br>    sudo systemctl restart klipper<br><br>",
+              gettext("Copy and run these commands in your linux shell to copy the new servicefile for Klipper.") +
+                "<br><b>Warning: This will stop ongoing prints!</b>" +
+                "<br><br>" +
+                "    sudo cp -T -v " +
+                response.data.path +
+                " /etc/default/klipper<br>    sudo systemctl restart klipper<br><br>",
               {
-                title: gettext("Manually action needed")
+                title: gettext("Manually action needed"),
               }
             );
           } else if (response.error) {
@@ -181,7 +184,12 @@ $(function () {
             self.listCfgFiles();
           })
           .fail(function (response) {
-            var html = "<p>" + _.sprintf(gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"), { name: _.escape(config) });
+            var html =
+              "<p>" +
+              _.sprintf(
+                gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
+                { name: _.escape(config) }
+              );
             html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
             new PNotify({
               title: gettext("Could not remove config"),
@@ -250,7 +258,10 @@ $(function () {
             });
           })
           .fail(function () {
-            deferred.notify(_.sprintf(gettext("Deleting of %(filename)s failed, continuing..."), { filename: _.escape(filename) }), false);
+            deferred.notify(
+              _.sprintf(gettext("Deleting of %(filename)s failed, continuing..."), { filename: _.escape(filename) }),
+              false
+            );
           });
       };
 
@@ -296,7 +307,7 @@ $(function () {
         width: "90%",
         backdrop: "static",
       });
-    }
+    };
 
     self.newFile = function () {
       if (!self.klipperViewModel.hasPerm("CONFIG")) return;
@@ -304,24 +315,25 @@ $(function () {
         content: "",
         file: "Change Filename",
       };
-      self.klipperEditorViewModel.process(config).then(
-        function () { self.showEditor(); }
-      );
+      self.klipperEditorViewModel.process(config).then(function () {
+        self.showEditor();
+      });
     };
 
     self.openConfig = function (file) {
       if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
-      OctoPrint.plugins.klipper.getCfg(file)
+      OctoPrint.plugins.klipper
+        .getCfg(file)
         .done(function (response) {
           if (response.status == "success") {
             var config = {
               content: response.data["body"],
               file: file,
             };
-            self.klipperEditorViewModel.process(config).then(
-              function () { self.showEditor(); }
-            );
+            self.klipperEditorViewModel.process(config).then(function () {
+              self.showEditor();
+            });
           } else {
             self.klipperViewModel.consoleMessage("error", "openConfig failed: " + response.data["body"]);
           }
@@ -399,7 +411,13 @@ $(function () {
 
   OCTOPRINT_VIEWMODELS.push({
     construct: KlipperSettingsViewModel,
-    dependencies: ["settingsViewModel", "klipperViewModel", "klipperEditorViewModel", "klipperBackupViewModel", "accessViewModel"],
+    dependencies: [
+      "settingsViewModel",
+      "klipperViewModel",
+      "klipperEditorViewModel",
+      "klipperBackupViewModel",
+      "accessViewModel",
+    ],
     elements: ["#settings_plugin_klipper"],
   });
 });

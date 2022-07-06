@@ -15,6 +15,11 @@ indent_size = 2
 
 [**.py]
 indent_size = 4
+max_line_length = 88
+
+[**.js]
+indent_size = 2
+max_line_length = 120
 
 [**.yaml]
 indent_size = 2

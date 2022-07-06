@@ -42,7 +42,7 @@ $(function () {
     };
 
     self.onStartupComplete = function () {
-      $('#klipper_backups_dialog').css('display', 'none');
+      $("#klipper_backups_dialog").css("display", "none");
       if (self.loginState.loggedIn()) {
         self.listBakFiles();
       }
@@ -81,11 +81,13 @@ $(function () {
     self.listBakFiles = function () {
       self.klipperViewModel.consoleMessage("debug", "listBakFiles");
 
-      OctoPrint.plugins.klipper.listCfgBak()
+      OctoPrint.plugins.klipper
+        .listCfgBak()
         .done(function (response) {
           if (response.status == "success") {
             for (file in response.data.files) {
-              response.data.files[file].size = "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " Kb)";
+              response.data.files[file].size =
+                "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " Kb)";
               // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
             }
             self.backups.updateItems(response.data.files);
@@ -104,11 +106,17 @@ $(function () {
     self.showCfg = function (backup) {
       if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_KLIPPER_CONFIG)) return;
 
-      OctoPrint.plugins.klipper.getCfgBak(backup)
+      OctoPrint.plugins.klipper
+        .getCfgBak(backup)
         .done(function (response) {
           if (response.status == "error") {
             self.klipperViewModel.consoleMessage("error", response.error.message);
-            var html = "<p>" + _.sprintf(gettext("Failed to retrieve config %(name)s.</p><p>Please consult octoprint.log for details.</p>"), { name: _.escape(backup) });
+            var html =
+              "<p>" +
+              _.sprintf(
+                gettext("Failed to retrieve config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
+                { name: _.escape(backup) }
+              );
             html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>");
             new PNotify({
               title: gettext("Could not retrieve config"),
@@ -118,12 +126,17 @@ $(function () {
             });
             return;
           }
-          $('#klipper_backups_dialog textarea').attr('rows', response.data.body.split(/\r\n|\r|\n/).length);
+          $("#klipper_backups_dialog textarea").attr("rows", response.data.body.split(/\r\n|\r|\n/).length);
           self.CfgContent(response.data.body);
         })
         .fail(function (response) {
           self.klipperViewModel.consoleMessage("error", "Error getting backup: " + backup);
-          var html = "<p>" + _.sprintf(gettext("Failed to retrieve config %(name)s.</p><p>Please consult octoprint.log for details.</p>"), { name: _.escape(backup) });
+          var html =
+            "<p>" +
+            _.sprintf(
+              gettext("Failed to retrieve config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
+              { name: _.escape(backup) }
+            );
           html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
           new PNotify({
             title: gettext("Could not retrieve config"),
@@ -138,12 +151,20 @@ $(function () {
       if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_KLIPPER_CONFIG)) return;
 
       var perform = function () {
-        OctoPrint.plugins.klipper.deleteBackup(backup)
+        OctoPrint.plugins.klipper
+          .deleteBackup(backup)
           .done(function (response) {
             if (response.status == "error") {
               self.klipperViewModel.consoleMessage("error", response.error.message);
-              var html = "<p>" + _.sprintf(gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"), { name: _.escape(backup) });
-              html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>");
+              var html =
+                "<p>" +
+                _.sprintf(
+                  gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
+                  { name: _.escape(backup) }
+                );
+              html += pnotifyAdditionalInfo(
+                '<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>"
+              );
               new PNotify({
                 title: gettext("Could not remove config"),
                 text: html,
@@ -155,7 +176,12 @@ $(function () {
             self.listBakFiles();
           })
           .fail(function (response) {
-            var html = "<p>" + _.sprintf(gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"), { name: _.escape(backup) });
+            var html =
+              "<p>" +
+              _.sprintf(
+                gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
+                { name: _.escape(backup) }
+              );
             html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
             new PNotify({
               title: gettext("Could not remove config"),
@@ -178,12 +204,20 @@ $(function () {
       if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_KLIPPER_CONFIG)) return;
 
       var restore = function () {
-        OctoPrint.plugins.klipper.restoreBackup(backup)
+        OctoPrint.plugins.klipper
+          .restoreBackup(backup)
           .done(function (response) {
             if (response.status == "error") {
               self.klipperViewModel.consoleMessage("error", response.error.message);
-              var html = "<p>" + _.sprintf(gettext("Failed to restore config %(name)s.</p><p>Please consult octoprint.log for details.</p>"), { name: _.escape(backup) });
-              html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>");
+              var html =
+                "<p>" +
+                _.sprintf(
+                  gettext("Failed to restore config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
+                  { name: _.escape(backup) }
+                );
+              html += pnotifyAdditionalInfo(
+                '<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>"
+              );
               new PNotify({
                 title: gettext("Could not restore config"),
                 text: html,
@@ -195,7 +229,12 @@ $(function () {
             self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + backup + " / " + response.status);
           })
           .fail(function (response) {
-            var html = "<p>" + _.sprintf(gettext("Failed to restore config %(name)s.</p><p>Please consult octoprint.log for details.</p>"), { name: _.escape(backup) });
+            var html =
+              "<p>" +
+              _.sprintf(
+                gettext("Failed to restore config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
+                { name: _.escape(backup) }
+              );
             html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
             new PNotify({
               title: gettext("Could not restore config"),
@@ -206,7 +245,13 @@ $(function () {
           });
       };
 
-      var html = "<p>" + gettext("This will overwrite any file with the same name on the configpath.") + "</p>" + "<p>" + backup + "</p>";
+      var html =
+        "<p>" +
+        gettext("This will overwrite any file with the same name on the configpath.") +
+        "</p>" +
+        "<p>" +
+        backup +
+        "</p>";
 
       showConfirmationDialog({
         title: gettext("Are you sure you want to restore now?"),
@@ -217,7 +262,9 @@ $(function () {
     };
 
     self.markFilesOnPage = function () {
-      self.markedForFileRestore(_.uniq(self.markedForFileRestore().concat(_.map(self.backups.paginatedItems(), "file"))));
+      self.markedForFileRestore(
+        _.uniq(self.markedForFileRestore().concat(_.map(self.backups.paginatedItems(), "file")))
+      );
     };
 
     self.markAllFiles = function () {
@@ -268,11 +315,15 @@ $(function () {
       });
 
       handler = function (filename) {
-        return OctoPrint.plugins.klipper.restoreBackup(filename)
+        return OctoPrint.plugins.klipper
+          .restoreBackup(filename)
           .done(function (response) {
             if (response.status == "error") {
               self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + filename + " / " + response.error.message);
-              deferred.notify(_.sprintf(gettext("Restoring of %(filename)s failed, continuing..."), { filename: _.escape(filename) }), false);
+              deferred.notify(
+                _.sprintf(gettext("Restoring of %(filename)s failed, continuing..."), { filename: _.escape(filename) }),
+                false
+              );
               return;
             }
 
@@ -289,7 +340,10 @@ $(function () {
           })
           .fail(function (response) {
             self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + filename + " / " + response.error);
-            deferred.notify(_.sprintf(gettext("Restoring of %(filename)s failed, continuing..."), { filename: _.escape(filename) }), false);
+            deferred.notify(
+              _.sprintf(gettext("Restoring of %(filename)s failed, continuing..."), { filename: _.escape(filename) }),
+              false
+            );
           });
       };
 
@@ -328,10 +382,14 @@ $(function () {
       });
 
       handler = function (filename) {
-        return OctoPrint.plugins.klipper.deleteBackup(filename)
+        return OctoPrint.plugins.klipper
+          .deleteBackup(filename)
           .done(function (response) {
             if (response.status == "error") {
-              deferred.notify(_.sprintf(gettext("Deleting of %(filename)s failed, continuing..."), { filename: _.escape(filename) }), false);
+              deferred.notify(
+                _.sprintf(gettext("Deleting of %(filename)s failed, continuing..."), { filename: _.escape(filename) }),
+                false
+              );
               return;
             }
             deferred.notify(_.sprintf(gettext("Deleted %(filename)s..."), { filename: _.escape(filename) }), true);
@@ -340,7 +398,10 @@ $(function () {
             });
           })
           .fail(function () {
-            deferred.notify(_.sprintf(gettext("Deleting of %(filename)s failed, continuing..."), { filename: _.escape(filename) }), false);
+            deferred.notify(
+              _.sprintf(gettext("Deleting of %(filename)s failed, continuing..."), { filename: _.escape(filename) }),
+              false
+            );
           });
       };
 
@@ -367,7 +428,7 @@ $(function () {
 
       return promise;
     };
-  };
+  }
 
   OCTOPRINT_VIEWMODELS.push({
     construct: KlipperBackupViewModel,

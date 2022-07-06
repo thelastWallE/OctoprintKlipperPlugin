@@ -38,7 +38,7 @@ $(function () {
     self.shortStatus_navbar = ko.observable();
     self.shortStatus_navbar_hover = ko.observable();
     self.shortStatus_sidebar = ko.observable();
-    self.shortStatus_type = ko.observable('');
+    self.shortStatus_type = ko.observable("");
     self.host_version = ko.observable();
     self.host_remote_version = ko.observable();
     self.logMessages = ko.observableArray();
@@ -54,11 +54,7 @@ $(function () {
     self.popup = undefined;
 
     self.updateAccess = function () {
-      return (
-        self.loginState.hasPermission(
-          self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE
-        ) || CONFIG_FIRST_RUN
-      );
+      return self.loginState.hasPermission(self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE) || CONFIG_FIRST_RUN;
     };
 
     self._showPopup = function (options) {
@@ -81,7 +77,7 @@ $(function () {
     };
 
     self.showPopUp = function (popupType = "info", popupTitle, message) {
-      popupTitle ? popupTitle + "<br />" : popupTitle = "";
+      popupTitle ? popupTitle + "<br />" : (popupTitle = "");
 
       let title = "OctoKlipper: <br />" + popupTitle;
       var options = {
@@ -89,14 +85,14 @@ $(function () {
         text: message,
         type: popupType,
         hide: true,
-        icon: true
+        icon: true,
       };
 
       if (popupType == "error") {
         let errorOpts = {
           mouse_reset: true,
           delay: 5000,
-          animation: "none"
+          animation: "none",
         };
         FullOptions = Object.assign(options, errorOpts);
         self._showPopup(FullOptions);
@@ -117,7 +113,7 @@ $(function () {
 
     self.onStartup = function () {
       self.requestData();
-    }
+    };
 
     self.showEditorDialog = function () {
       if (!self.hasPerm("CONFIG")) return;
@@ -127,7 +123,7 @@ $(function () {
         width: "90%",
         backdrop: "static",
       });
-    }
+    };
 
     self.showFilesDialog = function () {
       self.consoleMessage("debug", "showFilesDialog");
@@ -218,17 +214,14 @@ $(function () {
 
     self.onRestartKlipper = function () {
       self.requestRestart();
-    }
+    };
 
     self.onAfterBinding = function () {
-      self.connectionState.selectedPort(
-        self.settings.settings.plugins.klipper.connection.port()
-      );
+      self.connectionState.selectedPort(self.settings.settings.plugins.klipper.connection.port());
       self.shortStatus(gettext("No Messages"), "");
     };
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
-
       if (plugin == "klipper") {
         switch (data.type) {
           case "PopUp":
@@ -244,15 +237,13 @@ $(function () {
             break;
           default:
             self.logMessage(data.time, data.subtype, data.payload);
-            self.shortStatus(data.payload, data.subtype)
+            self.shortStatus(data.payload, data.subtype);
             self.consoleMessage(data.subtype, data.payload);
         }
       }
     };
 
-
     self.shortStatus = function (msg, type = null) {
-
       if (msg.length > 36) {
         self.shortStatus_navbar(msg.substring(0, 31) + " [..]");
         self.shortStatus_navbar_hover(msg);
@@ -269,16 +260,12 @@ $(function () {
       setTimeout(function () {
         self.shortStatus(gettext("No Messages"), "");
       }, 1000);
-
-    }
-
+    };
 
     self.logMessage = function (timestamp, type = "info", message) {
-
       if (!timestamp) {
         let today = new Date();
-        timestamp =
-          today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+        timestamp = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
       }
 
       if (type == "error" && self.settings.settings.plugins.klipper.configuration.hide_error_popups() !== true) {
@@ -293,15 +280,13 @@ $(function () {
     };
 
     self.consoleMessage = function (type, message) {
-      if (
-        self.settings.settings.plugins.klipper.configuration.debug_logging() === true
-      ) {
+      if (self.settings.settings.plugins.klipper.configuration.debug_logging() === true) {
         if (type == "info") {
-          console.info('%cOctoKlipper : %c%s', 'background: black; color: green;', '', message);
+          console.info("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
         } else if (type == "debug") {
-          console.debug('%cOctoKlipper : %c%s', 'background: black; color: green;', '', message);
+          console.debug("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
         } else {
-          console.error('%cOctoKlipper : %c%s', 'background: black; color: green;', '', message);
+          console.error("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
         }
       }
       return;
@@ -333,7 +318,7 @@ $(function () {
     };
 
     self.saveOption = function (dir, option, value) {
-      if (!(_.includes(["fontsize", "confirm_reload", "parse_check"], option))) {
+      if (!_.includes(["fontsize", "confirm_reload", "parse_check"], option)) {
         return;
       }
 
@@ -342,25 +327,23 @@ $(function () {
           plugins: {
             klipper: {
               [dir]: {
-                [option]: value
-              }
-            }
-          }
+                [option]: value,
+              },
+            },
+          },
         };
-        OctoPrint.settings
-          .save(data);
+        OctoPrint.settings.save(data);
       } else if (option) {
         let data = {
           plugins: {
             klipper: {
-              [option]: value
-            }
-          }
+              [option]: value,
+            },
+          },
         };
-        OctoPrint.settings
-          .save(data);
+        OctoPrint.settings.save(data);
       }
-    }
+    };
 
     self.requestRestart = function () {
       if (!self.hasPerm("CONFIG")) return;
@@ -375,9 +358,7 @@ $(function () {
         }
       };
 
-      var html = "<h4>" +
-        gettext("All ongoing Prints will be stopped!") +
-        "</h4>";
+      var html = "<h4>" + gettext("All ongoing Prints will be stopped!") + "</h4>";
 
       if (self.settings.settings.plugins.klipper.configuration.confirm_reload() == true) {
         showConfirmationDialog({
@@ -403,10 +384,8 @@ $(function () {
       if (self.printerState.isPrinting()) {
         self._showPopup({
           title: gettext("Can't update while printing"),
-          text: gettext(
-            "A print job is currently in progress. Updating will be prevented until it is done."
-          ),
-          type: "error"
+          text: gettext("A print job is currently in progress. Updating will be prevented until it is done."),
+          type: "error",
         });
         self._updateClicked = false;
         return;
@@ -418,7 +397,7 @@ $(function () {
           text: gettext(
             "Your system is currently throttled. OctoPrint refuses to run updates while in this state due to possible stability issues."
           ),
-          type: "error"
+          type: "error",
         });
         self._updateClicked = false;
         return;
@@ -440,15 +419,13 @@ $(function () {
         });
       };
 
-      var html = "<h4>" +
-        gettext("All ongoing Prints will be stopped!") +
-        "</h4>";
+      var html = "<h4>" + gettext("All ongoing Prints will be stopped!") + "</h4>";
 
       showConfirmationDialog({
         title: gettext("Update Klipper?"),
         html: html,
         proceed: gettext("Update"),
-        onproceed: request
+        onproceed: request,
       });
     };
 
@@ -465,10 +442,9 @@ $(function () {
     };
 
     // trigger tooltip a first time to "enable"
-    $("#klipper-copyToClipboard").tooltip('hide');
+    $("#klipper-copyToClipboard").tooltip("hide");
     var clipboard = navigator.clipboard;
 
-    // check if clipboard is available and hide icon if not
     if (clipboard == undefined) {
       $("#klipper-copyToClipboard").hide();
     }
@@ -479,27 +455,30 @@ $(function () {
       const icon = document.getElementById("klipper-copyToClipboard");
 
       /* Copy the text inside the text field */
-      clipboard.writeText(Text[0].value).then(function () {
-        ele.attr('data-original-title', gettext("Copied"));
-        ele.tooltip('show');
-        icon.classList.add("klipper-animate");
+      clipboard.writeText(Text[0].value).then(
+        function () {
+          ele.attr("data-original-title", gettext("Copied"));
+          ele.tooltip("show");
+          icon.classList.add("klipper-animate");
 
-        self.sleep(300).then(function () {
-          icon.classList.remove("klipper-animate");
-          $("#klipper-copyToClipboard").attr('data-original-title', gettext("Copy to Clipboard"));
-        });
-      }, function (err) {
-        $("#klipper-copyToClipboard").attr('data-original-title', gettext("Error:") + err);
-        $("#klipper-copyToClipboard").tooltip('show');
+          self.sleep(300).then(function () {
+            icon.classList.remove("klipper-animate");
+            $("#klipper-copyToClipboard").attr("data-original-title", gettext("Copy to Clipboard"));
+          });
+        },
+        function (err) {
+          $("#klipper-copyToClipboard").attr("data-original-title", gettext("Error:") + err);
+          $("#klipper-copyToClipboard").tooltip("show");
 
-        self.sleep(300).then(function () {
-          $("#copyToClipboard").attr('data-original-title', gettext("Copy to Clipboard"));
-        });
-      });
+          self.sleep(300).then(function () {
+            $("#copyToClipboard").attr("data-original-title", gettext("Copy to Clipboard"));
+          });
+        }
+      );
     });
 
     self.sleep = function (ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
+      return new Promise((resolve) => setTimeout(resolve, ms));
     };
   }
 
@@ -513,13 +492,9 @@ $(function () {
       "klipperMacroDialogViewModel",
       "accessViewModel",
       "printerStateViewModel",
-      "piSupportViewModel"
+      "piSupportViewModel",
     ],
     optional: ["piSupportViewModel"],
-    elements: [
-      "#tab_plugin_klipper_main",
-      "#sidebar_plugin_klipper",
-      "#navbar_plugin_klipper",
-    ],
+    elements: ["#tab_plugin_klipper_main", "#sidebar_plugin_klipper", "#navbar_plugin_klipper"],
   });
 });
