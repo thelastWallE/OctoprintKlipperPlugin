@@ -32,26 +32,27 @@ $(function () {
 
     self.fontSize = ko.observable("");
 
-    var optionsLocalStorageKey = "OctoKlipper.options";
-
-    self._toLocalStorage = function () {
-      saveToLocalStorage(optionsLocalStorageKey, { fontSize: self.fontSize() });
+    self.saveFontSize = function () {
+      saveToLocalStorage("plugin.OctoKlipper.editor.fontSize", self.fontSize());
     };
 
-    self._fromLocalStorage = function () {
-      var data = loadFromLocalStorage(optionsLocalStorageKey);
-      if (data["fontSize"] != undefined) {
-        self.fontSize(data["fontSize"]);
+    self.loadFontSize = function () {
+      var fontSize = loadFromLocalStorage("plugin.OctoKlipper.editor.fontSize");
+      if (fontSize != undefined || fontSize != null) {
+        self.fontSize(fontSize);
       } else {
         // get the old setting and save it to the localStorage
         if (ko.isObservable(self.settings.settings.plugins.klipper.configuration.fontsize)) {
           self.fontSize(self.settings.settings.plugins.klipper.configuration.fontsize());
-          self._toLocalStorage();
+          self.saveFontSize();
         } else {
           self.fontSize(18);
-          self._toLocalStorage();
+          self.saveFontSize();
         }
       }
+    };
+    self._fromLocalStorage = function () {
+      self.loadFontSize();
     };
 
     self.fontSize.subscribe(function () {
@@ -62,7 +63,7 @@ $(function () {
         editor.resize();
       }
 
-      self._toLocalStorage();
+      self.saveFontSize();
     });
 
     self.limitFontsize = function () {
