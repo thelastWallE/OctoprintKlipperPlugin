@@ -35,7 +35,7 @@ $(function () {
 
     // initialize list helper
     self.configs = new ItemListHelper(
-      "klipperCfgFiles",
+      "plugin.OctoKlipper.klipperCfgFiles",
       {
         name: function (a, b) {
           // sorts ascending
@@ -77,7 +77,7 @@ $(function () {
           self.klipperViewModel.consoleMessage("debug", "listCfgFiles done");
           for (file in response.data.files) {
             response.data.files[file].size =
-              "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " Kb)";
+              "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " KB)";
             // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
           }
           self.configs.updateItems(response.data.files);

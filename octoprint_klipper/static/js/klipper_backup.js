@@ -50,7 +50,7 @@ $(function () {
 
     // initialize list helper
     self.backups = new ItemListHelper(
-      "klipperBakFiles",
+      "plugin.OctoKlipper.klipperBakFiles",
       {
         name: function (a, b) {
           // sorts ascending
@@ -87,7 +87,7 @@ $(function () {
           if (response.status == "success") {
             for (file in response.data.files) {
               response.data.files[file].size =
-                "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " Kb)";
+                "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " KB)";
               // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
             }
             self.backups.updateItems(response.data.files);
