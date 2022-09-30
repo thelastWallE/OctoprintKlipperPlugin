@@ -31,7 +31,7 @@ def migrate_settings(self, settings, old, new, new2=""):
         old (str): the old setting to migrate
         new (str): group or only new setting if there is no new2
         new2 (str, optional): the new setting to migrate to. Defaults to "".
-    """ """"""
+    """
     if settings.has(old):
         if new2 != "":
             logger.log_info(
