@@ -1,446 +1,444 @@
 .plugin-klipper-sidebar {
-    padding: 1px;
-    height: auto;
-    max-height: 100px;
-    border: 1px solid #aaa;
-    width: 98%;
-    text-align: center;
-    word-break: break-word;
-    margin: auto;
-    overflow: auto;
+  padding: 1px;
+  min-height: 100px;
+  max-height: 100px;
+  border: 1px solid #aaa;
+  width: 98%;
+  text-align: center;
+  word-break: break-word;
+  margin: auto;
+  overflow: auto;
 }
 
 .KlipperShortStatusWarning {
-    background-color: #f2f60084;
-    color: #000 !important;
+  background-color: #f2f60084;
+  color: #000 !important;
 }
 
 .KlipperShortStatusError {
-    background-color: #f2000084;
-    color: #000 !important;
+  background-color: #f2000084;
+  color: #000 !important;
 }
 
 li#navbar_plugin_klipper {
-    cursor: pointer;
-    max-width: 360px;
-    max-height: 80px;
-    word-break: break-all;
+  cursor: pointer;
+  max-width: 360px;
+  max-height: 80px;
+  word-break: break-all;
 }
 
 .plugin-klipper-sidebar a {
-    padding: 2px 2px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    cursor: pointer;
+  padding: 2px 2px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
 }
 
 .plugin-klipper-sidebar a:hover,
 .plugin-klipper-sidebar a:active {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .plugin-klipper-log {
-    padding: 0px;
-    overflow-y: scroll;
-    height: 400px;
-    border: 1px solid #eee;
-    width: 100%;
-    word-break: break-all;
+  padding: 0px;
+  overflow-y: scroll;
+  height: 400px;
+  border: 1px solid #eee;
+  width: 100%;
+  word-break: break-all;
 }
 
 .plugin-klipper-log .log-item {
-    margin: 3px auto 0 auto;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    background-color: #efefef;
-    color: #333;
+  margin: 3px auto 0 auto;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background-color: #efefef;
+  color: #333;
 }
 
 .plugin-klipper-log .error {
-    background-color: #eebabb;
+  background-color: #eebabb;
 }
 
 .plugin-klipper-log .log-item .ts {
-    display: inline-block;
-    width: 13%;
-    height: 100%;
-    vertical-align: top;
-    font-size: 0.8em;
-    padding: 0 0 0 5px;
+  display: inline-block;
+  width: 13%;
+  height: 100%;
+  vertical-align: top;
+  font-size: 0.8em;
+  padding: 0 0 0 5px;
 }
 
 .plugin-klipper-log .log-item .msg {
-    display: inline-block;
-    width: 84%;
-    height: 100%;
+  display: inline-block;
+  width: 84%;
+  height: 100%;
 }
 
 .clear-btn {
-    margin-top: 6px;
-    margin-bottom: 6px;
+  margin-top: 6px;
+  margin-bottom: 6px;
 }
 
 #level .controls {
-    padding: 1px;
+  padding: 1px;
 }
 
 ul#klipper-settings {
-    margin: 0;
+  margin: 0;
 }
 
 #klipper-settings a {
-    margin: 5px;
-}
-
-#tab_plugin_klipper_main .row-fluid {
-    display: flex;
-    flex-flow: row wrap;
-    align-items: stretch;
+  margin: 5px;
 }
 
 @media all and (max-width: 940px) {
-    #tab_plugin_klipper_main .row-fluid {
-        /* On small screens, we are no longer using row direction but column */
-        flex-direction: column;
-    }
+  #tab_plugin_klipper_main .row-fluid {
+    /* On small screens, we are no longer using row direction but column */
+    flex-direction: column;
+  }
 }
 
 #tab_plugin_klipper_main #left-side {
-    flex: 3 1;
-    padding-right: 10px;
-    padding-top: 5px;
+  flex: 3 1;
+  padding-right: 10px;
+  padding-top: 5px;
+}
+
+.klipper-logfilters {
+  padding: 0px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  width: 100%;
+  word-break: break-word;
 }
 
 #tab_plugin_klipper_main .span8 label {
-    float: left;
+  float: left;
 }
 
 #tab_plugin_klipper_main #right-side {
-    flex: 1 1;
-    max-width: 200px;
-    min-width: 100px;
+  flex: 1 2;
+  max-width: 200px;
+  min-width: 100px;
 }
 
 .klipper-row-fluid {
-    display: flex;
-    flex-flow: row wrap;
-    align-items: stretch;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: stretch;
 }
 
 .klipper-column-fluid {
-    display: flex;
-    flex-flow: column nowrap;
-    align-items: stretch;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: stretch;
 }
 
 .klipper-fluid-item-1 {
-    flex: 1 auto;
+  flex: 1 auto;
 }
 
 .klipper-fluid-item-2 {
-    flex: 2 auto;
+  flex: 2 auto;
 }
 
 .klipper-fluid-item-3 {
-    flex: 3 auto;
+  flex: 3 auto;
 }
 
 .klipper-noresize {
-    resize: none;
+  resize: none;
+}
+
+.octoklipper-donate {
+  float: left;
 }
 
 .klipper-copyicon {
-    position: absolute;
-    top: 2.3em;
-    right: 2.5em;
-    margin-top: 4px;
-    margin-left: 4px;
-    width: 11px;
-    height: 13px;
-    cursor: pointer;
+  position: absolute;
+  top: 2.3em;
+  right: 2.5em;
+  margin-top: 4px;
+  margin-left: 4px;
+  width: 11px;
+  height: 13px;
+  cursor: pointer;
 }
 
 .klipper-animate {
-    animation-name: klipper-pulse;
-    animation-duration: 0.2s;
-    animation-direction: alternate;
-    animation-iteration-count: 2;
-    animation-timing-function: linear;
+  animation-name: klipper-pulse;
+  animation-duration: 0.2s;
+  animation-direction: alternate;
+  animation-iteration-count: 2;
+  animation-timing-function: linear;
 }
 
 @keyframes klipper-pulse {
-    0% {
-        transform: scale(1);
-        color: rgba(221, 255, 220, 1);
-    }
+  0% {
+    transform: scale(1);
+    color: rgba(221, 255, 220, 1);
+  }
 
-    75% {
-        transform: scale(1.1);
-        color: rgba(117, 255, 112, 1);
-    }
+  75% {
+    transform: scale(1.1);
+    color: rgba(117, 255, 112, 1);
+  }
 
-    100% {
-        transform: scale(1.7);
-        color: rgba(9, 255, 0, 1);
-    }
+  100% {
+    transform: scale(1.7);
+    color: rgba(9, 255, 0, 1);
+  }
 }
 
 .gap {
-    justify-content: space-evenly;
+  justify-content: space-evenly;
 }
 
 @media all and (max-width: 940px) {
-    .klipper-row-fluid {
-        /* On small screens, we are no longer using row direction but column */
-        flex-direction: column;
-    }
+  .klipper-row-fluid {
+    /* On small screens, we are no longer using row direction but column */
+    flex-direction: column;
+  }
 }
 
 #settings_plugin_klipper {
-    height: 100%;
-    height: -webkit-fill-available;
+  height: 100%;
+  height: -webkit-fill-available;
 }
 
 div#klipper_backups_dialog {
-    display: flex;
-    flex-flow: column;
-    min-height: 400px;
+  display: flex;
+  flex-flow: column;
+  min-height: 400px;
 }
 
 div#klipper_backups_dialog div.modal-body {
-    min-height: 350px;
-    display: flex;
-    flex-flow: column;
-    flex-grow: 1;
+  min-height: 350px;
+  display: flex;
+  flex-flow: column;
+  flex-grow: 1;
 }
 
 div#klipper_backups_dialog .editor-controls {
-    flex: 0 auto;
-    display: flex;
-    align-items: stretch;
-    flex-flow: row wrap;
+  flex: 0 auto;
+  display: flex;
+  align-items: stretch;
+  flex-flow: row wrap;
 }
 
 div#klipper_backups_dialog div.modal-body .textarea {
-    overflow: auto;
+  overflow: auto;
 }
 
 div#klipper_backups_dialog div.modal-body textarea {
-    margin-bottom: 0px !important;
-    padding-left: 0px !important;
-    padding-right: 0px !important;
-    box-sizing: border-box;
-    resize: none;
-    width: 100%;
+  margin-bottom: 0px !important;
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+  box-sizing: border-box;
+  resize: none;
+  width: 100%;
 }
 
 /* UIcustomizer fix */
 body.UICResponsiveMode #settings_dialog_content {
-    height: calc(100% - 60px);
-    margin-right: -18px;
-    margin-top: 50px;
-    width: calc(100% - 15px);
+  height: calc(100% - 60px);
+  margin-right: -18px;
+  margin-top: 50px;
+  width: calc(100% - 15px);
 }
 
 div#settings_plugin_klipper form {
-    margin: 0px;
-    height: 100%;
+  margin: 0px;
+  height: 100%;
 }
 
 div#settings_plugin_klipper div.tab-content {
-    height: calc(100% - 76px);
-    overflow: auto;
+  height: calc(100% - 76px);
+  overflow: auto;
 }
 
 div#settings_plugin_klipper div.tab-content .border {
-    border-bottom: 1px solid;
+  border-bottom: 1px solid;
+  border-top: 1px solid;
 }
 
 div#settings_plugin_klipper div.tab-footer {
-    height: 20px;
-    width: 100%;
-    top: 10px;
-    position: relative;
-    border-top: 1px solid #eee;
-    padding-top: 3px;
+  height: 20px;
+  width: 100%;
+  top: 10px;
+  position: relative;
+  border-top: 1px solid #eee;
+  padding-top: 3px;
 }
 
 div#settings_plugin_klipper div.tab-content div#conf.tab-pane {
-    height: 100%;
-    min-height: 200px;
-    width: 100%;
+  height: 100%;
+  min-height: 200px;
+  width: 100%;
 }
 
 div#settings_plugin_klipper div.tab-content div#conf.tab-pane div.control-group {
-    height: 100%;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 div#settings_plugin_klipper div.control-group div.controls p {
-    padding-top: 5px;
+  padding-top: 5px;
 }
 
 .klipper-settings-tab {
-    height: 100%;
-    width: 100%;
+  height: 100%;
+  width: 100%;
 }
 
 #settings_plugin_klipper .m-0 {
-    margin: 0;
+  margin: 0;
 }
 
 #settings_plugin_klipper .scroll-y {
-    overflow-y: scroll;
+  overflow-y: scroll;
 }
 
 #settings_plugin_klipper table,
 table.plugin-octoklipper {
-    table-layout: unset !important;
+  table-layout: unset !important;
 }
 
 #settings_plugin_klipper .table-fixed thead th,
 .plugin-octoklipper.table-fixed thead th {
-    position: sticky;
-    top: 0;
-    background-color: rgba(12, 5, 5, 0.85);
-    color: rgb(200, 200, 200);
+  position: sticky;
+  top: 0;
+  background-color: rgba(12, 5, 5, 0.85);
+  color: rgb(200, 200, 200);
 }
 
 #settings_plugin_klipper .pagination-mini {
-    margin: 5;
+  margin: 5;
 }
 
 @media (max-width: 979px) {
-    /* div#klipper_editor.modal {
+  /* div#klipper_editor.modal {
     height: unset !important;
   } */
 
-    div#klipper_editor .modal-footer .btn {
-        margin-bottom: 1px;
-        margin-left: 5px;
-    }
+  div#klipper_editor .modal-footer .btn {
+    margin-bottom: 1px;
+    margin-left: 5px;
+  }
 }
 
 .octoprint-container.UICMainCont.container-fluid {
-    margin-top: 0px !important;
+  margin-top: 0px !important;
 }
 
 div#klipper_editor .modal-header div button.btn + button.btn {
-    margin-right: 12px;
+  margin-right: 12px;
 }
 
 div#klipper_editor .modal-body {
-    overflow: auto;
+  overflow: auto;
 }
 
 .klipper-btn-group {
-    display: inline-block;
+  display: inline-block;
 }
 
 input[type="text"].OctoKlipper-input-mb0 {
-    margin-bottom: 0px !important;
+  margin-bottom: 0px !important;
 }
 
 div#klipper_editor .modal-footer .editor-controls {
-    flex: 0 auto;
-    display: flex;
-    align-items: center;
+  flex: 0 auto;
+  display: flex;
+  align-items: center;
 }
 
 div#klipper_editor div.conf-editor {
-    width: 99%;
-    width: calc(100% - 4px);
-    margin-top: 5px;
-    overflow: auto;
+  width: 99%;
+  width: calc(100% - 4px);
+  margin-top: 5px;
+  overflow: auto;
 }
 
 div#klipper_editor div.conf-editor div#plugin-klipper-config {
-    font-family: monospace;
-    overflow: auto;
-    width: 100%;
-    margin: auto;
+  font-family: monospace;
+  overflow: auto;
+  width: 100%;
+  margin: auto;
 }
 
 /*checkboxes*/
-div#settings_plugin_klipper.tab-pane.active
-    form.form-horizontal
-    div.tab-content
-    div.tab-pane.active
-    input.inline-checkbox {
-    vertical-align: -0.2em;
+div#settings_plugin_klipper.tab-pane.active form.form-horizontal div.tab-content div.tab-pane.active input.inline-checkbox {
+  vertical-align: -0.2em;
 }
 
 .klipper-inline {
-    display: inline;
+  display: inline;
 }
 
-div#settings_plugin_klipper.tab-pane.active
-    form.form-horizontal
-    div.tab-content
-    div.tab-pane.active
-    div.controls
-    input.controls-checkbox {
-    margin-top: 8px;
+div#settings_plugin_klipper.tab-pane.active form.form-horizontal div.tab-content div.tab-pane.active div.controls input.controls-checkbox {
+  margin-top: 8px;
 }
 
 /*macros*/
 div#settings_plugin_klipper div#macros label.control-label {
-    width: 80px;
+  width: 80px;
 }
 
 #macros #item.control-group {
-    margin-bottom: 2px;
-    border: 2px solid #ccc;
-    border-radius: 3px;
-    background-color: #eeeeee;
-    color: #333;
-    padding-bottom: 2px;
-    padding-top: 2px;
+  margin-bottom: 2px;
+  border: 2px solid #ccc;
+  border-radius: 3px;
+  background-color: #eeeeee;
+  color: #333;
+  padding-bottom: 2px;
+  padding-top: 2px;
 }
 
 #klipper_graph_dialog .full-sized-box {
-    width: 100%;
-    margin: 0 auto;
+  width: 100%;
+  margin: 0 auto;
 }
 
 #klipper_graph_dialog form {
-    margin: 0;
+  margin: 0;
 }
 
 #klipper_graph_dialog select {
-    width: auto;
+  width: auto;
 }
 
 #klipper_graph_dialog .graph-footer {
-    bottom: 0;
+  bottom: 0;
 }
 
 #klipper_graph_dialog input {
-    display: inline-block;
+  display: inline-block;
 }
 
 #klipper_graph_dialog .status-label {
-    display: block;
-    position: absolute;
-    margin: 5px 0 0 10px;
+  display: block;
+  position: absolute;
+  margin: 5px 0 0 10px;
 }
 
 #klipper_graph_dialog .fill-checkbox {
-    display: block;
-    position: absolute;
-    top: 0%;
-    left: 50%;
+  display: block;
+  position: absolute;
+  top: 0%;
+  left: 50%;
 }
 
 #klipper_graph_dialog .help-inline {
-    display: block;
-    position: absolute;
-    top: 0px;
+  display: block;
+  position: absolute;
+  top: 0px;
 }
 
 #klipper_graph_canvas {
-    margin-top: 15px;
+  margin-top: 15px;
 }
