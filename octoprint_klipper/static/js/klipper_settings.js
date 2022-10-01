@@ -401,6 +401,36 @@ $(function () {
       }
     };
 
+    // Start LogFilters
+    self.showLogfiltersDialog = function () {
+      var dialog = $("#klipper_logfilters_dialog");
+      dialog.modal({
+        show: "true",
+        //width: "70%",
+      });
+    };
+
+    $(document).on("hidden.bs.modal", "#klipper_logfilters_dialog", function () {
+      self.klipperViewModel.showPopUp("info", gettext("Changes"), gettext("Don't forget to save your changes!"));
+    });
+
+    self.hideLogfiltersDialog = function () {
+      var dialog = $("#klipper_logfilters_dialog");
+      dialog.modal("hide");
+    };
+
+    self.addLogFilter = function () {
+      self.settings.settings.plugins.klipper.log.logFilters.push({
+        name: "New",
+        regex: "()",
+      });
+    };
+
+    self.removeLogFilter = function (filter) {
+      self.settings.settings.plugins.klipper.log.logFilters.remove(filter);
+    };
+    // End LogFilters
+
     self.onDataUpdaterPluginMessage = function (plugin, data) {
       if (plugin == "klipper" && data.type == "reload" && data.subtype == "configlist") {
         self.klipperViewModel.consoleMessage("debug", "onDataUpdaterPluginMessage klipper reload configlist");

@@ -16,6 +16,7 @@
 $(function () {
   function KlipperViewModel(parameters) {
     var self = this;
+    var testLog = undefined;
 
     self.header = OctoPrint.getRequestHeaders({
       "content-type": "application/json",
@@ -41,7 +42,42 @@ $(function () {
     self.shortStatus_type = ko.observable("");
     self.host_version = ko.observable();
     self.host_remote_version = ko.observable();
-    self.logMessages = ko.observableArray();
+
+    self.log = ko.observableArray([]);
+    self.plainLogLines = ko.observableArray([]);
+
+    self.filterRegex = ko.observable();
+
+    self.activeFilters = ko.observableArray([]);
+    self.activeFilters.subscribe(function (e) {
+      self.updateFilterRegex();
+    });
+
+    self.fancyFunctionality = ko.observable(true);
+    self.fancyFunctionality.subscribe(function (e) {
+      self.settings.settings.plugins.klipper.log.fancy_functionality(self.fancyFunctionality());
+    });
+
+    self.plainLogOutput = ko.pureComputed(function () {
+      if (self.fancyFunctionality()) {
+        return;
+      }
+      return self.plainLogLines().join("\n");
+    });
+
+    self.updateFilterRegex = function () {
+      var filterRegexStr = self.activeFilters().join("|").trim();
+      if (filterRegexStr === "") {
+        self.filterRegex(undefined);
+      } else {
+        self.filterRegex(new RegExp(filterRegexStr));
+      }
+      self.updateOutput();
+    };
+
+    self.tabActive = false;
+    self.previousScroll = undefined;
+    self.autoscrollEnabled = ko.observable(true);
 
     self.throttled = ko.pureComputed(function () {
       return (
@@ -51,11 +87,26 @@ $(function () {
       );
     });
 
-    self.popup = undefined;
-
-    self.updateAccess = function () {
-      return self.loginState.hasPermission(self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE) || CONFIG_FIRST_RUN;
+    self.saveAutoscroll = function () {
+      saveToLocalStorage("plugin.OctoKlipper.logmessages.autoscroll", self.autoscrollEnabled());
     };
+
+    self.loadAutoscroll = function () {
+      var autoscroll = loadFromLocalStorage("plugin.OctoKlipper.logmessages.autoscroll");
+      if (autoscroll != undefined || autoscroll != null) {
+        self.autoscrollEnabled(autoscroll);
+      }
+    };
+
+    self._fromLocalStorage = function () {
+      self.loadAutoscroll();
+    };
+
+    self.autoscrollEnabled.subscribe(function () {
+      self.saveAutoscroll();
+    });
+
+    self.popup = undefined;
 
     self._showPopup = function (options) {
       self._closePopup();
@@ -103,6 +154,10 @@ $(function () {
 
     self.requestData = function () {
       OctoPrint.plugins.klipper.get().done(self.fromResponse);
+    };
+
+    self.reloadData = function () {
+      self.fancyFunctionality(self.settings.settings.plugins.klipper.log.fancy_functionality());
     };
 
     self.fromResponse = function (response) {
@@ -219,6 +274,8 @@ $(function () {
     self.onAfterBinding = function () {
       self.connectionState.selectedPort(self.settings.settings.plugins.klipper.connection.port());
       self.shortStatus(gettext("No Messages"), "");
+      self._fromLocalStorage();
+      self.fancyFunctionality(self.settings.settings.plugins.klipper.log.fancy_functionality());
     };
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
@@ -262,6 +319,17 @@ $(function () {
       }, 1000);
     };
 
+    self.testLog = function () {
+      if (!testLog) {
+        testLog = setInterval(function () {
+          self.logMessage(null, "debug", "Test Log Message " + new Date().getTime());
+        }, 1000);
+      } else {
+        clearInterval(testLog);
+        testLog = null;
+      }
+    };
+
     self.logMessage = function (timestamp, type = "info", message) {
       if (!timestamp) {
         let today = new Date();
@@ -272,12 +340,136 @@ $(function () {
         self.showPopUp(type, "Error:", message);
       }
 
-      self.logMessages.push({
+      self.plainLogLines.push(timestamp + " " + type + ": " + message);
+      if (self.plainLogLines().length > 200) {
+        self.plainLogLines.shift();
+      }
+
+      self.log.push({
         time: timestamp,
         type: type,
         msg: message.replace(/\n/gi, "<br />"),
       });
+      if (self.log().length > 200) {
+        self.log.shift();
+      }
+
+      self.updateOutput();
     };
+
+    /* self.autoscrollEnabled.subscribe(function (newValue) {
+      if (newValue) {
+        self.log(self.log.slice(-self.buffer()));
+      }
+    }); */
+    self.copyLog = function () {
+      var lines = [];
+
+      if (self.fancyFunctionality()) {
+        for (var i = 0; i < self.log().length; i++) {
+          lines.push(self.log()[i].time + " " + self.log()[i].type + ": " + self.log()[i].msg.replace("<br />", "\n"));
+        }
+      } else {
+        lines = self.plainLogLines();
+      }
+
+      copyToClipboard(lines.join("\n"));
+    };
+
+    self.scrollToEnd = function () {
+      var container = $("#octoklipper-log");
+      if (container.length) {
+        container.scrollTop(container[0].scrollHeight);
+      }
+    };
+
+    self.updateOutput = function () {
+      if (self.tabActive && OctoPrint.coreui.browserTabVisible && self.autoscrollEnabled()) {
+        self.scrollToEnd();
+      }
+    };
+
+    self.toggleAutoscroll = function () {
+      self.autoscrollEnabled(!self.autoscrollEnabled());
+
+      if (self.autoscrollEnabled()) {
+        self.updateOutput();
+      }
+    };
+
+    self.displayedLines = ko.pureComputed(function () {
+      if (!self.fancyFunctionality()) {
+        return self.log();
+      }
+
+      var regex = self.filterRegex();
+      var lineVisible = function (entry) {
+        return regex === undefined || !entry.msg.match(regex);
+      };
+
+      var filtered = false;
+      var result = [];
+      var lines = self.log();
+      _.each(lines, function (entry) {
+        if (lineVisible(entry)) {
+          result.push(entry);
+          filtered = false;
+        } else if (!filtered) {
+          result.push({
+            time: "",
+            type: "info",
+            msg: "[...]",
+          });
+          filtered = true;
+        }
+      });
+
+      return result;
+    });
+
+    self.lineCount = ko.pureComputed(function () {
+      if (!self.fancyFunctionality()) {
+        return;
+      }
+
+      var regex = self.filterRegex();
+      var lineVisible = function (entry) {
+        return regex === undefined || !entry.msg.match(regex);
+      };
+
+      var lines = self.log();
+      var total = lines.length;
+      var displayed = _.filter(lines, lineVisible).length;
+      var filtered = total - displayed;
+
+      if (filtered > 0) {
+        return _.sprintf(gettext("showing %(displayed)d lines (%(filtered)d of %(total)d total lines filtered)"), {
+          displayed: displayed,
+          total: total,
+          filtered: filtered,
+        });
+      } else {
+        return _.sprintf(gettext("showing %(displayed)d lines"), {
+          displayed: displayed,
+        });
+      }
+    });
+
+    self.logScrollEvent = _.throttle(function () {
+      var container = $("#octoklipper-log");
+      var pos = container.scrollTop();
+      var scrollingUp = self.previousScroll !== undefined && pos < self.previousScroll;
+
+      if (self.autoscrollEnabled() && scrollingUp) {
+        var maxScroll = container[0].scrollHeight - container[0].offsetHeight;
+
+        if (pos <= maxScroll) {
+          self.autoscrollEnabled(false);
+        }
+      }
+
+      self.previousScroll = pos;
+    }, 250);
 
     self.consoleMessage = function (type, message) {
       if (self.settings.settings.plugins.klipper.configuration.debug_logging() === true) {
@@ -293,8 +485,9 @@ $(function () {
     };
 
     self.onClearLog = function () {
-      self.logMessages.removeAll();
+      self.log.removeAll();
       self.clearShortStatus();
+      self.updateOutput();
     };
 
     self.isActive = function () {
@@ -479,6 +672,15 @@ $(function () {
 
     self.sleep = function (ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
+    };
+
+    self.onAfterTabChange = function (current, previous) {
+      self.tabActive = current === "#tab_plugin_klipper_main";
+      self.updateOutput();
+    };
+
+    self.onBrowserTabVisibilityChange = function (status) {
+      self.updateOutput();
     };
   }
 

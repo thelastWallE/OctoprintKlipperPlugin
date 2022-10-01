@@ -1,4 +1,4 @@
-<div class="row-fluid">
+<div class="klipper-row-fluid">
   <div id="left-side">
     <label class="klipper-inline"> <i class="icon-tasks"></i> {{ _("Messages") }} </label>
     <button class="btn btn-small pull-right"
@@ -6,17 +6,48 @@
       title="{{ _('Open the OctoKlipper Settings') }}">
       <i class="fa icon-black fa-wrench"></i>
     </button>
-    <div class="plugin-klipper-log" data-bind="foreach: logMessages">
+    <div id="octoklipper-log" class="plugin-klipper-log"
+      data-bind="foreach: displayedLines, event: { scroll: logScrollEvent }">
       <div class="log-item" data-bind="css: type">
         <div data-bind="text: time" class="ts"></div>
         <div data-bind="html: msg" class="msg"></div>
       </div>
     </div>
-    &nbsp;
-    <button class="btn btn-mini pull-right clear-btn" data-bind="click: onClearLog" title="{{ _('Clear Log') }}">
-      <i class="fa fa-trash"></i> {{ _('Clear Log') }}
-    </button>
+    <!-- <pre id="octoklipper-log" class="plugin-klipper-log"
+      data-bind="text: plainLogOutput, visible: !fancyFunctionality()">
+    </pre> -->
+    <div class="row-fluid">
+      <div class="pull-left">
+        <button class="btn btn-mini terminal-autoscroll"
+          data-bind="visible: settings.settings.plugins.klipper.configuration.debugging, click: testLog">{{ _('Test Log') }}</button>
+        <small id="octoklipper-log-autoscroll-panel" data-bind="visible: fancyFunctionality()">
+          <button class="btn btn-mini terminal-autoscroll"
+            data-bind="click: toggleAutoscroll, css: {active: autoscrollEnabled}">{{ _('Autoscroll') }}</button>
+          <span data-bind="text: lineCount, visible: fancyFunctionality()"></span>
+          <span data-bind="visible: !autoscrollEnabled && fancyFunctionality" style="display: none">(<a
+              href="javascript:void(0)" data-bind="click: scrollToEnd">{{ _("Scroll to end") }}</a>)</span>
+        </small>
+      </div>
+      <div class="pull-right">
+        <a href="javascript:void(0)" data-bind="click: copyLog"><i class="fas fa-copy terminal-copy-all"
+            title="{{ _('Copy all')|edq }}"></i> {{ _('Copy all') }}</a><br>
+        <a href="javascript:void(0)" data-bind="click: onClearLog"><i class="far fa-trash-alt terminal-clear-logs"
+            title="{{ _('Clear log window')|edq }}"></i> {{ _('Clear all') }}</a>
+        <!--  <button class="btn btn-mini clear-btn" data-bind="click: onClearLog" title="{{ _('Clear Log') }}">
+          <i class="fa fa-trash"></i> {{ _('Clear Log') }}
+        </button> -->
+      </div>
+    </div>
+    <label class="klipper-inline" data-bind="visible: fancyFunctionality()"> {{ _("Log Filters") }} </label>
+    <div class="klipper-logfilters"
+      data-bind="foreach: settings.settings.plugins.klipper.log.logFilters, visible: fancyFunctionality()">
+      <label class="checkbox">
+        <input type="checkbox" data-bind="attr: { value: regex }, checked: $parent.activeFilters" />
+        <span data-bind="text: name"></span>
+      </label>
+    </div>
   </div>
+
   <div id="right-side">
     <div class="control-group">
       <div class="control-group">

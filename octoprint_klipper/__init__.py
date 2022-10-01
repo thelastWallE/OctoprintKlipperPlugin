@@ -152,8 +152,18 @@ class KlipperPlugin(
                 speed_z=500,
                 points=[dict(name="point-1", x=0, y=0)],
             ),
+            log=dict(
+                fancy_functionality=True,
+                logFilters=[
+                    dict(
+                        name="Suppress temperature messages",
+                        regex=r"(Send: (N\d+\s+)?M105)",
+                    )
+                ],
+            ),
             configuration=dict(
                 debug_logging=False,
+                debugging=False,
                 ignore_throttled=False,
                 klipper_path="~/klipper/",
                 config_path="~/",
