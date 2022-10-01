@@ -555,10 +555,20 @@ $(function () {
       if (!self.hasPerm("CONFIG")) return;
 
       var request = function (index) {
-        OctoPrint.plugins.klipper.restartKlipper().done(function (response) {
-          self.consoleMessage("debug", "restartingKlipper");
-          self.showPopUp("success", gettext("Restarted Klipper"), "command: " + response.command);
-        });
+        OctoPrint.plugins.klipper
+          .restartKlipper()
+          .done(function (response) {
+            self.consoleMessage("debug", "restartingKlipper: " + response.status);
+            if (response.status == "success") {
+              self.showPopUp("success", gettext("Restarted Klipper"), "command: " + response.data.command);
+            } else {
+              self.showPopUp("error", gettext("Restarting Klipper failed"), response.error.message);
+            }
+          })
+          .fail(function (response) {
+            self.consoleMessage("debug", "restartingKlipper");
+            self.showPopUp("error", gettext("Restarting Klipper failed"), response.error.message);
+          });
         if (index == 1) {
           self.saveOption("configuration", "confirm_reload", false);
         }
