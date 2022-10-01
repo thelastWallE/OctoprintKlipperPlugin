@@ -172,11 +172,11 @@ def run(self, cmd):
 def execute_command(self, command):
 
     logger.log_info(
-                self,
-                "Command: {}".format(command),
-                only_logging=True,
-            )
-    stdout_text=""
+        self,
+        "Command: {}".format(command),
+        only_logging=True,
+    )
+    stdout_text = ""
     # we run this with shell=True since we have to trust whatever
     # our admin configured as command and since we want to allow
     # shell-alike handling here...
@@ -186,9 +186,11 @@ def execute_command(self, command):
         only_logging=True,
     )
 
-    output_text2, output_error2=sarge.get_both(command,
+    output_text2, output_error2 = sarge.get_both(
+        command,
         close_fds=CLOSE_FDS,
-        shell=True,)
+        shell=True,
+    )
 
     logger.log_info(
         self,
@@ -198,10 +200,10 @@ def execute_command(self, command):
 
     if output_error2 != "":
         logger.log_info(
-        self,
-        "output_error2: {}".format(output_error2),
-        only_logging=False,
-    )
+            self,
+            "output_error2: {}".format(output_error2),
+            only_logging=False,
+        )
 
     """ p = sarge.run(
         command,
