@@ -152,6 +152,11 @@ $(function () {
       }
     };
 
+    self.checkForUpdate = function () {
+      self.logMessage(null, null, "<b>" + gettext("Checking for update...") + "</b>");
+      self.requestData();
+    };
+
     self.requestData = function () {
       OctoPrint.plugins.klipper.get().done(self.fromResponse);
     };
@@ -346,7 +351,12 @@ $(function () {
     self.logMessage = function (timestamp, type = "info", message) {
       if (!timestamp) {
         let today = new Date();
-        timestamp = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+        timestamp =
+          ("0" + today.getHours()).slice(-2) +
+          ":" +
+          ("0" + today.getMinutes()).slice(-2) +
+          ":" +
+          ("0" + today.getSeconds()).slice(-2);
       }
 
       if (type == "error" && self.settings.settings.plugins.klipper.configuration.hide_error_popups() !== true) {
