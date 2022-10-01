@@ -25,7 +25,7 @@ def retrieve_remote_git_tag(self, remote):
     # OctoKlipper Repo: https://github.com/thelastWallE/OctoprintKlipperPlugin.git
     if not self._connectivity_checker.online:
         return gettext("We are not online")
-    repo = self._repo_klipper if remote == "klipper" else remote
+    repo = self._settings.get(["configuration", "remote_host_git"]) if remote == "klipper" else remote
     cmd = (
         'git ls-remote --exit-code --refs --sort="version:refname" --tags '
         + repo

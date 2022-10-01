@@ -60,7 +60,6 @@ class KlipperPlugin(
     _message = ""
     _reload_config_lock = False
     _latest_klipper_remote_tag = ""
-    _repo_klipper = "https://github.com/Klipper3D/klipper.git"
 
     def __init__(self):
         self._logger = logging.getLogger("octoprint.plugins.klipper")
@@ -180,6 +179,7 @@ class KlipperPlugin(
                 parse_check=False,
                 fontsize=12,
                 hide_error_popups=False,
+                remote_host_git="https://github.com/Klipper3D/klipper.git",
             ),
         )
 
