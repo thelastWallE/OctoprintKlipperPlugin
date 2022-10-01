@@ -30,6 +30,13 @@
             type="checkbox" data-bind="checked: settings.settings.plugins.klipper.connection.hide_editor_button">
         </div>
       </div>
+      <div class="control-group">
+        <label class="control-label">{{ _('Hide \'Configs\' Button\nin the Connection Panel') }}</label>
+        <div class="controls">
+          <input class="controls-checkbox" title="{{ _('Hide \'Configs\' Button\nin the Connection Panel') }}"
+            type="checkbox" data-bind="checked: settings.settings.plugins.klipper.connection.hide_config_button">
+        </div>
+      </div>
       <div class="control-group border">
         <label class="control-label">{{ _('Show Short Messages') }}</label>
         <div class="controls">
@@ -46,6 +53,7 @@
         <div class="controls">
           <input class="controls-checkbox" title="{{ _('Enable extended functionality for log messages') }}"
             type="checkbox" data-bind="checked: settings.settings.plugins.klipper.log.fancy_functionality" />
+          <br>
           <button class="btn btn-small" data-bind="click: showLogfiltersDialog" title="{{ _('Logfilters') }}">
             {{ _('Edit Logfilters') }}
           </button>
@@ -130,10 +138,10 @@
         <div class="controls">
           <input type="text" class="input-block-level"
             data-bind="value: settings.settings.plugins.klipper.configuration.restart_host_command" />
+          <span class="help-block" style="margin-top:5px;">
+            {{ _('System command for restarting the klipper service.') }}
+          </span>
         </div>
-        <span class="help-block" style="margin-top:5px;">
-          {{ _('System command for restarting the klipper service.') }}
-        </span>
       </div>
       <div class="control-group">
         <label class="control-label">{{ _('Config Backup') }}</label>

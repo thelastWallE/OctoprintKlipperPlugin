@@ -144,6 +144,7 @@ class KlipperPlugin(
                 port="/tmp/printer",
                 replace_connection_panel=True,
                 hide_editor_button=False,
+                hide_config_button=False,
             ),
             macros=[dict(name="E-Stop", macro="M112", sidebar=True, tab=True)],
             probe=dict(
