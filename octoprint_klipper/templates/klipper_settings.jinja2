@@ -143,6 +143,17 @@
           </button>
         </div>
       </div>
+      <div class="control-group border">
+        <label class="control-label">{{ _('Development Options') }}</label>
+        <div class="controls">
+          <label class="checkbox" title="{{ _('Enable debug logging') }}"><input type="checkbox"
+              data-bind="checked: settings.settings.plugins.klipper.configuration.debug_logging" />
+            {{ _('Enable debug logging') }}</label>
+          <label class="checkbox" title="{{ _('Enable debugging') }}"><input type="checkbox"
+              data-bind="checked: settings.settings.plugins.klipper.configuration.debugging" />
+            {{ _('Enable debugging') }}</label>
+        </div>
+      </div>
     </div>
     <!-- Macros -->
     <div class="tab-pane" id="macros">
