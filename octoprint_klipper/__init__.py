@@ -42,6 +42,8 @@ from .modules import KlipperLogAnalyzer
 
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5Mb
 
+SETTINGS_VERSION = 4
+
 
 class KlipperPlugin(
     octoprint.plugin.StartupPlugin,
@@ -216,7 +218,7 @@ class KlipperPlugin(
         #     -switch setting for 'restart on editor save' to true if it was not set to manually
         #     -remove old_config
         #     -remove config on root settingsdirectory
-        return 4
+        return SETTINGS_VERSION
 
     # migrate Settings
     def on_settings_migrate(self, target, current):
