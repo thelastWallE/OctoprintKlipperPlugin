@@ -426,19 +426,26 @@
           <label class="control-label">{{ _('Installed Host Version:') }}</label>
           <div class="controls">
             <p data-bind="text:klipperViewModel.host_version()" title="{{ _('Version of the Klipper host')}}"></p>
-            <button class="btn btn-small" data-bind="click: function() {klipperViewModel.requestData()}"
-              title="{{ _('Get Installed Version') }}">
-              <i class="icon-refresh"></i>
-            </button>
           </div>
           <label class="control-label">{{ _('Available Host Version:') }}</label>
           <div class="controls">
-            <p data-bind="text:klipperViewModel.host_remote_version" title="{{ _('Version of the Klipper host')}}"></p>
-            <button class="btn btn-block btn-small" data-bind="click: function() { klipperViewModel.requestUpdate() }"
-              title="{{ _('This will cause the host software to update and perform an internal reset') }}">
-              {{ _("Update Host") }}
+            <p data-bind="text:klipperViewModel.host_remote_version"
+              title="{{ _('Version of the available Klipper host')}}">
+            </p>
+          </div>
+          <label class="control-label">{{ _('Url to Repository of Klipper:') }}</label>
+          <div class="controls">
+            <input type="text" class="span8"
+              data-bind="value: settings.settings.plugins.klipper.configuration.remote_host_git" />
+            <button class="btn btn-small" data-bind="click: function() {klipperViewModel.checkForUpdate()}"
+              title="{{ _('Check for Update') }}">
+              <i class="icon-refresh"></i>
             </button>
           </div>
+          <button class="btn btn-block btn-small" data-bind="click: function() { klipperViewModel.requestUpdate() }"
+            title="{{ _('This will cause the host software to update and perform an internal reset') }}">
+            {{ _("Update Host") }}
+          </button>
         </div>
       </div>
     </div>

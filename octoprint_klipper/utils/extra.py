@@ -7,6 +7,14 @@ import io
 import re
 import shlex
 import subprocess
+import sarge
+import threading
+
+try:
+    from octoprint.util.commandline import CommandlineCaller, CommandlineError
+except ImportError:
+    pass
+from octoprint.util.platform import CLOSE_FDS
 
 from shutil import copy
 from flask_babel import gettext
@@ -90,20 +98,52 @@ def run(self, cmd):
     i = 0
     p = {}
     logger.log_info(self, "Run Command:" + cmd, only_logging=True)
+
     for cmd_part in cmd_parts:
+        logger.log_info(self, "Run Command Part:" + cmd_part, only_logging=True)
         cmd_part = cmd_part.strip()
         prog = shlex.split(cmd_part) if platform.system() == "posix" else cmd_part
-        if i == 0:
-            p[i] = subprocess.Popen(
-                prog, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
-        else:
-            p[i] = subprocess.Popen(
-                prog,
-                stdin=p[i - 1].stdout,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
+        logger.log_info(self, "Run Command Part prog:" + str(prog), only_logging=True)
+        try:
+            if i == 0:
+                p[i] = sarge.run(
+                    prog,
+                    close_fds=CLOSE_FDS,
+                    stdin=None,
+                    stdout=sarge.Capture(),
+                    stderr=sarge.Capture(),
+                    shell=True,
+                )
+                """ p[i] = subprocess.Popen(
+                    prog, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                ) """
+            else:
+                p[i] = sarge.run(
+                    prog,
+                    close_fds=CLOSE_FDS,
+                    stdin=p[i - 1].stdout,
+                    stdout=sarge.Capture(),
+                    stderr=sarge.Capture(),
+                    shell=True,
+                )
+                """ p[i] = subprocess.Popen(
+                    prog,
+                    stdin=p[i - 1].stdout,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                ) """
+            if p[i].returncode != 0:
+                returncode = p[i].returncode
+                stdout_text = p[i].stdout.text
+                stderr_text = p[i].stderr.text
+
+                error = "Command part{}:{} failed with return code {}:\nSTDOUT: {}\nSTDERR: {}".format(
+                    i, prog, returncode, stdout_text, stderr_text
+                )
+                logger.log_error(self, error, only_logging=True)
+        except Exception as e:
+            error = "Command part{}:{} failed: {}".format(i, prog, e)
+            logger.log_error(self, error, only_logging=True)
         i += 1
     (output, err) = p[i - 1].communicate()
     exit_code = p[0].wait()
@@ -127,6 +167,109 @@ def run(self, cmd):
         + response,
         only_logging=False,
     )
+
+
+def execute_command(self, command):
+
+    logger.log_info(
+                self,
+                "Command: {}".format(command),
+                only_logging=True,
+            )
+    stdout_text=""
+    # we run this with shell=True since we have to trust whatever
+    # our admin configured as command and since we want to allow
+    # shell-alike handling here...
+    logger.log_info(
+        self,
+        "Command Thread: {}".format(command),
+        only_logging=True,
+    )
+
+    output_text2, output_error2=sarge.get_both(command,
+        close_fds=CLOSE_FDS,
+        shell=True,)
+
+    logger.log_info(
+        self,
+        "output_text2: {}, output_error2: {}".format(output_text2, output_error2),
+        only_logging=True,
+    )
+
+    if output_error2 != "":
+        logger.log_info(
+        self,
+        "output_error2: {}".format(output_error2),
+        only_logging=False,
+    )
+
+    """ p = sarge.run(
+        command,
+        close_fds=CLOSE_FDS,
+        stdout=sarge.Capture(),
+        stderr=sarge.Capture(),
+        shell=True,
+    )
+    while p.returncode is None:
+        output = p.stderr.read(timeout=0.5).decode('utf-8')
+        if not output:
+            p.commands[0].poll()
+            continue
+        logger.log_info(
+            self,
+            "p.stderr.read: {}, p.stdout.read: {}".format(output,stdout_text),
+            only_logging=True,
+        )
+
+    logger.log_info(
+        self,
+        "Command Out1: {}".format(stdout_text),
+        only_logging=True,
+    )
+    if p.returncode != 0:
+        returncode = p.returncode
+        stderr_text = p.stderr.text
+        error = "Command for OctoKlipper:{} failed with return code {}:\nSTDOUT: {}\nSTDERR: {}".format(
+            command, returncode, stdout_text, stderr_text
+        )
+        logger.log_error(self, error, only_logging=True)
+        return error
+    else:
+        for line in p.stdout:
+            stdout_text += line.strip()
+        logger.log_info(
+            self,
+            "return Command Out: {}".format(stdout_text),
+            only_logging=True,
+        ) """
+    return output_text2
+
+    """
+    self._caller = CommandlineCaller()
+    if not command:
+        return False
+
+    try:
+        # we run this with shell=True since we have to trust whatever
+        # our admin configured as command and since we want to allow
+        # shell-alike handling here...
+        p = self._caller.non_blocking_call(command, shell=True)
+
+        if p is None:
+            raise CommandlineError(None, "", "")
+
+        if p.returncode is not None:
+            stdout = p.stdout.text if p is not None and p.stdout is not None else ""
+            stderr = p.stderr.text if p is not None and p.stderr is not None else ""
+            raise CommandlineError(p.returncode, stdout, stderr)
+    except CommandlineError:
+        raise
+    except Exception:
+        self._logger.exception("Error while executing command: " + command)
+        raise CommandlineError(None, "", "")
+
+    return True
+    """
 
 
 def is_float(value):

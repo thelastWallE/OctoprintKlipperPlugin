@@ -161,13 +161,26 @@ $(function () {
     };
 
     self.fromResponse = function (response) {
-      self.host_version(response.klipper_version);
-      self.host_remote_version(response.klipper_remote_version);
-      self.logMessage(null, null, "<b>Klipper Host Version:</b> " + response.klipper_version);
+      if (response.status == "success") {
+        self.host_version(response.data.klipper_version);
+        self.host_remote_version(response.data.latest_klipper_remote_tag);
+        self.logMessage(null, null, "<b>" + gettext("Installed Klipper Host Version:") + "</b> " + self.host_version());
+        self.logMessage(
+          null,
+          null,
+          "<b>" + gettext("Available Klipper Version:") + "</b> " + self.host_remote_version()
+        );
+      } else {
+        self.showPopUp("error", "Error", response.error.message);
+      }
     };
 
     self.onStartup = function () {
       self.requestData();
+    };
+
+    self.onSettingsHidden = function () {
+      self.reloadData();
     };
 
     self.showEditorDialog = function () {
@@ -511,7 +524,7 @@ $(function () {
     };
 
     self.saveOption = function (dir, option, value) {
-      if (!_.includes(["fontsize", "confirm_reload", "parse_check"], option)) {
+      if (!_.includes(["fontsize", "confirm_reload", "parse_check", "logFilters"], option)) {
         return;
       }
 

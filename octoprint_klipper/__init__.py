@@ -719,9 +719,25 @@ class KlipperPlugin(
         baseconfig = self._settings.get(["configuration", "baseconfig"])
         replace_path = os.path.join(config_path, baseconfig)
 
-        return flask.jsonify(
-            extra.modify_servicefile(self, file_path, replace_path, config_path)
-        )
+        temp_file = extra.modify_servicefile(self, file_path, replace_path, config_path)
+        if temp_file["status"] == "success":
+            if extra.execute(
+                self,
+                "sudo cp -T -v " + temp_file["data"]["path"] + " /etc/default/klipper",
+            ):
+                result = dict(
+                    status="success",
+                    data=dict(message="Servicefile successfully modified"),
+                )
+            else:
+                result = dict(
+                    status="error",
+                    error=dict(message="Could not overwritte Servicefile"),
+                )
+        else:
+            result = temp_file
+
+        return flask.jsonify(result)
 
     # API for other stuff
     # restart klipper
@@ -729,14 +745,42 @@ class KlipperPlugin(
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def restart_klipper(self):
-        reload_command = self._settings.get(["configuration", "reload_command"])
+        restart_host_command = self._settings.get(
+            ["configuration", "restart_host_command"]
+        )
+        if restart_host_command == "":
+            return flask.jsonify(
+                dict(
+                    status="error",
+                    error=dict(
+                        message="Restart Command for Klipper not set.",
+                        command=restart_host_command,
+                    ),
+                )
+            )
 
-        if reload_command != "manually":
-
-            # Restart klippy to reload config
-            self._printer.commands(reload_command)
+        # Restart klippy to reload config
+        if extra.execute_command(self, restart_host_command) != "Error":
             logger.log_info(self, "Restarting Klipper.", only_logging=False)
-        return flask.jsonify(command=reload_command)
+            return flask.jsonify(
+                dict(
+                    status="success",
+                    data=dict(
+                        message="Klipper service restarted",
+                        command=restart_host_command,
+                    ),
+                )
+            )
+        else:
+            return flask.jsonify(
+                dict(
+                    status="error",
+                    error=dict(
+                        message="Could not restart Klipper",
+                        command=restart_host_command,
+                    ),
+                )
+            )
 
     # get server OS and return a json
     @octoprint.plugin.BlueprintPlugin.route("/serverinfo", methods=["GET"])
@@ -794,8 +838,13 @@ class KlipperPlugin(
             self, "klipper"
         )
         return flask.jsonify(
-            klipper_version=klipper_version,
-            klipper_remote_version=self._latest_klipper_remote_tag,
+            {
+                "status": "success",
+                "data": {
+                    "klipper_version": klipper_version,
+                    "latest_klipper_remote_tag": self._latest_klipper_remote_tag,
+                },
+            }
         )
 
     # endregion APIs end
