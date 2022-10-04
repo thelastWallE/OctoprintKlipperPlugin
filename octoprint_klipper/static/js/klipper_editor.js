@@ -38,7 +38,7 @@ $(function () {
 
     self.loadFontSize = function () {
       var fontSize = loadFromLocalStorage("plugin.OctoKlipper.editor.fontSize");
-      if (fontSize != undefined || fontSize != null) {
+      if (fontSize != undefined && fontSize != null) {
         self.fontSize(fontSize);
       } else {
         // get the old setting and save it to the localStorage
@@ -246,7 +246,7 @@ $(function () {
           OctoPrint.plugins.klipper
             .checkCfg(editor.session.getValue())
             .done(function (response) {
-              if (response.is_syntax_ok == true) {
+              if (response.status == "success") {
                 self.klipperViewModel.showPopUp("success", gettext("SyntaxCheck"), gettext("SyntaxCheck OK"));
                 self.editorFocusDelay(1000);
                 resolve(true);
