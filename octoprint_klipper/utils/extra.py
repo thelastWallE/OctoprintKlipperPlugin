@@ -22,6 +22,12 @@ from flask_babel import gettext
 import logger
 
 
+class basedict(dict):
+    def __missing__(self, key):
+        value = self[key] = type(self)()
+        return value
+
+
 def poll_status(self):
     self._printer.commands("STATUS")
 
@@ -201,77 +207,12 @@ def execute_command(self, command):
     if output_error2 != "":
         logger.log_info(
             self,
-            "output_error2: {}".format(output_error2),
+            "Error: {}".format(output_error2),
             only_logging=False,
         )
+        return str(output_error2), False
 
-    """ p = sarge.run(
-        command,
-        close_fds=CLOSE_FDS,
-        stdout=sarge.Capture(),
-        stderr=sarge.Capture(),
-        shell=True,
-    )
-    while p.returncode is None:
-        output = p.stderr.read(timeout=0.5).decode('utf-8')
-        if not output:
-            p.commands[0].poll()
-            continue
-        logger.log_info(
-            self,
-            "p.stderr.read: {}, p.stdout.read: {}".format(output,stdout_text),
-            only_logging=True,
-        )
-
-    logger.log_info(
-        self,
-        "Command Out1: {}".format(stdout_text),
-        only_logging=True,
-    )
-    if p.returncode != 0:
-        returncode = p.returncode
-        stderr_text = p.stderr.text
-        error = "Command for OctoKlipper:{} failed with return code {}:\nSTDOUT: {}\nSTDERR: {}".format(
-            command, returncode, stdout_text, stderr_text
-        )
-        logger.log_error(self, error, only_logging=True)
-        return error
-    else:
-        for line in p.stdout:
-            stdout_text += line.strip()
-        logger.log_info(
-            self,
-            "return Command Out: {}".format(stdout_text),
-            only_logging=True,
-        ) """
-    return output_text2
-
-    """
-    self._caller = CommandlineCaller()
-    if not command:
-        return False
-
-    try:
-        # we run this with shell=True since we have to trust whatever
-        # our admin configured as command and since we want to allow
-        # shell-alike handling here...
-        p = self._caller.non_blocking_call(command, shell=True)
-
-        if p is None:
-            raise CommandlineError(None, "", "")
-
-        if p.returncode is not None:
-            stdout = p.stdout.text if p is not None and p.stdout is not None else ""
-            stderr = p.stderr.text if p is not None and p.stderr is not None else ""
-            raise CommandlineError(p.returncode, stdout, stderr)
-    except CommandlineError:
-        raise
-    except Exception:
-        self._logger.exception("Error while executing command: " + command)
-        raise CommandlineError(None, "", "")
-
-    return True
-    """
+    return str(output_text2), True
 
 
 def is_float(value):
@@ -427,9 +368,9 @@ def copy_servicefile_to_backup(self, source):
     servicefile_bak_path = os.path.join(
         self.get_plugin_data_folder(), "configs", "servicefile", ""
     )
-    result, error = create_directory(self, servicefile_bak_path)
-    if not result:
-        return False, error
+    results = create_directory(self, servicefile_bak_path)
+    if results["status"] == "error":
+        return False, results["error"]
 
     logger.log_debug(
         self,
@@ -454,7 +395,7 @@ def copy_servicefile_to_backup(self, source):
                 only_logging=False,
             )
             return False, Error
-    result, error = copy_file(
+    results = copy_file(
         self,
         source,
         servicefile_bak_path
@@ -462,11 +403,13 @@ def copy_servicefile_to_backup(self, source):
         + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         + ".bak",
     )
-    if not result:
+    if results["status"] == "error":
         logger.log_error(
-            self, "Error: Couldn't copy file: {}".format(error), only_logging=False
+            self,
+            "Error: Couldn't copy file: {}".format(results["error"]),
+            only_logging=False,
         )
-        return False, error
+        return False, results["error"]
     logger.log_debug(
         self,
         "Servicefile Backup " + servicefile_bak_path + " written",
@@ -500,3 +443,5 @@ def create_directory(self, path):
                 self, "Directory {} created".format(path), only_logging=False
             )
             return {"status": "success"}
+    else:
+        return {"status": "success"}

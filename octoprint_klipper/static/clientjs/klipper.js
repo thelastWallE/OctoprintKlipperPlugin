@@ -18,11 +18,19 @@
   };
 
   OctoKlipperClient.prototype.getServerInfo = function (opts) {
-    return this.base.get(this.url + "/serverinfo", opts);
+    return this.base.get(this.url + "serverinfo", opts);
   };
 
   OctoKlipperClient.prototype.restartKlipper = function (opts) {
     return this.base.post(this.url + "restart", opts);
+  };
+
+  OctoKlipperClient.prototype.checkKlipperUpdate = function (opts) {
+    return this.base.get(this.url + "checkKlipperUpdate", opts);
+  };
+
+  OctoKlipperClient.prototype.checkOctoKlipperUpdate = function (opts) {
+    return this.base.get(this.url + "checkOctoKlipperUpdate", opts);
   };
 
   OctoKlipperClient.prototype.updateKlipper = function (opts) {

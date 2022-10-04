@@ -60,6 +60,7 @@ class KlipperPlugin(
     _message = ""
     _reload_config_lock = False
     _latest_klipper_remote_tag = ""
+    _latest_octoklipper_remote_tag = ""
 
     def __init__(self):
         self._logger = logging.getLogger("octoprint.plugins.klipper")
@@ -181,6 +182,7 @@ class KlipperPlugin(
                 fontsize=12,
                 hide_error_popups=False,
                 remote_host_git="https://github.com/Klipper3D/klipper.git",
+                remote_octoklipper_git="https://github.com/thelastWallE/OctoprintKlipperPlugin.git",
             ),
         )
 
@@ -722,25 +724,9 @@ class KlipperPlugin(
         baseconfig = self._settings.get(["configuration", "baseconfig"])
         replace_path = os.path.join(config_path, baseconfig)
 
-        temp_file = extra.modify_servicefile(self, file_path, replace_path, config_path)
-        if temp_file["status"] == "success":
-            if extra.execute(
-                self,
-                "sudo cp -T -v " + temp_file["data"]["path"] + " /etc/default/klipper",
-            ):
-                result = dict(
-                    status="success",
-                    data=dict(message="Servicefile successfully modified"),
-                )
-            else:
-                result = dict(
-                    status="error",
-                    error=dict(message="Could not overwritte Servicefile"),
-                )
-        else:
-            result = temp_file
+        results = extra.modify_servicefile(self, file_path, replace_path, config_path)
 
-        return flask.jsonify(result)
+        return flask.jsonify(results)
 
     # API for other stuff
     # restart klipper
@@ -763,7 +749,8 @@ class KlipperPlugin(
             )
 
         # Restart klippy to reload config
-        if extra.execute_command(self, restart_host_command) != "Error":
+        output, success = extra.execute_command(self, restart_host_command)
+        if success:
             logger.log_info(self, "Restarting Klipper.", only_logging=False)
             return flask.jsonify(
                 dict(
@@ -779,7 +766,7 @@ class KlipperPlugin(
                 dict(
                     status="error",
                     error=dict(
-                        message="Could not restart Klipper",
+                        message="Could not restart Klipper\n" + output,
                         command=restart_host_command,
                     ),
                 )
@@ -820,35 +807,78 @@ class KlipperPlugin(
         if self._printer.is_printing() or self._printer.is_paused():
             # do not update while a print job is running
             flask.abort(409, description="Printer is currently printing or paused")
-
-        output = repo_handler.update_klipper_host(self, self._latest_klipper_remote_tag)
+        response = extra.basedict()
+        response["status"] = "success"
+        [output, success] = repo_handler.update_klipper_host(
+            self, self._latest_klipper_remote_tag
+        )
         logger.log_debug(self, output, only_logging=True)
-        for m in re.finditer(r"HEAD is now at \S*", output):
-            output_multiline = output[: m.end()] + "\n" + output[m.end() :]
+        if success:
+            for m in re.finditer(r"HEAD is now at \S*", output):
+                output_multiline = output[: m.end()] + "\n" + output[m.end() :]
+        else:
+            response["status"] = "error"
+            response["error"]["message"] = output
         if not output_multiline:
             output_multiline = output
+        response["data"]["body"] = output_multiline
 
-        return flask.jsonify(
-            output=output_multiline,
-        )
+        return flask.jsonify(response)
 
     # get klipper version
-    @octoprint.plugin.BlueprintPlugin.route("/", methods=["GET"])
+    @octoprint.plugin.BlueprintPlugin.route("/checkKlipperUpdate", methods=["GET"])
     @restricted_access
-    def get_state(self):
-        klipper_version = repo_handler.get_software_version(self)
-        self._latest_klipper_remote_tag = repo_handler.retrieve_remote_git_tag(
-            self, "klipper"
+    def check_Klipper_Update(self):
+        response = extra.basedict()
+        response["status"] = "success"
+
+        (
+            output_klipper_version,
+            success_klipper_version,
+        ) = repo_handler.get_software_version(self)
+        if not success_klipper_version:
+            response["error"]["message"] = output_klipper_version
+            response["status"] = "error"
+        else:
+            response["data"]["klipper_version"] = output_klipper_version
+
+        (
+            self._latest_klipper_remote_tag,
+            success_remote_tag,
+        ) = repo_handler.retrieve_remote_git_tag(
+            self, self._settings.get(["configuration", "remote_host_git"])
         )
-        return flask.jsonify(
-            {
-                "status": "success",
-                "data": {
-                    "klipper_version": klipper_version,
-                    "latest_klipper_remote_tag": self._latest_klipper_remote_tag,
-                },
-            }
+        if not success_remote_tag:
+            response["error"]["message"] = self._latest_klipper_remote_tag
+            response["status"] = "error"
+        else:
+            response["data"][
+                "latest_klipper_remote_tag"
+            ] = self._latest_klipper_remote_tag
+
+        return flask.jsonify(response)
+
+    # get octoklipper version
+    @octoprint.plugin.BlueprintPlugin.route("/checkOctoKlipperUpdate", methods=["GET"])
+    @restricted_access
+    def check_OctoKlipper_Update(self):
+        response = extra.basedict()
+        response["status"] = "success"
+
+        (
+            self._latest_octoklipper_remote_tag,
+            success,
+        ) = repo_handler.retrieve_remote_git_tag(
+            self, self._settings.get(["configuration", "remote_octoklipper_git"])
         )
+        if not success:
+            response["error"]["message"] = self._latest_octoklipper_remote_tag
+            response["status"] = "error"
+        else:
+            response["data"][
+                "latest_octoklipper_remote_tag"
+            ] = self._latest_octoklipper_remote_tag
+        return flask.jsonify(response)
 
     # endregion APIs end
 

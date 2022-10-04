@@ -75,14 +75,19 @@ $(function () {
         .listCfg()
         .done(function (response) {
           self.klipperViewModel.consoleMessage("debug", "listCfgFiles done");
-          for (file in response.data.files) {
-            response.data.files[file].size =
-              "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " KB)";
-            // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
+          if (response.status == "success") {
+            for (file in response.data.files) {
+              response.data.files[file].size =
+                "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " KB)";
+              // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
+            }
+            self.configs.updateItems(response.data.files);
+            self.PathToConfigs(gettext("Path: ") + response.data.path);
+            self.configs.resetPage();
+          } else {
+            self.klipperViewModel.consoleMessage("error", "listCfgFiles failed");
+            self.klipperViewModel.consoleMessage("error", response.error.message);
           }
-          self.configs.updateItems(response.data.files);
-          self.PathToConfigs(gettext("Path: ") + response.data.path);
-          self.configs.resetPage();
         })
         .fail(function (response) {
           self.klipperViewModel.consoleMessage("error", "listCfgFiles failed");
@@ -106,11 +111,11 @@ $(function () {
               };
               self.klipperEditorViewModel.process(config).then();
             } else {
-              self.klipperViewModel.consoleMessage("error", "loadBaseConfig failed: " + response.data.body);
+              self.klipperViewModel.consoleMessage("error", "loadBaseConfig failed: " + response.error.message);
             }
           })
           .fail(function (response) {
-            self.klipperViewModel.consoleMessage("error", "loadBaseConfig failed: " + response);
+            self.klipperViewModel.consoleMessage("error", "loadBaseConfig failed: " + response.responseText);
           });
       }
     };

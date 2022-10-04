@@ -43,6 +43,10 @@ $(function () {
     self.host_version = ko.observable();
     self.host_remote_version = ko.observable();
 
+    self.octoklipperReleasedVersion = ko.observable();
+    self.octoklipperReleasedVersionForOctoprint = ko.observable();
+    self.octoklipperInstalledVersion = ko.observable();
+
     self.log = ko.observableArray([]);
     self.plainLogLines = ko.observableArray([]);
 
@@ -152,37 +156,72 @@ $(function () {
       }
     };
 
-    self.checkForUpdate = function () {
-      self.logMessage(null, null, "<b>" + gettext("Checking for update...") + "</b>");
-      self.requestData();
+    self.checkForKlipperUpdate = function () {
+      self.logMessage(null, null, "<b>" + gettext("Checking for Update...") + "</b>");
+      OctoPrint.plugins.klipper
+        .checkKlipperUpdate()
+        .done(function (response) {
+          if (response.status == "success") {
+            self.host_version(response.data.klipper_version);
+            self.host_remote_version(response.data.latest_klipper_remote_tag);
+            self.logMessage(
+              null,
+              null,
+              "<b>" + gettext("Installed Klipper Host Version:") + "</b> " + self.host_version()
+            );
+            self.logMessage(
+              null,
+              null,
+              "<b>" + gettext("Available Klipper Version:") + "</b> " + self.host_remote_version()
+            );
+          } else {
+            self.showPopUp("error", "Error", response.error.message);
+            self.logMessage(null, "error", "<b>" + gettext("Error:") + "</b> " + _.escape(response.error.message));
+          }
+        })
+        .fail(function (response) {
+          self.showPopUp("error", "Error", response.responseText);
+          self.logMessage(null, "error", "<b>" + gettext("Error:") + "</b> " + _.escape(response.responseText));
+        });
     };
 
-    self.requestData = function () {
-      OctoPrint.plugins.klipper.get().done(self.fromResponse);
+    self.checkOctoKlipperUpdate = function () {
+      OctoPrint.plugins.softwareupdate
+        .check({ entries: ["klipper"], force: false })
+        .done(self.fromUpdaterCheck)
+        .fail(function (response) {
+          self.showPopUp("error", "Error", response.responseText);
+        });
+      OctoPrint.plugins.klipper
+        .checkOctoKlipperUpdate()
+        .done(self.fromCheckOctoKlipperUpdate)
+        .fail(function (response) {
+          self.showPopUp("error", "Error", response.responseText);
+        });
+    };
+
+    self.fromUpdaterCheck = function (response) {
+      var octoklipper = response.information["klipper"];
+      self.octoklipperReleasedVersionForOctoprint(!octoklipper || octoklipper.releasedVersion);
+      self.octoklipperInstalledVersion(!octoklipper || octoklipper.displayVersion);
+    };
+
+    self.fromCheckOctoKlipperUpdate = function (response) {
+      if (response.status == "success") {
+        self.octoklipperReleasedVersion(response.data.latest_octoklipper_remote_tag);
+      } else {
+        self.showPopUp("error", "Error", response.error.message);
+      }
     };
 
     self.reloadData = function () {
       self.fancyFunctionality(self.settings.settings.plugins.klipper.log.fancy_functionality());
     };
 
-    self.fromResponse = function (response) {
-      if (response.status == "success") {
-        self.host_version(response.data.klipper_version);
-        self.host_remote_version(response.data.latest_klipper_remote_tag);
-        self.logMessage(null, null, "<b>" + gettext("Installed Klipper Host Version:") + "</b> " + self.host_version());
-        self.logMessage(
-          null,
-          null,
-          "<b>" + gettext("Available Klipper Version:") + "</b> " + self.host_remote_version()
-        );
-      } else {
-        self.showPopUp("error", "Error", response.error.message);
-      }
-    };
-
-    self.onStartup = function () {
-      self.requestData();
-    };
+    /* self.onStartup = function () {
+      self.checkForKlipperUpdate();
+      self.checkOctoKlipperUpdate();
+    }; */
 
     self.onSettingsHidden = function () {
       self.reloadData();
@@ -294,6 +333,8 @@ $(function () {
       self.shortStatus(gettext("No Messages"), "");
       self._fromLocalStorage();
       self.fancyFunctionality(self.settings.settings.plugins.klipper.log.fancy_functionality());
+      self.checkForKlipperUpdate();
+      self.checkOctoKlipperUpdate();
     };
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
@@ -577,7 +618,7 @@ $(function () {
           })
           .fail(function (response) {
             self.consoleMessage("debug", "restartingKlipper");
-            self.showPopUp("error", gettext("Restarting Klipper failed"), response.error.message);
+            self.showPopUp("error", gettext("Restarting Klipper failed"), response.responseText);
           });
         if (index == 1) {
           self.saveOption("configuration", "confirm_reload", false);
@@ -630,19 +671,26 @@ $(function () {
       }
 
       var request = function () {
-        OctoPrint.plugins.klipper.updateKlipper().done(function (response) {
-          self.consoleMessage("debug", "updatingKlipper:");
-          if (response.output !== false) {
-            self.consoleMessage("debug", "Response: " + response.output);
-            self.showPopUp("success", null, "Response: " + response.output);
-            self.logMessage(null, null, "Update Response: " + response.output);
-            if (response.output != "Already up to date.\n") {
-              self.requestRestart();
-              self.requestData();
+        OctoPrint.plugins.klipper
+          .updateKlipper()
+          .done(function (response) {
+            self.consoleMessage("debug", "updatingKlipper:");
+            if (response.status == "success") {
+              self.consoleMessage("debug", "Response: " + response.data.body);
+              self.showPopUp("success", null, "Response: " + response.data.body);
+              self.logMessage(null, null, "Update Response: " + response.data.body);
+              if (response.data.body != "Already up to date.\n") {
+                self.requestRestart();
+                self.requestData();
+              }
+            } else {
+              self.showPopUp("error", null, "Response: " + response.data.body);
             }
-          }
-          self._updateClicked = false;
-        });
+            self._updateClicked = false;
+          })
+          .fail(function (response) {
+            self.showPopUp("error", null, "Response: " + response.responseText);
+          });
       };
 
       var html = "<h4>" + gettext("All ongoing Prints will be stopped!") + "</h4>";

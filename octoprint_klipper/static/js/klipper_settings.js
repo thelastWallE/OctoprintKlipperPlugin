@@ -91,30 +91,39 @@ $(function () {
         .getServerInfo()
         .done(function (response) {
           if (response.status == "success") {
-            self.klipperViewModel.consoleMessage("debug", "getServerInfo response: " + JSON.stringify(response));
+            self.klipperViewModel.consoleMessage("debug", "getServerInfo response: " + _.escape(response.data.body));
             self.serverOS(response.data.body);
           } else {
-            self.klipperViewModel.consoleMessage("error", "getServerInfo response: " + JSON.stringify(response));
+            self.klipperViewModel.consoleMessage(
+              "error",
+              "getServerInfo response: " + _.escape(response.error.message)
+            );
           }
         })
         .fail(function (response) {
-          self.klipperViewModel.consoleMessage("error", "getServerInfo response: " + JSON.stringify(response));
+          self.klipperViewModel.consoleMessage("error", "getServerInfo response: " + _.escape(response.responseText));
         });
     };
 
     self.listCfgFiles = function () {
       self.klipperViewModel.consoleMessage("debug", "listCfgFiles started");
 
-      OctoPrint.plugins.klipper.listCfg().done(function (response) {
-        self.klipperViewModel.consoleMessage("debug", "listCfgFiles done");
-        for (file in response.data.files) {
-          response.data.files[file].size = "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " KB)";
-          // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
-        }
-        self.configs.updateItems(response.data.files);
-        self.PathToConfigs(gettext("Path: ") + response.data.path);
-        self.configs.resetPage();
-      });
+      OctoPrint.plugins.klipper
+        .listCfg()
+        .done(function (response) {
+          self.klipperViewModel.consoleMessage("debug", "listCfgFiles done");
+          for (file in response.data.files) {
+            response.data.files[file].size =
+              "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " KB)";
+            // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
+          }
+          self.configs.updateItems(response.data.files);
+          self.PathToConfigs(gettext("Path: ") + response.data.path);
+          self.configs.resetPage();
+        })
+        .fail(function (response) {
+          self.klipperViewModel.consoleMessage("error", "listCfgFiles failed: " + _.escape(response.responseText));
+        });
     };
 
     self.loadBaseConfig = function () {
@@ -137,7 +146,7 @@ $(function () {
             }
           })
           .fail(function (response) {
-            self.klipperViewModel.consoleMessage("error", "loadBaseConfig failed: " + response);
+            self.klipperViewModel.consoleMessage("error", "loadBaseConfig failed: " + response.responseText);
           });
       }
     };
@@ -169,8 +178,8 @@ $(function () {
           }
         })
         .fail(function (response) {
-          self.klipperViewModel.consoleMessage("error", "modifyServiceFile failed: " + response.responseJSON.error);
-          self.klipperViewModel.showPopUp("error", gettext("Modify Servicefile"), response.responseJSON.error);
+          self.klipperViewModel.consoleMessage("error", "modifyServiceFile failed: " + response.responseText);
+          self.klipperViewModel.showPopUp("error", gettext("Modify Servicefile"), response.responseText);
         });
     };
 
@@ -328,18 +337,18 @@ $(function () {
         .done(function (response) {
           if (response.status == "success") {
             var config = {
-              content: response.data["body"],
+              content: response.data.body,
               file: file,
             };
             self.klipperEditorViewModel.process(config).then(function () {
               self.showEditor();
             });
           } else {
-            self.klipperViewModel.consoleMessage("error", "openConfig failed: " + response.data["body"]);
+            self.klipperViewModel.consoleMessage("error", "openConfig failed: " + response.data.body);
           }
         })
         .fail(function (response) {
-          self.klipperViewModel.consoleMessage("error", "openConfig failed: " + response);
+          self.klipperViewModel.consoleMessage("error", "openConfig failed: " + response.responseText);
         });
     };
 

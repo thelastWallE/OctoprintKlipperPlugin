@@ -440,31 +440,69 @@
 
     <!-- Klipper Update Tab-->
     <div class="tab-pane" id="update">
-      <div class="klipper-column-fluid klipper-settings-tab">
-        <h3 class="text-center m-0">{{ _('Updates') }}</h3>
-        <div class="control-group">
-          <label class="control-label">{{ _('Installed Host Version:') }}</label>
-          <div class="controls">
-            <p data-bind="text:klipperViewModel.host_version()" title="{{ _('Version of the Klipper host')}}"></p>
-          </div>
-          <label class="control-label">{{ _('Available Host Version:') }}</label>
-          <div class="controls">
-            <p data-bind="text:klipperViewModel.host_remote_version"
-              title="{{ _('Version of the available Klipper host')}}">
-            </p>
-          </div>
-          <label class="control-label">{{ _('Url to Repository of Klipper:') }}</label>
-          <div class="controls">
-            <input type="text" class="span8"
-              data-bind="value: settings.settings.plugins.klipper.configuration.remote_host_git" />
-            <button class="btn btn-small" data-bind="click: function() {klipperViewModel.checkForUpdate()}"
-              title="{{ _('Check for Update') }}">
-              <i class="icon-refresh"></i>
-            </button>
-          </div>
+      <h3 class="text-center m-0">{{ _('Updates') }}</h3>
+      <div class="control-group">
+        <label class="control-label">{{ _('Installed Host Version:') }}</label>
+        <div class="controls">
+          <p data-bind="text:klipperViewModel.host_version" title="{{ _('Version of the Klipper host')}}"></p>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">{{ _('Available Host Version:') }}</label>
+        <div class="controls">
+          <p data-bind="text:klipperViewModel.host_remote_version"
+            title="{{ _('Version of the available Klipper host')}}">
+          </p>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">{{ _('Url to Repository of Klipper:') }}</label>
+        <div class="controls">
+          <input type="text" class="span8"
+            data-bind="value: settings.settings.plugins.klipper.configuration.remote_host_git" />
+          <button class="btn btn-small" data-bind="click: function() { klipperViewModel.checkForKlipperUpdate() }"
+            title="{{ _('Check for Update') }}">
+            <i class="icon-refresh"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="controls">
           <button class="btn btn-block btn-small" data-bind="click: function() { klipperViewModel.requestUpdate() }"
             title="{{ _('This will cause the host software to update and perform an internal reset') }}">
             {{ _("Update Host") }}
+          </button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">{{ _('Installed OctoKlipper Version:') }}</label>
+        <div class="controls">
+          <p data-bind="text:klipperViewModel.octoklipperInstalledVersion"
+            title="{{ _('Version of the OctoKlipper Plugin')}}"></p>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">{{ _('Available OctoKlipper Version:') }}</label>
+        <div class="controls">
+          <p data-bind="text:klipperViewModel.octoklipperReleasedVersion"
+            title="{{ _('Version of the available OctoKlipper Plugin')}}">
+          </p>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">{{ _('Url to Repository of OctoKlipper:') }}</label>
+        <div class="controls">
+          <input type="text" class="span8"
+            data-bind="value: settings.settings.plugins.klipper.configuration.remote_octoklipper_git" />
+          <button class="btn btn-small" data-bind="click: function() {klipperViewModel.checkOctoKlipperUpdate() }"
+            title="{{ _('Check for Update') }}">
+            <i class="icon-refresh"></i>
           </button>
         </div>
       </div>

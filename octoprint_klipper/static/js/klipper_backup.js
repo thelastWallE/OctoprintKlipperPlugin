@@ -339,7 +339,10 @@ $(function () {
             });
           })
           .fail(function (response) {
-            self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + filename + " / " + response.error);
+            self.klipperViewModel.consoleMessage(
+              "debug",
+              "restoreCfg: " + filename + " / " + _.escape(response.responseText)
+            );
             deferred.notify(
               _.sprintf(gettext("Restoring of %(filename)s failed, continuing..."), { filename: _.escape(filename) }),
               false

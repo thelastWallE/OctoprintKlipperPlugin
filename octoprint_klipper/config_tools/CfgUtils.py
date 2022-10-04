@@ -38,7 +38,11 @@ def list_config_files(self, path_type):
             self._settings.get(["configuration", "config_path"])
         )
         cfg_path = os.path.join(cfg_path, "*.cfg")
-    cfg_files = glob.glob(cfg_path)
+    try:
+        cfg_files = glob.glob(cfg_path)
+    except IOError as e:
+        logger.error("Could not load configuration files in %s", cfg_path)
+        return {"status": "error", "error": {"message": e}}
     logger.log_debug(
         self, "list_cfg_files " + path_type + " Path: " + cfg_path, only_logging=False
     )
