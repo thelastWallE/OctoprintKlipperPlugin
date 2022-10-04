@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-import extra
+import sys
+
+if sys.version_info[0] < 3:
+    import extra
+else:
+    import octoprint_klipper.utils.extra as extra
 
 
 def log_info(self, message, only_logging=False):

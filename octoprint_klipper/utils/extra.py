@@ -19,7 +19,12 @@ from octoprint.util.platform import CLOSE_FDS
 from shutil import copy
 from flask_babel import gettext
 
-import logger
+import sys
+
+if sys.version_info[0] < 3:
+    import logger
+else:
+    import octoprint_klipper.utils.logger as logger
 
 
 class basedict(dict):
@@ -95,83 +100,6 @@ def send_message(self, type, subtype, title="", payload=""):
             title=title,
             payload=payload,
         ),
-    )
-
-
-def run(self, cmd):
-    """Runs the given command locally and returns the output, err and exit_code."""
-    cmd_parts = cmd.split("|") if "|" in cmd else [cmd]
-    i = 0
-    p = {}
-    logger.log_info(self, "Run Command:" + cmd, only_logging=True)
-
-    for cmd_part in cmd_parts:
-        logger.log_info(self, "Run Command Part:" + cmd_part, only_logging=True)
-        cmd_part = cmd_part.strip()
-        prog = shlex.split(cmd_part) if platform.system() == "posix" else cmd_part
-        logger.log_info(self, "Run Command Part prog:" + str(prog), only_logging=True)
-        try:
-            if i == 0:
-                p[i] = sarge.run(
-                    prog,
-                    close_fds=CLOSE_FDS,
-                    stdin=None,
-                    stdout=sarge.Capture(),
-                    stderr=sarge.Capture(),
-                    shell=True,
-                )
-                """ p[i] = subprocess.Popen(
-                    prog, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                ) """
-            else:
-                p[i] = sarge.run(
-                    prog,
-                    close_fds=CLOSE_FDS,
-                    stdin=p[i - 1].stdout,
-                    stdout=sarge.Capture(),
-                    stderr=sarge.Capture(),
-                    shell=True,
-                )
-                """ p[i] = subprocess.Popen(
-                    prog,
-                    stdin=p[i - 1].stdout,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                ) """
-            if p[i].returncode != 0:
-                returncode = p[i].returncode
-                stdout_text = p[i].stdout.text
-                stderr_text = p[i].stderr.text
-
-                error = "Command part{}:{} failed with return code {}:\nSTDOUT: {}\nSTDERR: {}".format(
-                    i, prog, returncode, stdout_text, stderr_text
-                )
-                logger.log_error(self, error, only_logging=True)
-        except Exception as e:
-            error = "Command part{}:{} failed: {}".format(i, prog, e)
-            logger.log_error(self, error, only_logging=True)
-        i += 1
-    (output, err) = p[i - 1].communicate()
-    exit_code = p[0].wait()
-    response = output + "\n" + err if output != "" else output + err
-    logger.log_info(
-        self,
-        "Response: " + response + " exit_code:" + str(exit_code),
-        only_logging=True,
-    )
-    if exit_code == 0:
-        return response
-    logger.log_error(
-        self,
-        "<b>"
-        + gettext("Failed to run command")
-        + ':</b> "'
-        + cmd
-        + '" <b>'
-        + gettext("Output")
-        + ":</b> "
-        + response,
-        only_logging=False,
     )
 
 
