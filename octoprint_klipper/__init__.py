@@ -239,10 +239,11 @@ class KlipperPlugin(
             self.migrate_settings_4(settings)
 
     def migrate_settings_3(self, settings):
-        migration.migrate_settings_configuration(
+        migration.migrate_settings(
+            self,
             settings,
-            "shortStatus_navbar",
-            "navbar",
+            ["configuration", "shortStatus_navbar"],
+            ["configuration", "navbar"],
         )
 
     def migrate_settings_4(self, settings):
@@ -279,16 +280,10 @@ class KlipperPlugin(
             settings.remove(["configuration", "reload_command"])
 
         if settings.has(["config"]):
-            logger.log_info(self, "remove old setting for 'config'", only_logging=False)
-            settings.remove(["config"])
+            migration.migrate_settings(self, settings, ["config"])
 
         if settings.has(["configuration", "old_config"]):
-            logger.log_info(
-                self,
-                "remove old setting for 'configuration/old_config'",
-                only_logging=False,
-            )
-            settings.remove(["configuration", "old_config"])
+            migration.migrate_settings(self, settings, ["configuration", "old_config"])
 
     # -- Template Plugin
     def get_template_configs(self):
@@ -574,7 +569,7 @@ class KlipperPlugin(
         ]
 
     # region [rgba(20,40,20,0.5)] APIs
-    # Get Content of a Backupconfig
+    # Get Content of a backed up config
     @octoprint.plugin.BlueprintPlugin.route("/backup/<filename>", methods=["GET"])
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
@@ -584,7 +579,7 @@ class KlipperPlugin(
 
         return flask.jsonify(config_tools.get_cfg(self, full_path))
 
-    # Delete a Backupconfig
+    # Delete a backed up config
     @octoprint.plugin.BlueprintPlugin.route("/backup/<filename>", methods=["DELETE"])
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)

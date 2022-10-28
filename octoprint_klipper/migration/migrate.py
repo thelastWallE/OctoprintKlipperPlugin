@@ -6,15 +6,17 @@ def migrate_old_settings(settings):
     """
     For Old settings
     """
-    migrate_settings(settings, "serialport", "connection", "port")
+    migrate_settings(settings, ["serialport"], ["connection", "port"])
     migrate_settings(
-        settings, "replace_connection_panel", "connection", "replace_connection_panel"
+        settings,
+        ["replace_connection_panel"],
+        ["connection", "replace_connection_panel"],
     )
-    migrate_settings(settings, "probeHeight", "probe", "height")
-    migrate_settings(settings, "probeLift", "probe", "lift")
-    migrate_settings(settings, "probeSpeedXy", "probe", "speed_xy")
-    migrate_settings(settings, "probeSpeedZ", "probe", "speed_z")
-    migrate_settings(settings, "configPath", "configuration", "configpath")
+    migrate_settings(settings, ["probeHeight"], ["probe", "height"])
+    migrate_settings(settings, ["probeLift"], ["probe", "lift"])
+    migrate_settings(settings, ["probeSpeedXy"], ["probe", "speed_xy"])
+    migrate_settings(settings, ["probeSpeedZ"], ["probe", "speed_z"])
+    migrate_settings(settings, ["configPath"], ["configuration", "configpath"])
 
     if settings.has(["probePoints"]):
         points = settings.get(["probePoints"])
@@ -23,30 +25,24 @@ def migrate_old_settings(settings):
         settings.remove(["probePoints"])
 
 
-def migrate_settings(self, settings, old, new, new2=""):
-    """migrate setting to setting with an additional path
+def migrate_settings(self, settings, old, new=""):
+    """migrate a setting to setting with new name and/or position.
+    If new is unset only delete the setting
 
     Args:
         settings (any): instance of self._settings
-        old (str): the old setting to migrate
-        new (str): group or only new setting if there is no new2
-        new2 (str, optional): the new setting to migrate to. Defaults to "".
+        old (list): the old setting to migrate
+        new (list): group or only new setting if there is no new2
     """
     if settings.has(old):
-        if new2 != "":
+        # just like a renaming for the setting
+        if new != "":
             logger.log_info(
                 self,
-                "migrate setting for '" + old + "' -> '" + new + "/" + new2 + "'",
+                "migrate setting for '" + str(old) + "' -> '" + str(new) + "'",
                 only_logging=False,
             )
-            settings.set([new, new2], settings.get(old))
-        else:
-            logger.log_info(
-                self,
-                "migrate setting for '" + old + "' -> '" + new + "'",
-                only_logging=False,
-            )
-            settings.set([new], settings.get(old))
+            settings.set(new, settings.get(old))
         settings.remove(old)
 
 
