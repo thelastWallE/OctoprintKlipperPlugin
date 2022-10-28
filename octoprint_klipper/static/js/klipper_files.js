@@ -155,11 +155,11 @@ $(function () {
     };
 
     self.markFilesOnPage = function () {
-      self.markedForFileRemove(_.uniq(self.markedForFileRemove().concat(_.map(self.configs.paginatedItems(), "file"))));
+      self.markedForFileRemove(_.uniq(self.markedForFileRemove().concat(_.map(self.configs.paginatedItems(), "name"))));
     };
 
     self.markAllFiles = function () {
-      self.markedForFileRemove(_.map(self.configs.allItems, "file"));
+      self.markedForFileRemove(_.map(self.configs.allItems, "name"));
     };
 
     self.clearMarkedFiles = function () {
