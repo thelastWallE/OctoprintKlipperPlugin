@@ -351,6 +351,10 @@ $(function () {
           case "status":
             self.shortStatus(data.payload, data.subtype);
             break;
+          case "debug":
+            self.consoleMessage(data.subtype, data.payload);
+            self.logMessage(data.time, data.subtype, data.payload);
+            break;
           default:
             self.logMessage(data.time, data.subtype, data.payload);
             self.shortStatus(data.payload, data.subtype);
@@ -401,7 +405,7 @@ $(function () {
       }
 
       if (type == "error" && self.settings.settings.plugins.klipper.configuration.hide_error_popups() !== true) {
-        self.showPopUp(type, "Error:", message);
+        self.showPopUp(type, "Error: ", message);
       }
 
       self.plainLogLines.push(timestamp + " " + type + ": " + message);

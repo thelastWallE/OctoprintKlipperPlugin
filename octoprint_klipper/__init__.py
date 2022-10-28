@@ -103,6 +103,9 @@ class KlipperPlugin(
     def on_after_startup(self):
         klipper_port = self._settings.get(["connection", "port"])
         additional_ports = self._settings.global_get(["serial", "additionalPorts"])
+        self._octoklipper_debug = self._settings.get_boolean(
+            ["configuration", "debug_logging"]
+        )
 
         if klipper_port not in additional_ports:
             additional_ports.append(klipper_port)

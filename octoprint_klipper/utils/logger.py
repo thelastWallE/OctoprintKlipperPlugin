@@ -9,25 +9,36 @@ else:
 
 def log_info(self, message, only_logging=False):
     self._octoklipper_logger.info(message)
-    if not only_logging:
+
+    if self._settings.get_boolean(["configuration", "debug_logging"]):
         extra.send_message(
-            self, type="log", subtype="info", title=message, payload=message
+            self, type="debug", subtype="info", payload="DEBUG: " + message
         )
+    elif not only_logging:
+        extra.send_message(self, type="log", subtype="info", payload=message)
 
 
 def log_debug(self, message, only_logging=False):
     self._octoklipper_logger.debug(message)
     self._logger.info(message)
-    if not only_logging:
+
+    if self._settings.get_boolean(["configuration", "debug_logging"]):
         extra.send_message(
-            self, type="console", subtype="debug", title=message, payload=message
+            self, type="debug", subtype="debug", payload="DEBUG: " + message
         )
+    elif not only_logging:
+        extra.send_message(self, type="console", subtype="debug", payload=message)
 
 
 def log_error(self, error, only_logging=False):
     self._octoklipper_logger.error(error)
     self._logger.error(error)
-    if not only_logging:
+
+    if self._settings.get_boolean(["configuration", "debug_logging"]):
+        extra.send_message(
+            self, type="debug", subtype="error", payload="DEBUG: " + error
+        )
+    elif not only_logging:
         extra.send_message(
             self, type="log", subtype="error", title=error, payload=error
         )
