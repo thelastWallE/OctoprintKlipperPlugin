@@ -191,10 +191,8 @@ def split_versionlist(version_list):
 
     for item in version_list:
         if not re.search(r"\d+rc", item):
-            print(item + " move to normal List")
             new_list.append(item)
         else:
-            print(item + " move to RC List")
             rc_list.append(item)
     return dict(rc_list=rc_list, stable_list=new_list)
 
