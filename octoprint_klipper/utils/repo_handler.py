@@ -82,12 +82,10 @@ def retrieve_remote_git_tag(self, remote):
 
         # cmd = "git ls-remote --refs --sort=v:refname --tags " + remote
         # + " | tail --lines=1 | cut --delimiter='/' --fields=3"
-        sorted_versions, status = extra.execute_command(self, cmd)
-        logger.log_info(
-            self,
-            "Sorted VersionsList Cmd_Output: " + str(sorted_versions),
-            only_logging=True,
-        )
+        output, status = extra.execute_command(self, cmd)
+        logger.log_info(self, "Versionslist Cmd_Output:" + output, only_logging=True)
+        sorted_versions = output.split("\n")
+        sorted_versions.pop()
 
     version_lists = sort_versionlist(split_versionlist(sorted_versions))
     # get the last stable version number, split it at the delimiter
