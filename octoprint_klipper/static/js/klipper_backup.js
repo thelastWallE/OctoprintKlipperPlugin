@@ -193,7 +193,7 @@ $(function () {
       };
 
       showConfirmationDialog(
-        _.sprintf(gettext('You are about to delete backed config file "%(name)s".'), {
+        _.sprintf(gettext('You are about to delete backed up config file "%(name)s".'), {
           name: _.escape(backup),
         }),
         perform
@@ -283,7 +283,7 @@ $(function () {
       };
 
       showConfirmationDialog(
-        _.sprintf(gettext("You are about to restore %(count)d backed config files."), {
+        _.sprintf(gettext("You are about to restore %(count)d backed up config files."), {
           count: self.markedForFileRestore().length,
         }),
         perform
@@ -298,7 +298,7 @@ $(function () {
       };
 
       showConfirmationDialog(
-        _.sprintf(gettext("You are about to delete %(count)d backed config files."), {
+        _.sprintf(gettext("You are about to delete %(count)d backed up config files."), {
           count: self.markedForFileRestore().length,
         }),
         perform
@@ -310,7 +310,7 @@ $(function () {
 
       title = gettext("Restoring klipper config files");
       self.klipperViewModel.consoleMessage("debug", title);
-      message = _.sprintf(gettext("Restoring %(count)d backed config files..."), {
+      message = _.sprintf(gettext("Restoring %(count)d backed up config files..."), {
         count: files.length,
       });
 
@@ -380,7 +380,7 @@ $(function () {
       var title, message, handler;
 
       title = gettext("Deleting backup files");
-      message = _.sprintf(gettext("Deleting %(count)d backed files..."), {
+      message = _.sprintf(gettext("Deleting %(count)d backed up files..."), {
         count: files.length,
       });
 
