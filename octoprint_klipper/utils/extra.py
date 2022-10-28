@@ -121,12 +121,6 @@ def execute_command(self, command):
     # we run this with shell=True since we have to trust whatever
     # our admin configured as command and since we want to allow
     # shell-alike handling here...
-    logger.log_info(
-        self,
-        "Command Thread: {}".format(command),
-        only_logging=True,
-    )
-
     output_text2, output_error2 = sarge.get_both(
         command,
         close_fds=CLOSE_FDS,
