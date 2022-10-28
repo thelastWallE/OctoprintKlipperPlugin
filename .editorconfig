@@ -12,6 +12,8 @@ indent_style = space
 max_line_length = 180
 indent_size = 2
 
+[**.md]
+trim_trailing_whitespace = false
 
 [**.py]
 indent_size = 4
