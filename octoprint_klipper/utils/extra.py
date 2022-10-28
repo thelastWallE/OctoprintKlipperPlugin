@@ -104,7 +104,14 @@ def send_message(self, type, subtype, title="", payload=""):
 
 
 def execute_command(self, command):
+    """Runs a cmd on the shell
+    and gives the output back and a status.
 
+    :param command: command to run
+    :type command: string
+    :return: Output of the command and True if no errors else False
+    :rtype: tuple
+    """
     logger.log_info(
         self,
         "Command: {}".format(command),
