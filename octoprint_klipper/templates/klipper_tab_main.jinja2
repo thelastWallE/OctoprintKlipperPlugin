@@ -67,19 +67,21 @@
       <div class="control-group">
         <div class="controls">
           <label class="control-label small"><i class="icon-refresh"></i> {{ _("Restart") }}</label>
-          <button class="btn btn-block btn-small" data-bind="click: onRestartHost, enable: isActive()"
+          <button id="klipper-restart-host" class="btn btn-block btn-small"
+            data-bind="click: requestRestart('HOST'), enable: isActive()"
             title="{{ _('This will cause the host software to reload its config and perform an internal reset') }}">
             {{ _("Host") }}
           </button>
-          <button class="btn btn-block btn-small" data-bind="click: onRestartFirmware, enable: isActive()"
+          <button id="klipper-restart-firmware" class="btn btn-block btn-small"
+            data-bind="click: requestRestart('FIRMWARE'), enable: isActive()"
             title="{{ _('Similar to a host restart, but also clears any error state from the micro-controller') }}">
             {{ _("Firmware") }}
           </button>
           </br>
-          <!-- ko if: settings.settings.plugins.klipper.configuration.restart_host_command -->
-          <button class="btn btn-block btn-small"
-            data-bind="visible: hasPermKo('CONFIG'), click: onRestartKlipper, enable: isActive()"
-            title="{{ _('This will cause the host klipper service to immediately stop and restart!') }}&#13;{{ _('You can set this command in the settings.') }}">
+          <!-- ko if: settings.settings.plugins.klipper.configuration.restart_service_system_command -->
+          <button id="klipper-restart-service" class="btn btn-block btn-small"
+            data-bind="visible: hasPermKo('CONFIG'), click: requestRestart('SYSTEMCOMMAND'), enable: isActive()"
+            title="{{ _('This will cause the host klipper service to immediately stop and restart!') }}&#13;{{ _('You can set this command in the settings.') }}&#13;{{ _('Actual command:') }}">
             {{ _("Host") }}
           </button>
           <!-- /ko -->

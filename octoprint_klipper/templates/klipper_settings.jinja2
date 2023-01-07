@@ -115,34 +115,43 @@
       <div class="control-group border">
         <label class="control-label">{{ _('Configuration Restart GCode Command') }}</label>
         <div class="controls">
-          <select data-bind="value: settings.settings.plugins.klipper.configuration.reload_command">
-            <option value="RESTART">RESTART</option>
-            <option value="FIRMWARE_RESTART">FIRMWARE_RESTART</option>
-          </select>
-          <span class="help-block" style="margin-top:5px;">
-            {{ _('The gcode command that is executed if you want to restart klipper.') }}
-          </span>
-          <label class="checkbox" title="{{ _('Restart klipper on editor save?') }}"><input type="checkbox"
+          <label class="">{{ _('Klipper Restart Host GCODE:') }}
+            <input type="text" class="input-block-level"
+              data-bind="value: settings.settings.plugins.klipper.configuration.restart_host_command" />
+          </label>
+          <label class="">{{ _('Klipper Restart Firmware GCODE:') }}
+            <input type="text" class="input-block-level"
+              data-bind="value: settings.settings.plugins.klipper.configuration.restart_firmware_command" />
+          </label>
+          <label class="" title="{{ _('Restart Host system command') }}">{{ _('Restart Host system command:') }}
+            <input type="text" class="input-block-level"
+              data-bind="value: settings.settings.plugins.klipper.configuration.restart_service_system_command" />
+            <span class="help-block" style="margin-top:5px;">
+              {{ _('System command for restarting the klipper service.') }}
+            </span>
+          </label>
+          <br>
+          <label class=""
+            title="{{ _('The type of restart that is used if you want to restart klipper.') }}">{{ _('The type of restart that is used on the dialogs:') }}
+            <select data-bind="value: settings.settings.plugins.klipper.configuration.reload_used">
+              <option value="HOST">Restart Host(klippy)</option>
+              <option value="FIRMWARE">Restart Firmware on printer</option>
+              <option value="SYSTEMCOMMAND">Restart klipper service with system command</option>
+            </select>
+          </label><br>
+          <label class="checkbox" title="{{ _('Restart klipper on editor save?') }}">
+            <input type="checkbox"
               data-bind="checked: settings.settings.plugins.klipper.configuration.restart_onsave" />
             {{ _('Restart Klipper on editor save?') }}
           </label>
-          <label class="checkbox" title="{{ _('Show Confirmation before restarting Klipper?') }}"><input type="checkbox"
+          <label class="checkbox" title="{{ _('Show Confirmation before restarting Klipper?') }}">
+            <input type="checkbox"
               data-bind="checked: settings.settings.plugins.klipper.configuration.confirm_reload" />
             {{ _('Confirmation before restarting Klipper?') }}
           </label>
         </div>
       </div>
-      <div class="control-group">
-        <label class="control-label"
-          title="{{ _('Restart Host system command') }}">{{ _('Restart Host system command') }}</label>
-        <div class="controls">
-          <input type="text" class="input-block-level"
-            data-bind="value: settings.settings.plugins.klipper.configuration.restart_host_command" />
-          <span class="help-block" style="margin-top:5px;">
-            {{ _('System command for restarting the klipper service.') }}
-          </span>
-        </div>
-      </div>
+
       <div class="control-group">
         <label class="control-label">{{ _('Config Backup') }}</label>
         <div class="controls">

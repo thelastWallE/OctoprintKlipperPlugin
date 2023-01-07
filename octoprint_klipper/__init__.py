@@ -177,8 +177,10 @@ class KlipperPlugin(
                 config_path="~/",
                 baseconfig="printer.cfg",
                 logpath="/tmp/klippy.log",
-                restart_host_command="sudo service klipper restart",
-                reload_command="RESTART",
+                restart_service_system_command="sudo service klipper restart",
+                restart_host_command="RESTART",
+                restart_firmware_command="FIRMWARE_RESTART",
+                reload_used="HOST",  # What command is used for a restart request
                 restart_onsave=True,
                 confirm_reload=True,
                 shortStatus_navbar=True,
@@ -212,8 +214,7 @@ class KlipperPlugin(
             admin=[
                 ["connection", "port"],
                 ["configuration", "config_path"],
-                ["configuration", "replace_connection_panel"],
-                ["configuration", "restart_host_command"],
+                ["configuration", "restart_service_system_command"],
             ],
             user=[["macros"], ["probe"]],
         )
@@ -701,22 +702,22 @@ class KlipperPlugin(
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def restart_klipper(self):
-        restart_host_command = self._settings.get(
-            ["configuration", "restart_host_command"]
+        restart_service_system_command = self._settings.get(
+            ["configuration", "restart_service_system_command"]
         )
-        if restart_host_command == "":
+        if restart_service_system_command == "":
             return flask.jsonify(
                 dict(
                     status="error",
                     error=dict(
                         message="Restart Command for Klipper not set.",
-                        command=restart_host_command,
+                        command=restart_service_system_command,
                     ),
                 )
             )
 
         # Restart klippy to reload config
-        output, success = extra.execute_command(self, restart_host_command)
+        output, success = extra.execute_command(self, restart_service_system_command)
         if success:
             logger.log_info(self, "Restarting Klipper.", only_logging=False)
             return flask.jsonify(
@@ -724,7 +725,7 @@ class KlipperPlugin(
                     status="success",
                     data=dict(
                         message="Klipper service restarted",
-                        command=restart_host_command,
+                        command=restart_service_system_command,
                     ),
                 )
             )
@@ -734,7 +735,7 @@ class KlipperPlugin(
                     status="error",
                     error=dict(
                         message="Could not restart Klipper\n" + output,
-                        command=restart_host_command,
+                        command=restart_service_system_command,
                     ),
                 )
             )

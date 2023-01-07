@@ -156,6 +156,38 @@ $(function () {
       }
     };
 
+    self.updateButtonTitles = function () {
+      $("#klipper-restart-host").attr(
+        "title",
+        gettext("This will cause the host software to reload its config and perform an internal reset") +
+          "\n" +
+          gettext("You can set this command in the settings.") +
+          "\n" +
+          gettext("Actual command: ") +
+          self.settings.settings.plugins.klipper.configuration.restart_host_command()
+      );
+
+      $("#klipper-restart-firmware").attr(
+        "title",
+        gettext("Similar to a host restart, but also clears any error state from the micro-controller") +
+          "\n" +
+          gettext("You can set this command in the settings.") +
+          "\n" +
+          gettext("Actual command: ") +
+          self.settings.settings.plugins.klipper.configuration.restart_firmware_command()
+      );
+
+      $("#klipper-restart-service").attr(
+        "title",
+        gettext("This will cause the host klipper service to immediately stop and restart!") +
+          "\n" +
+          gettext("You can set this command in the settings.") +
+          "\n" +
+          gettext("Actual command: ") +
+          self.settings.settings.plugins.klipper.configuration.restart_service_system_command()
+      );
+    };
+
     self.checkForKlipperUpdate = function () {
       self.logMessage(null, null, "<b>" + gettext("Checking for Update...") + "</b>");
       OctoPrint.plugins.klipper
@@ -317,20 +349,21 @@ $(function () {
     };
 
     self.onRestartFirmware = function () {
-      OctoPrint.control.sendGcode("FIRMWARE_RESTART");
+      self.requestRestart("FIRMWARE");
     };
 
     self.onRestartHost = function () {
-      OctoPrint.control.sendGcode("RESTART");
+      self.requestRestart("HOST");
     };
 
-    self.onRestartKlipper = function () {
-      self.requestRestart();
+    self.onRestartKlipperService = function () {
+      self.requestRestart("SYSTEMCOMMAND");
     };
 
     self.onAfterBinding = function () {
       self.connectionState.selectedPort(self.settings.settings.plugins.klipper.connection.port());
       self.shortStatus(gettext("No Messages"), "");
+      self.updateButtonTitles();
       self._fromLocalStorage();
       self.fancyFunctionality(self.settings.settings.plugins.klipper.log.fancy_functionality());
       self.checkForKlipperUpdate();
@@ -606,30 +639,43 @@ $(function () {
       }
     };
 
-    self.requestRestart = function () {
+    self.requestRestart = function (restartType = self.settings.settings.plugins.klipper.configuration.reload_used()) {
       if (!self.hasPerm("CONFIG")) return;
-
+      // if (restartType == None) {
+      //   restartType = self.settings.settings.plugins.klipper.configuration.reload_used();
+      // }
       var request = function (index) {
-        OctoPrint.plugins.klipper
-          .restartKlipper()
-          .done(function (response) {
-            self.consoleMessage("debug", "restartingKlipper: " + response.status);
-            if (response.status == "success") {
-              self.showPopUp("success", gettext("Restarted Klipper"), "command: " + response.data.command);
-            } else {
-              self.showPopUp("error", gettext("Restarting Klipper failed"), response.error.message);
-            }
-          })
-          .fail(function (response) {
-            self.consoleMessage("debug", "restartingKlipper");
-            self.showPopUp("error", gettext("Restarting Klipper failed"), response.responseText);
-          });
+        if (restartType == "SYSTEMCOMMAND") {
+          OctoPrint.plugins.klipper
+            .restartKlipper()
+            .done(function (response) {
+              self.consoleMessage("debug", "restartingKlipper: " + response.status);
+              if (response.status == "success") {
+                self.showPopUp("success", gettext("Restarted Klipper"), "command: " + response.data.command);
+              } else {
+                self.showPopUp("error", gettext("Restarting Klipper failed"), response.error.message);
+              }
+            })
+            .fail(function (response) {
+              self.consoleMessage("debug", "restartingKlipper");
+              self.showPopUp("error", gettext("Restarting Klipper failed"), response.responseText);
+            });
+        } else if (restartType == "HOST") {
+          OctoPrint.control.sendGcode(self.settings.settings.plugins.klipper.configuration.restart_host_command());
+        } else if (restartType == "FIRMWARE") {
+          OctoPrint.control.sendGcode(self.settings.settings.plugins.klipper.configuration.restart_firmware_command());
+        }
         if (index == 1) {
           self.saveOption("configuration", "confirm_reload", false);
         }
       };
 
-      var html = "<h4>" + gettext("All ongoing Prints will be stopped!") + "</h4>";
+      var html =
+        "<h4>" +
+        gettext("All ongoing Prints will be stopped!") +
+        "</h4><br>" +
+        gettext("Command to be used: ") +
+        self.settings.settings.plugins.klipper.configuration.restart_service_system_command();
 
       if (self.settings.settings.plugins.klipper.configuration.confirm_reload() == true) {
         showConfirmationDialog({
