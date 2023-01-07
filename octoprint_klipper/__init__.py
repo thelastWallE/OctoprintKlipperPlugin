@@ -783,12 +783,13 @@ class KlipperPlugin(
         if success:
             for m in re.finditer(r"HEAD is now at \S*", output):
                 output_multiline = output[: m.end()] + "\n" + output[m.end() :]
+                break
+            else:
+                output_multiline = output
+            response["data"]["body"] = output_multiline
         else:
             response["status"] = "error"
             response["error"]["message"] = output
-        if not output_multiline:
-            output_multiline = output
-        response["data"]["body"] = output_multiline
 
         return flask.jsonify(response)
 
