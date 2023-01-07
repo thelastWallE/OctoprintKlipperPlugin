@@ -42,7 +42,9 @@ from .modules import KlipperLogAnalyzer
 
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5Mb
 
-SETTINGS_VERSION = 4
+# Set here the actual settings version
+# The automatic migration process needs this
+SETTINGS_VERSION = 5
 
 
 class KlipperPlugin(
@@ -224,66 +226,33 @@ class KlipperPlugin(
         #     -switch setting for 'restart on editor save' to true if it was not set to manually
         #     -remove old_config
         #     -remove config on root settingsdirectory
+        # 5 = -changed restart command to be setable in the settings
         return SETTINGS_VERSION
 
     # migrate Settings
     def on_settings_migrate(self, target, current):
         settings = self._settings
         if current is None:
-            migration.migrate_old_settings(settings)
-
-        if current is not None and current < 3:
-            self.migrate_settings_3(settings)
-
-        if current is not None and current < 4:
-            self.migrate_settings_4(settings)
-
-    def migrate_settings_3(self, settings):
-        migration.migrate_settings(
-            self,
-            settings,
-            ["configuration", "shortStatus_navbar"],
-            ["configuration", "navbar"],
-        )
-
-    def migrate_settings_4(self, settings):
-        if settings.has(["configuration", "configpath"]):
-            cfg_path = settings.get(["configuration", "configpath"])
-            new_cfg_path, baseconfig = os.path.split(cfg_path)
-            logger.log_info(
-                self,
-                "migrate setting for 'configuration/config_path': "
-                + cfg_path
-                + " -> "
-                + new_cfg_path,
-                only_logging=False,
-            )
-            logger.log_info(
-                self,
-                "migrate setting for 'configuration/baseconfig': printer.cfg -> "
-                + baseconfig,
-                only_logging=False,
-            )
-            settings.set(["configuration", "config_path"], new_cfg_path)
-            settings.set(["configuration", "baseconfig"], baseconfig)
-            settings.remove(["configuration", "configpath"])
-        if (
-            settings.has(["configuration", "reload_command"])
-            and settings.get(["configuration", "reload_command"]) == "manually"
-        ):
-            logger.log_info(
-                self,
-                "migrate setting for 'configuration/restart_onsave': True -> False",
-                only_logging=False,
-            )
-            settings.set(["configuration", "restart_onsave"], False)
-            settings.remove(["configuration", "reload_command"])
-
-        if settings.has(["config"]):
-            migration.migrate_settings(self, settings, ["config"])
-
-        if settings.has(["configuration", "old_config"]):
-            migration.migrate_settings(self, settings, ["configuration", "old_config"])
+            try:
+                migration.migrate_old_settings(settings)
+            except Exception as err:
+                logger.log_error(self, err, only_logging=False)
+                raise
+            else:
+                current = 2
+        else:
+            # step versions one step at a time higher
+            try:
+                while current < target:
+                    current = migration.migrater(self, current, settings)
+                    logger.log_debug(self, "Migration Step: " + str(current))
+            except Exception as err:
+                logger.log_error(
+                    self,
+                    "Error on migration to new settings version",
+                    only_logging=False,
+                )
+                raise
 
     # -- Template Plugin
     def get_template_configs(self):
