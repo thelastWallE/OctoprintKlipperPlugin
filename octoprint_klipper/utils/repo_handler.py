@@ -123,20 +123,20 @@ def retrieve_remote_git_tag(self, remote):
 def retrieve_git_version(self, source_path):
     # Obtain version info from "git" program
     cmd = "git -C " + source_path + " describe --always --tags --long --dirty"
-    output, status = extra.execute_command(self, cmd)
-    if status:
+    output, is_success = extra.execute_command(self, cmd)
+    if is_success:
         logger.log_info(
             self, "retrieve_git_version Output: " + output, only_logging=True
         )
         tag_match = re.match(r"v\d+\.\d+\.\d+", output)
         if tag_match is not None:
-            return output, status
+            return output, is_success
         # This is likely a shallow clone.  Resolve the tag and manually create
         # the version string
 
         tag = retrieve_git_tag(self, source_path)
-        return "t" + tag + "-g" + output + "-shallow", status
-    return output, status
+        return "t" + tag + "-g" + output + "-shallow", is_success
+    return output, is_success
 
 
 def get_software_version(self):
