@@ -443,6 +443,8 @@ class KlipperPlugin(
             self.write_parsing_response_buffer()
         elif "// SAVE_CONFIG" in line:
             self.save_config_caught()
+        elif "// mcu 'mcu': Unable to connect" in line:
+            self.klipper_mcu_error_found(line)
         elif "//" in line:
             # add lines with // to a buffer
             self._message = self._message + line.strip("/")
@@ -463,6 +465,23 @@ class KlipperPlugin(
             self._parsing_response = False
             logger.log_info(self, self._message, only_logging=False)
             self._message = ""
+
+    def klipper_mcu_error_found(self, line):
+        if "// mcu 'mcu': Unable to connect" in line:
+            extra.send_message(
+                self,
+                "PopUp",
+                "Error",
+                "Klipper",
+                gettext(
+                    "Klipper can't connect to the firmware on the printer.<br>Make sure that the printer is connected."
+                )
+                + "<br>"
+                + "<a href='https://www.klipper3d.org/Installation.html#configuring-octoprint-to-use-klipper' target='_blank'>"
+                + gettext("Help for configuring OctoPrint to use Klipper")
+                + "</a>",
+                False,
+            )
 
     def save_config_caught(self):
         logger.log_info(self, "SAVE_CONFIG detected", only_logging=False)
