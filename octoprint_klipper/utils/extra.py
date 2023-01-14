@@ -85,11 +85,10 @@ def key_exist(dict, key1, key2):
         return True
 
 
-def send_message(self, type, subtype, title="", payload=""):
+def send_message(self, type, subtype, title="", payload="", hide=True):
     """
     Send Message over API to FrontEnd
     """
-    import datetime
 
     self._plugin_manager.send_plugin_message(
         self._identifier,
@@ -99,6 +98,7 @@ def send_message(self, type, subtype, title="", payload=""):
             subtype=subtype,
             title=title,
             payload=payload,
+            sticky=hide,
         ),
     )
 

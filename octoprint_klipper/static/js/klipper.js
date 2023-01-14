@@ -131,7 +131,7 @@ $(function () {
       }
     };
 
-    self.showPopUp = function (popupType = "info", popupTitle, message) {
+    self.showPopUp = function (popupType = "info", popupTitle, message, hide = true) {
       popupTitle ? popupTitle + "<br />" : (popupTitle = "");
 
       let title = "OctoKlipper: <br />" + popupTitle;
@@ -139,7 +139,7 @@ $(function () {
         title: title,
         text: message,
         type: popupType,
-        hide: true,
+        hide: hide,
         icon: true,
       };
 
@@ -150,7 +150,7 @@ $(function () {
           animation: "none",
         };
         FullOptions = Object.assign(options, errorOpts);
-        self._showPopup(FullOptions);
+        self._showPopUp(FullOptions);
       } else {
         new PNotify(options);
       }
@@ -375,9 +375,10 @@ $(function () {
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
       if (plugin == "klipper") {
+        hide = data.autohide || true;
         switch (data.type) {
           case "PopUp":
-            self.showPopUp(data.subtype, data.title, data.payload);
+            self.showPopUp(data.subtype, data.title, data.payload, hide);
             break;
           case "reload":
             break;
