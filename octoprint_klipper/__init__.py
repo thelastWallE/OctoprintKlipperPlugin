@@ -62,6 +62,7 @@ class KlipperPlugin(
     _latest_klipper_remote_tag = ""
     _latest_octoklipper_remote_tag = ""
     _git_version = ""
+    _get_next_receive = False
 
     def __init__(self):
         self._logger = logging.getLogger("octoprint.plugins.klipper")
@@ -453,6 +454,11 @@ class KlipperPlugin(
             self.write_parsing_response_buffer()
         else:
             self.write_parsing_response_buffer()
+
+            # send normal receive to the octoklipper log if needed
+            if self._get_next_receive:
+                logger.log_info(self, line, only_logging=False)
+                self._get_next_receive = False
         return line
 
     def write_parsing_response_buffer(self):
