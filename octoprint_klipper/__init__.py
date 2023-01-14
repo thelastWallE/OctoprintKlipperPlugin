@@ -700,19 +700,31 @@ class KlipperPlugin(
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def modify_service_file(self):
+        if platform.system() == "Linux":
+            # service_path = "/etc/systemd/system"
+            servicefile_path = os.path.realpath(
+                os.path.join("/etc", "default", "klipper")
+            )
+        else:
+            flask.abort(
+                400,
+                description="Invalid request, not on Unix",
+            )
         data = flask.request.json
         path_to_configs = data.get("PathToConfigs", [])
         if path_to_configs == []:
             flask.abort(
                 400,
-                description="Invalid request, the path to configs is not set",
+                description="Invalid request, the path to servicefiles is not set",
             )
-        file_path = os.path.realpath(os.path.join("/etc", "default", "klipper"))
+
         config_path = os.path.expanduser(path_to_configs)
         baseconfig = self._settings.get(["configuration", "baseconfig"])
         replace_path = os.path.join(config_path, baseconfig)
 
-        results = extra.modify_servicefile(self, file_path, replace_path, config_path)
+        results = extra.modify_servicefile(
+            self, servicefile_path, replace_path, config_path
+        )
 
         return flask.jsonify(results)
 
