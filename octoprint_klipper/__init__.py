@@ -57,8 +57,6 @@ class KlipperPlugin(
     octoprint.plugin.BlueprintPlugin,
 ):
 
-    _parsing_response = False
-    _parsing_check_response = True
     _message = ""
     _reload_config_lock = False
     _latest_klipper_remote_tag = ""
@@ -448,9 +446,6 @@ class KlipperPlugin(
         elif "//" in line:
             # add lines with // to a buffer
             self._message = self._message + line.strip("/")
-            if not self._parsing_response:
-                extra.update_status(self, "info", self._message)
-            self._parsing_response = True
         elif "!!" in line:
             msg = line.strip("!")
             logger.log_error(self, msg, only_logging=False)
@@ -461,8 +456,7 @@ class KlipperPlugin(
 
     def write_parsing_response_buffer(self):
         # write buffer with // lines after a gcode response without //
-        if self._parsing_response:
-            self._parsing_response = False
+        if not self._message == "":
             logger.log_info(self, self._message, only_logging=False)
             self._message = ""
 
