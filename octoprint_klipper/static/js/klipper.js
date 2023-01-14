@@ -323,13 +323,16 @@ $(function () {
       if (!self.hasPerm("MACRO")) return;
 
       if (macro.macro().match(paramObjRegex) == null) {
+        let expanded = macro.macro().split(/\r\n|\r|\n/);
+        self.logMessage(null, null, gettext("Execute Macro: ") + macro.name());
+
         OctoPrint.control.sendGcode(
           // Use .split to create an array of strings which is sent to
           // OctoPrint.control.sendGcode instead of a single string.
-          macro.macro().split(/\r\n|\r|\n/)
+          expanded
         );
       } else {
-        self.paramMacroViewModel.process(macro);
+        self.paramMacroViewModel.process(macro, self);
 
         var dialog = $("#klipper_macro_dialog");
         dialog.modal({

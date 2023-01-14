@@ -21,13 +21,15 @@ $(function () {
     self.interpolatedCmd;
     self.macro;
     self.macroName = ko.observable();
+    self.callerViewModel = undefined;
 
     var paramObjRegex = /{(.*?)}/g;
     var keyValueRegex = /(\w*)\s*:\s*([\w\s°"|\.]*)/g;
 
-    self.process = function (macro) {
+    self.process = function (macro, callerViewModel) {
       self.macro = macro.macro();
       self.macroName(macro.name());
+      self.callerViewModel = callerViewModel;
 
       var matches = self.macro.match(paramObjRegex);
       var params = [];
@@ -73,7 +75,7 @@ $(function () {
       // OctoPrint.control.sendGcode instead of a single string.
       expanded = self.macro.replace(paramObjRegex, replaceParams);
       expanded = expanded.split(/\r\n|\r|\n/);
-
+      self.callerViewModel.logMessage(null, null, gettext("Execute Macro: ") + self.macroName());
       OctoPrint.control.sendGcode(expanded);
     };
   }
