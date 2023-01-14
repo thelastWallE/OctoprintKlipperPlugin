@@ -39,15 +39,14 @@ def retrieve_remote_git_tag(self, remote):
     if not self._connectivity_checker.online:
         return str(gettext("We are not online")), False
 
-    # I leave this for debuging purposes
     if self._octoklipper_debug:
         output, _ = extra.execute_command(self, "git --version")
         splitted_output = output.strip().split()
         logger.log_info(self, "whole_line git version: " + splitted_output[2])
 
         # split if we are on windows
-        git_version = splitted_output[2].split(".windows")[0]
-        logger.log_info(self, "parsed git version: " + git_version)
+        self._git_version = splitted_output[2].split(".windows")[0]
+        logger.log_info(self, "parsed git version: " + self._git_version)
 
     logger.log_info(self, "Retrieving remote tag for " + remote, only_logging=True)
     if platform.system() == "Windows":

@@ -61,6 +61,7 @@ class KlipperPlugin(
     _reload_config_lock = False
     _latest_klipper_remote_tag = ""
     _latest_octoklipper_remote_tag = ""
+    _git_version = ""
 
     def __init__(self):
         self._logger = logging.getLogger("octoprint.plugins.klipper")
