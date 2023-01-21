@@ -134,7 +134,7 @@ def execute_command(self, command):
     )
 
     if output_error2 != "":
-        logger.log_info(
+        logger.log_debug(
             self,
             "Error: {}".format(output_error2),
             only_logging=False,

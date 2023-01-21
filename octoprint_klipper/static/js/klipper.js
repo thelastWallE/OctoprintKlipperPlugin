@@ -577,14 +577,12 @@ $(function () {
     }, 250);
 
     self.consoleMessage = function (type, message) {
-      if (self.settings.settings.plugins.klipper.configuration.debug_logging() === true) {
-        if (type == "info") {
-          console.info("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
-        } else if (type == "debug") {
-          console.debug("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
-        } else {
-          console.error("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
-        }
+      if (type == "info") {
+        console.info("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
+      } else if (type == "debug") {
+        console.debug("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
+      } else {
+        console.error("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
       }
       return;
     };
