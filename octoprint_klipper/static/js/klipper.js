@@ -224,26 +224,22 @@ $(function () {
         .fail(function (response) {
           self.showPopUp("error", "Error", response.responseText);
         });
-      OctoPrint.plugins.klipper
-        .checkOctoKlipperUpdate()
-        .done(self.fromCheckOctoKlipperUpdate)
-        .fail(function (response) {
-          self.showPopUp("error", "Error", response.responseText);
-        });
     };
 
     self.fromUpdaterCheck = function (response) {
       var octoklipper = response.information["klipper"];
-      self.octoklipperReleasedVersionForOctoprint(!octoklipper || octoklipper.releasedVersion);
       self.octoklipperInstalledVersion(!octoklipper || octoklipper.displayVersion);
-    };
-
-    self.fromCheckOctoKlipperUpdate = function (response) {
-      if (response.status == "success") {
-        self.octoklipperReleasedVersion(response.data.latest_octoklipper_remote_tag);
-      } else {
-        self.showPopUp("error", "Error", response.error.message);
-      }
+      self.octoklipperReleasedVersionForOctoprint(!octoklipper || octoklipper.releasedVersion);
+      self.logMessage(
+        null,
+        null,
+        "<b>" + gettext("Installed OctoKlipper Version:") + "</b> " + self.octoklipperInstalledVersion()
+      );
+      self.logMessage(
+        null,
+        null,
+        "<b>" + gettext("Available OctoKlipper Version:") + "</b> " + self.octoklipperReleasedVersionForOctoprint()
+      );
     };
 
     self.reloadData = function () {
@@ -654,6 +650,7 @@ $(function () {
               self.consoleMessage("debug", "restartingKlipper: " + response.status);
               if (response.status == "success") {
                 self.showPopUp("success", gettext("Restarted Klipper"), "command: " + response.data.command);
+                self.checkForKlipperUpdate();
               } else {
                 self.showPopUp("error", gettext("Restarting Klipper failed"), response.error.message);
               }
