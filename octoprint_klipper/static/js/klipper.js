@@ -110,24 +110,24 @@ $(function () {
       self.saveAutoscroll();
     });
 
-    self.popup = undefined;
+    self.popup = {};
 
-    self._showPopup = function (options) {
-      self._closePopup();
-      self.popup = new PNotify(options);
+    self._showPopUp = function (id = "Standard", options) {
+      self._closePopUp(id);
+      self.popup[id] = new PNotify(options);
     };
 
-    self._updatePopup = function (options) {
-      if (self.popup === undefined) {
-        self._showPopup(options);
+    self._updatePopUp = function (id = "Standard", options) {
+      if (!Object.hasOwn(self.popup, id)) {
+        self._showPopUp(id, options);
       } else {
-        self.popup.update(options);
+        self.popup[id].update(options);
       }
     };
 
-    self._closePopup = function () {
-      if (self.popup !== undefined) {
-        self.popup.remove();
+    self._closePopUp = function (id = "Standard") {
+      if (Object.hasOwn(self.popup, id)) {
+        delete self.popup[id];
       }
     };
 
@@ -697,13 +697,18 @@ $(function () {
       }
     };
 
+    /**
+     * Show Confirmation Dialog if enabled and send a request to update klipper.
+     * If there are uncommitted changes show a confirmation dialog to ask
+     * about stashing the changes and force an update
+     */
     self.requestUpdate = function () {
       if (!self.hasPerm("CONFIG")) return;
       if (self._updateClicked) return;
       self._updateClicked = true;
 
       if (self.printerState.isPrinting()) {
-        self._showPopup({
+        self._showPopUp("Updater", {
           title: gettext("Can't update while printing"),
           text: gettext("A print job is currently in progress. Updating will be prevented until it is done."),
           type: "error",
@@ -713,7 +718,7 @@ $(function () {
       }
 
       if (self.throttled()) {
-        self._showPopup({
+        self._showPopUp("Updater", {
           title: gettext("Can't update while throttled"),
           text: gettext(
             "Your system is currently throttled. OctoPrint refuses to run updates while in this state due to possible stability issues."

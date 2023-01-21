@@ -98,7 +98,7 @@ def send_message(self, type, subtype, title="", payload="", hide=True):
             subtype=subtype,
             title=title,
             payload=payload,
-            sticky=hide,
+            autohide=hide,
         ),
     )
 
