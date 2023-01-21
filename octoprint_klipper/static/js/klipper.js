@@ -893,6 +893,7 @@ $(function () {
     self.onAfterTabChange = function (current, previous) {
       self.tabActive = current === "#tab_plugin_klipper_main";
       self.updateOutput();
+      $("document").scrollTop(0);
     };
 
     self.onBrowserTabVisibilityChange = function (status) {
