@@ -2,6 +2,7 @@
 import os
 import re
 import platform
+import datetime
 from distutils.version import LooseVersion
 
 from flask_babel import gettext
@@ -166,7 +167,84 @@ def get_software_version(self):
     return output, status
 
 
-def update_klipper_host(self, tag):
+def git_checkout(self, klipper_path, tag, force):
+    # git checkout
+    if force:
+        t_now = datetime.datetime.now()
+        t_now_str = (
+            str(t_now.year)
+            + str(t_now.month)
+            + str(t_now.day)
+            + "_"
+            + str(t_now.hour)
+            + str(t_now.minute)
+        )
+        stash_message = "stash at " + t_now_str + " before klipper checkout"
+        # git stash "push" got added at 2.13.1 so we use "save" before that
+        if LooseVersion(self._git_version) >= LooseVersion("2.13.1"):
+            cmd = "git -C " + klipper_path + " stash push -m " + stash_message
+        else:
+            cmd = "git -C " + klipper_path + " stash save " + stash_message
+        [_, stash_checkout_is_success] = extra.execute_command(self, cmd)
+        if stash_checkout_is_success:
+            cmd = "git -C " + klipper_path + " checkout " + tag + " --force"
+    else:
+        cmd = "git -C " + klipper_path + " checkout " + tag
+    [output, is_success] = extra.execute_command(self, cmd)
+    if force:
+        output += "\nForced update after stashing with StashMessage: " + stash_message
+    if not is_success:
+        if re.search(
+            r"Your local changes to the following files would be overwritten by",
+            output,
+        ):
+            return ["uncommitted changes", False]
+    if re.search(r"HEAD is now at", output):
+        return [output, True]
+
+
+def git_pull(self, klipper_path, force):
+    # git pull
+    if force:
+        t_now = datetime.datetime.now()
+        t_now_str = (
+            str(t_now.year)
+            + str(t_now.month)
+            + str(t_now.day)
+            + "_"
+            + str(t_now.hour)
+            + str(t_now.minute)
+        )
+        stash_message = "stash at " + t_now_str + " before klipper pull"
+        if LooseVersion(self._git_version) >= LooseVersion("2.13.1"):
+            cmd = "git -C " + klipper_path + " stash push -m " + stash_message
+        else:
+            cmd = "git -C " + klipper_path + " stash save " + stash_message
+        [_, stash_pull_is_success] = extra.execute_command(self, cmd)
+        if stash_pull_is_success:
+            cmd = "git -C " + klipper_path + " reset --hard origin/master"
+    else:
+        cmd = "git -C " + klipper_path + " reset --hard origin/master"
+    [pull_output, pull_is_success] = extra.execute_command(self, cmd)
+    if not pull_is_success:
+        if re.search(
+            r"Your local changes to the following files would be overwritten by",
+            pull_output,
+        ):
+            return ["uncommitted changes", False]
+    return [pull_output, True]
+
+
+def update_klipper_host(self, tag, force=False):
+    """Updates the klipper host from the git repo with git
+
+    :param tag: The tag of the release to update to
+    :type tag: str
+    :param force: Should the update be forced, defaults to False
+    :type force: bool, optional
+    :return: output and status of the command
+    :rtype: tuple
+    """
     klipper_path = os.path.normpath(
         os.path.join(
             os.path.expanduser(self._settings.get(["configuration", "klipper_path"])),
@@ -175,11 +253,12 @@ def update_klipper_host(self, tag):
     )
     cmd = "git -C " + klipper_path + " fetch --all --tags"
     extra.execute_command(self, cmd)
-    cmd = "git -C " + klipper_path + " pull"
-    extra.execute_command(self, cmd)
-    cmd = "git -C " + klipper_path + " checkout " + tag
 
-    return extra.execute_command(self, cmd)
+    [_, is_success] = git_checkout(self, klipper_path, tag, force)
+    if is_success:
+        [output, is_success] = git_pull(self, klipper_path, force)
+
+    return [output, is_success]
 
 
 def split_versionlist(version_list):

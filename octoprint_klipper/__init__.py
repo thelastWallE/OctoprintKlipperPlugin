@@ -785,6 +785,8 @@ class KlipperPlugin(
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def update_klipper(self):
+        data = flask.request.json
+        force = bool(data.get("forced", False))
 
         throttled = self._get_throttled()
         if (
@@ -810,7 +812,7 @@ class KlipperPlugin(
         response = extra.basedict()
         response["status"] = "success"
         [output, success] = repo_handler.update_klipper_host(
-            self, self._latest_klipper_remote_tag
+            self, self._latest_klipper_remote_tag, force
         )
         logger.log_debug(self, output, only_logging=True)
         if success:

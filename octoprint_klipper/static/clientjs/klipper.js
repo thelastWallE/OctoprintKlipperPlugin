@@ -33,8 +33,13 @@
     return this.base.get(this.url + "checkOctoKlipperUpdate", opts);
   };
 
-  OctoKlipperClient.prototype.updateKlipper = function (opts) {
-    return this.base.post(this.url + "update", opts);
+  OctoKlipperClient.prototype.updateKlipper = function (force, opts) {
+    force = force || [];
+
+    var data = {
+      forced: force,
+    };
+    return this.base.postJson(this.url + "update", data, opts);
   };
 
   OctoKlipperClient.prototype.getCfg = function (config, opts) {

@@ -724,26 +724,107 @@ $(function () {
         return;
       }
 
-      var request = function () {
+      let request = function () {
+        let forced_update = function () {
+          OctoPrint.plugins.klipper
+            .updateKlipper(true)
+            .done(function (response) {
+              self.consoleMessage("debug", "forced updatingKlipper:");
+              if (response.status == "success") {
+                self.consoleMessage("debug", "Response: " + response.data.body);
+                self._updatePopUp("Updater", {
+                  type: "success",
+                  hide: true,
+                  title: null,
+                  text: "Response: " + response.data.body,
+                });
+                self.logMessage(null, null, "Update Response: " + response.data.body);
+                if (response.data.body != "Already up to date.\n") {
+                  self.requestRestart("SYSTEMCOMMAND");
+                }
+              } else {
+                self._updatePopUp("Update", {
+                  type: "error",
+                  title: null,
+                  text: "Response: " + response.error.message,
+                });
+              }
+            })
+            .fail(function (response) {
+              self._updatePopUp("Updater", {
+                type: "error",
+                hide: true,
+                title: null,
+                text: "Response: " + response.responseText,
+              });
+            });
+        };
+
+        self.updateInProgress = true;
+
+        var options = {
+          title: gettext("Updating..."),
+          text: gettext("Now updating, please wait."),
+          icon: "fa fa-cog fa-spin",
+          hide: false,
+          buttons: {
+            closer: false,
+            sticker: false,
+          },
+        };
+        self._showPopUp("Updater", options);
+
         OctoPrint.plugins.klipper
           .updateKlipper()
           .done(function (response) {
             self.consoleMessage("debug", "updatingKlipper:");
             if (response.status == "success") {
               self.consoleMessage("debug", "Response: " + response.data.body);
-              self.showPopUp("success", null, "Response: " + response.data.body);
+              self._updatePopUp("Updater", {
+                type: "success",
+                hide: true,
+                title: null,
+                text: "Response: " + response.data.body,
+              });
               self.logMessage(null, null, "Update Response: " + response.data.body);
               if (response.data.body != "Already up to date.\n") {
-                self.requestRestart();
-                self.requestData();
+                self.requestRestart("SYSTEMCOMMAND");
               }
             } else {
-              self.showPopUp("error", null, "Response: " + response.data.body);
+              if (response.error.message == "uncommitted changes") {
+                showConfirmationDialog({
+                  title: gettext("Klipper Update"),
+                  html:
+                    "<p>" +
+                    gettext("You have uncommitted changes.") +
+                    gettext("Would you like to stash them and update?") +
+                    "</p>",
+                  proceed: [gettext("Stash and Update"), gettext("Cancel")],
+                  onproceed: function (idy) {
+                    if (idy == 0) {
+                      forced_update();
+                    }
+                  },
+                });
+              } else {
+                self._updatePopUp("Updater", {
+                  type: "error",
+                  hide: true,
+                  title: null,
+                  text: "Response: " + response.error.message,
+                });
+              }
             }
             self._updateClicked = false;
           })
           .fail(function (response) {
-            self.showPopUp("error", null, "Response: " + response.responseText);
+            self._updatePopUp("Updater", {
+              type: "error",
+              hide: true,
+              title: null,
+              text: "Response: " + response.responseText,
+            });
+            self._updateClicked = false;
           });
       };
 
