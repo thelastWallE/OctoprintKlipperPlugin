@@ -196,15 +196,11 @@ $(function () {
           if (response.status == "success") {
             self.host_version(response.data.klipper_version);
             self.host_remote_version(response.data.latest_klipper_remote_tag);
+            self.logMessage(null, null, `<b>${gettext("Installed Klipper Host Version:")}</b> ${self.host_version()}`);
             self.logMessage(
               null,
               null,
-              "<b>" + gettext("Installed Klipper Host Version:") + "</b> " + self.host_version()
-            );
-            self.logMessage(
-              null,
-              null,
-              "<b>" + gettext("Available Klipper Version:") + "</b> " + self.host_remote_version()
+              `<b>${gettext("Available Klipper Version:")}</b> ${self.host_remote_version()}`
             );
           } else {
             self.showPopUp("error", "Error", response.error.message);
@@ -227,19 +223,24 @@ $(function () {
     };
 
     self.fromUpdaterCheck = function (response) {
-      var octoklipper = response.information["klipper"];
+      const octoklipper = response.information["klipper"];
       self.octoklipperInstalledVersion(!octoklipper || octoklipper.displayVersion);
-      self.octoklipperReleasedVersionForOctoprint(!octoklipper || octoklipper.releasedVersion);
-      self.logMessage(
-        null,
-        null,
-        "<b>" + gettext("Installed OctoKlipper Version:") + "</b> " + self.octoklipperInstalledVersion()
-      );
-      self.logMessage(
-        null,
-        null,
-        "<b>" + gettext("Available OctoKlipper Version:") + "</b> " + self.octoklipperReleasedVersionForOctoprint()
-      );
+      self.octoklipperReleasedVersionForOctoprint(!octoklipper || octoklipper.information.remote.value);
+
+      const releasedVersionNotesLink = octoklipper.information.remote.release_notes || "";
+
+      const installedMessage = `<b>
+        ${gettext("Installed OctoKlipper Version:")}
+        </b> ${self.octoklipperInstalledVersion()}`;
+
+      const availableMessage = `<b>
+        ${gettext("Available OctoKlipper Version:")}
+        </b> ${self.octoklipperReleasedVersionForOctoprint()}
+        <br><a href="${releasedVersionNotesLink}" target="_blank">
+        ${gettext("Release Notes")}</a>`;
+
+      self.logMessage(null, null, installedMessage);
+      self.logMessage(null, null, availableMessage);
     };
 
     self.reloadData = function () {
