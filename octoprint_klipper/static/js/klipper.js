@@ -573,13 +573,14 @@ $(function () {
     }, 250);
 
     self.consoleMessage = function (type, message) {
-      if (type == "info") {
-        console.info("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
-      } else if (type == "debug") {
-        console.debug("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
-      } else {
-        console.error("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
-      }
+      const logTypes = {
+        info: console.info,
+        debug: console.debug,
+        error: console.error,
+      };
+
+      logTypes[type]("%cOctoKlipper : %c%s", "background: black; color: green;", "", message);
+
       return;
     };
 
