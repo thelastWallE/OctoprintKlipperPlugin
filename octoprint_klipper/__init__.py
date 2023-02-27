@@ -235,7 +235,7 @@ class KlipperPlugin(
         settings = self._settings
         if current is None:
             try:
-                migration.migrate_old_settings(settings)
+                migration.migrate_old_settings(self, settings)
             except Exception as err:
                 logger.log_error(self, err, only_logging=False)
                 raise

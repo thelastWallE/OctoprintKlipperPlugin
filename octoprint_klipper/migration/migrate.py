@@ -3,21 +3,22 @@ import os
 import octoprint_klipper.utils.logger as logger
 
 
-def migrate_old_settings(settings):
+def migrate_old_settings(self, settings):
     """
     For Old settings
     """
-    migrate_settings(settings, ["serialport"], ["connection", "port"])
+    migrate_settings(self, settings, ["serialport"], ["connection", "port"])
     migrate_settings(
+        self,
         settings,
         ["replace_connection_panel"],
         ["connection", "replace_connection_panel"],
     )
-    migrate_settings(settings, ["probeHeight"], ["probe", "height"])
-    migrate_settings(settings, ["probeLift"], ["probe", "lift"])
-    migrate_settings(settings, ["probeSpeedXy"], ["probe", "speed_xy"])
-    migrate_settings(settings, ["probeSpeedZ"], ["probe", "speed_z"])
-    migrate_settings(settings, ["configPath"], ["configuration", "configpath"])
+    migrate_settings(self, settings, ["probeHeight"], ["probe", "height"])
+    migrate_settings(self, settings, ["probeLift"], ["probe", "lift"])
+    migrate_settings(self, settings, ["probeSpeedXy"], ["probe", "speed_xy"])
+    migrate_settings(self, settings, ["probeSpeedZ"], ["probe", "speed_z"])
+    migrate_settings(self, settings, ["configPath"], ["configuration", "configpath"])
 
     if settings.has(["probePoints"]):
         points = settings.get(["probePoints"])
