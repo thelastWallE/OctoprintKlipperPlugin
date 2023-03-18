@@ -176,7 +176,10 @@
   };
 
   OctoKlipperClient.prototype.restoreBackup = function (backup, opts) {
-    return this.base.get(this.url + "backup/restore/" + backup, opts);
+    var data = {
+      BackupToRestore: backup,
+    };
+    return this.base.postJson(this.url + "backup/restore/" + backup, data, opts);
   };
 
   OctoKlipperClient.prototype.restoreBackupFromUpload = function (file, data) {

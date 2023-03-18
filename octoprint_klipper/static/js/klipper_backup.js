@@ -225,6 +225,8 @@ $(function () {
                 hide: false,
               });
               return;
+            } else if (response.status == "success") {
+              self.klipperViewModel.showPopUp("success", gettext("Restore Config"), gettext("Config restored."));
             }
             self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + backup + " / " + response.status);
           })
