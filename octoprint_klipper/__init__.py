@@ -44,7 +44,7 @@ MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5Mb
 
 # Set here the actual settings version
 # The automatic migration process needs this
-SETTINGS_VERSION = 5
+SETTINGS_VERSION = 6
 
 
 class KlipperPlugin(
@@ -152,7 +152,16 @@ class KlipperPlugin(
                 hide_editor_button=False,
                 hide_config_button=False,
             ),
-            macros=[dict(name="E-Stop", macro="M112", sidebar=True, tab=True)],
+            macros=[
+                dict(
+                    name="E-Stop",
+                    macro="M112",
+                    sidebar=True,
+                    tab=True,
+                    buttonColor="",
+                    buttonStyle="",
+                )
+            ],
             probe=dict(
                 height=0,
                 lift=5,
@@ -228,6 +237,7 @@ class KlipperPlugin(
         #     -remove old_config
         #     -remove config on root settingsdirectory
         # 5 = -changed restart command to be setable in the settings
+        # 6 = -button colors for macros
         return SETTINGS_VERSION
 
     # migrate Settings
@@ -246,7 +256,9 @@ class KlipperPlugin(
             try:
                 while current < target:
                     current = migration.migrater(self, current, settings)
-                    logger.log_debug(self, "Migration Step: " + str(current))
+                    logger.log_info(
+                        self, "Migration Step: " + str(current), only_logging=True
+                    )
             except Exception as err:
                 logger.log_error(
                     self,
@@ -254,6 +266,10 @@ class KlipperPlugin(
                     only_logging=False,
                 )
                 raise
+            else:
+                logger.log_info(
+                    self, "Migration to new settings version done", only_logging=True
+                )
 
     # -- Template Plugin
     def get_template_configs(self):

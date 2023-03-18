@@ -339,6 +339,14 @@ $(function () {
       }
     };
 
+    self.buttonColor = function (macro) {
+      var cssStyle = "";
+      if (macro.buttonColor() != "") {
+        cssStyle = `background-color: ${macro.buttonColor()}; background-image: unset !important; text-shadow: none !important;`;
+      }
+      return cssStyle;
+    };
+
     self.navbarClicked = function () {
       $("#tab_plugin_klipper_main_link").find("a").click();
       self.clearShortStatus();

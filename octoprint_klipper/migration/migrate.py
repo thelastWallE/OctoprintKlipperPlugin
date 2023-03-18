@@ -27,6 +27,15 @@ def migrate_old_settings(self, settings):
         settings.remove(["probePoints"])
 
 
+def migrate_settings_3(self, settings):
+    migrate_settings(
+        self,
+        settings,
+        ["configuration", "navbar"],
+        ["configuration", "shortStatus_navbar"],
+    )
+
+
 def migrate_settings_4(self, settings):
     if settings.has(["configuration", "configpath"]):
         cfg_path = settings.get(["configuration", "configpath"])
@@ -82,6 +91,29 @@ def migrate_settings_5(self, settings):
     )
 
 
+def migrate_settings_6(self, settings):
+    """macros=[
+        dict(
+            name="E-Stop",
+            macro="M112",
+            sidebar=True,
+            tab=True,
+            buttonColor="", <- new
+            buttonStyle=""  <- new
+        )
+    ],"""
+
+    macros = settings.get(["macros"])
+    logger.log_info(self, "migrate setting from " + str(macros), only_logging=True)
+
+    for index in range(len(macros)):
+        macros[index]["buttonColor"] = ""
+        macros[index]["buttonStyle"] = ""
+
+    logger.log_info(self, "migrate setting to " + str(macros), only_logging=True)
+    settings.set(["macros"], macros)
+
+
 def migrate_settings(self, settings, old, new=""):
     """migrate a setting to setting with new name and/or position.
     If new is unset only delete the setting
@@ -101,24 +133,26 @@ def migrate_settings(self, settings, old, new=""):
         settings.remove(old)
 
 
-def migrate_settings_to_new(self, settings, to_version):
-    if to_version == 3:
-        migrate_settings(
-            self,
-            settings,
-            ["configuration", "navbar"],
-            ["configuration", "shortStatus_navbar"],
-        )
-    elif to_version == 4:
-        migrate_settings_4(self, settings)
-    elif to_version == 5:
-        migrate_settings_5(self, settings)
-
-
 def migrater(self, current, settings):
+    """migrate settings to new version
+
+    Args:
+        current (int): current version
+        settings (any): instance of self._settings
+
+    Returns:
+        int: current version
+    """
+    migrate_functions = {
+        "3": migrate_settings_3,
+        "4": migrate_settings_4,
+        "5": migrate_settings_5,
+        "6": migrate_settings_6,
+    }
+
     if current is not None:
         try:
-            migrate_settings_to_new(self, settings, current + 1)
+            migrate_functions[str(current + 1)](self, settings)
         except Exception as err:
             logger.log_error(self, err, only_logging=False)
             raise

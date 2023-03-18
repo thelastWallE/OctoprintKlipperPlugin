@@ -442,3 +442,24 @@ div#settings_plugin_klipper div#macros label.control-label {
 #klipper_graph_canvas {
   margin-top: 15px;
 }
+
+.klipper-wrapper {
+  position: relative;
+}
+
+.klipper-bordered {
+  border: 1px solid gray;
+  border-radius: 6px;
+  position: relative;
+  margin: 10px;
+  padding: 10px;
+}
+
+.klipper-control-label-bordered {
+  position: absolute;
+  top: -1.2ex;
+  z-index: 1;
+  left: 2em;
+  background-color: #eeeeee;
+  padding: 0 5px;
+}
