@@ -32,6 +32,7 @@ $(function () {
     self.markedForFileRemove = ko.observableArray([]);
     self.PathToConfigs = ko.observable("");
     self.serverOS = ko.observable("");
+    self.macros = ko.observableArray([]);
 
     var changeConfigPath = function () {
       self.settings.settings.plugins.klipper.configuration.config_path(self.configPath());
@@ -77,11 +78,31 @@ $(function () {
       15
     );
 
+    var subbed = false;
+    self.onStartup =
+      self.onUserLoggedIn =
+      self.onUserLoggedOut =
+        function () {
+          if (
+            self.settings &&
+            self.settings.settings &&
+            self.settings.settings.plugins &&
+            self.settings.settings.plugins.klipper &&
+            !subbed
+          ) {
+            subbed = true;
+            self.settings.settings.plugins.klipper.macros.subscribe(function () {
+              self.updateMacroList();
+            });
+          }
+        };
+
     self.onStartupComplete = function () {
       self.getConfigPath();
       self.getServerInfo();
       self.listCfgFiles();
       self.loadBaseConfig();
+      self.updateMacroList();
     };
 
     self.getServerInfo = function () {
@@ -354,11 +375,25 @@ $(function () {
 
     self.addMacro = function () {
       self.settings.settings.plugins.klipper.macros.push({
-        name: "Macro",
-        macro: "",
+        name: ko.observable("Macro"),
+        macro: ko.observable(""),
         sidebar: true,
         tab: true,
+        buttonColor: ko.observable(""),
+        buttonStyle: ko.observable(""),
       });
+    };
+
+    self.buttonColor = function (macro) {
+      var cssStyle = "";
+      if (macro.buttonColor() != "") {
+        cssStyle = `background-color: ${macro.buttonColor()}; background-image: unset !important; text-shadow: none !important;`;
+      }
+      return cssStyle;
+    };
+
+    self.dummyButtonClick = function () {
+      return;
     };
 
     self.removeMacro = function (macro) {
@@ -445,6 +480,18 @@ $(function () {
         self.klipperViewModel.consoleMessage("debug", "onDataUpdaterPluginMessage klipper reload configlist");
         self.listCfgFiles();
       }
+    };
+
+    self.updateMacroList = function () {
+      self.macros(self.settings.settings.plugins.klipper.macros());
+    };
+
+    self.onUserSettingsBeforeSave = function () {
+      self.saveMacroList();
+    };
+
+    self.saveMacroList = function () {
+      self.settings.settings.plugins.klipper.macros(self.macros());
     };
   }
 

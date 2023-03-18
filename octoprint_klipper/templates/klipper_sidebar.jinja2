@@ -33,7 +33,7 @@
     <div data-bind="foreach: settings.settings.plugins.klipper.macros">
       <!-- ko if: sidebar -->
       <button class="btn btn-block"
-        data-bind="text: name, click: $parent.executeMacro, enable: $parent.isActive()"></button>
+        data-bind="text: name, class: buttonStyle() != '' ? buttonStyle : '', click: $parent.executeMacro, enable: $parent.isActive(), attr: { style: $parent.buttonColor($data)}"></button>
       <!-- /ko -->
     </div>
   </div>

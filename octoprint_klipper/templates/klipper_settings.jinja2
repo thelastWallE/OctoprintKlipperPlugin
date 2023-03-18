@@ -189,7 +189,7 @@
           </div>
         </div>
       </div>
-      <div data-bind="foreach: settings.settings.plugins.klipper.macros">
+      <div data-bind="foreach: macros">
         <div class="control-group" id="item">
           <label class="control-label">{{ _('Name') }}</label>
           <div class="controls" style="margin-left: 82px;">
@@ -215,6 +215,32 @@
               </div>
             </div>
           </div>
+          <div class="klipper-wrapper">
+            <label class="klipper-control-label-bordered">Button Style</label>
+            <div class="klipper-bordered">
+              <div class="controls-row klipper-row-fluid">
+                <div class="klipper-fluid-item-1">
+                  <button class="btn"
+                    data-bind="class: buttonStyle, click: $parent.dummyButtonClick, attr: { style: $parent.buttonColor($data)}">{{ _('Example') }}
+                  </button>
+                </div>
+                <label class="klipper-fluid-item-1" style="margin: auto;"
+                  title="{{ _('The style of the button.') }}">{{ _('Style') }}
+                  <select data-bind="value: buttonStyle">
+                    <option value="">Default</option>
+                    <option value="btn-danger">Danger</option>
+                    <option value="btn-success">Success</option>
+                    <option value="btn-warning">Warning</option>
+                    <option value="btn-info">Info</option>
+                  </select>
+                </label>
+                <label class="klipper-fluid-item-1" style="margin: auto;">{{ _('Color') }}
+                  <input type="text" class="input" placeholder="" data-bind="value: buttonColor">
+                </label>
+              </div>
+            </div>
+          </div>
+
           <label class="control-label">{{ _('Command') }}</label>
           <div class="controls" style="margin-left: 82px;">
             <div class="row-fluid">

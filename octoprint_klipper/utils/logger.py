@@ -30,7 +30,7 @@ def log_debug(self, message, only_logging=False):
     :type only_logging: bool, optional
     """
     self._octoklipper_logger.debug(message)
-    self._logger.info(message)
+    self._logger.debug(message)
 
     if self._settings.get_boolean(["configuration", "debug_logging"]):
         extra.send_message(
