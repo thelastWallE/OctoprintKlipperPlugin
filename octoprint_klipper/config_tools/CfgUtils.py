@@ -209,13 +209,14 @@ def check_config(self, data):
         dict: Status and if errors also the error message.
     """
     try:
-        dataToValidated = configparser.RawConfigParser(strict=False)
         if sys.version_info[0] < 3:
+            dataToValidated = configparser.RawConfigParser()
             import StringIO
 
             buf = StringIO.StringIO(data)
             dataToValidated.readfp(buf)
         else:
+            dataToValidated = configparser.RawConfigParser(strict=False)
             dataToValidated.read_string(data)
     except configparser.Error as error:
         parsed_error = parse_error_message(self, error)
