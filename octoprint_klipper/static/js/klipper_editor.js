@@ -38,7 +38,7 @@ $(function () {
 
     self.loadFontSize = function () {
       var fontSize = loadFromLocalStorage("plugin.OctoKlipper.editor.fontSize");
-      if (fontSize != undefined && fontSize != null) {
+      if (fontSize != undefined && fontSize != null && Number.isInteger(fontSize)) {
         self.fontSize(fontSize);
       } else {
         // get the old setting and save it to the localStorage
