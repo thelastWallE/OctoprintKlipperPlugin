@@ -31,7 +31,7 @@ $(function () {
 
     self.markedForFileRestore = ko.observableArray([]);
 
-    self.CfgContent = ko.observable();
+    self.cfgContent = ko.observable();
 
     //uploads
     self.maxUploadSize = ko.observable(0);
@@ -127,7 +127,7 @@ $(function () {
             return;
           }
           $("#klipper_backups_dialog textarea").attr("rows", response.data.body.split(/\r\n|\r|\n/).length);
-          self.CfgContent(response.data.body);
+          self.cfgContent(response.data.body);
         })
         .fail(function (response) {
           self.klipperViewModel.consoleMessage("error", "Error getting backup: " + backup);

@@ -18,19 +18,32 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import glob
 import logging
 import os
+import threading
 import re
 import platform
+import psutil
 import time
 
 import flask
+import octoprint.filemanager
+import octoprint.filemanager.storage
+import octoprint.filemanager.util
 import octoprint.plugin
 import octoprint.plugin.core
+
 from flask_babel import gettext
 from octoprint.access.permissions import ADMIN_GROUP, Permissions
-from octoprint.server.util.flask import restricted_access
+from octoprint.server.util.flask import get_json_command_from_request, restricted_access
 from octoprint.server import NO_CONTENT
-from octoprint.util import get_formatted_size, is_hidden_path
+from octoprint.settings import valid_boolean_trues
+from octoprint.util import get_formatted_size, is_hidden_path, time_this
 from octoprint.util.comm import parse_firmware_line
+from octoprint.filemanager.storage import LocalFileStorage
+
+try:
+    from urllib.parse import quote as urlquote
+except ImportError:
+    from urllib import quote as urlquote  # noqa: F401
 
 import octoprint_klipper.utils.logger as logger
 import octoprint_klipper.migration.migrate as migration
@@ -41,10 +54,11 @@ import octoprint_klipper.config_tools.CfgUtils as config_tools
 from .modules import KlipperLogAnalyzer
 
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5Mb
+_FILE_DESTINATION = "klipper_configs"
 
 # Set here the actual settings version
 # The automatic migration process needs this
-SETTINGS_VERSION = 6
+SETTINGS_VERSION = 7
 
 
 class KlipperPlugin(
@@ -56,13 +70,15 @@ class KlipperPlugin(
     octoprint.plugin.EventHandlerPlugin,
     octoprint.plugin.BlueprintPlugin,
 ):
-
     _message = ""
     _reload_config_lock = False
     _latest_klipper_remote_tag = ""
     _latest_octoklipper_remote_tag = ""
     _git_version = ""
     _get_next_receive = False
+
+    _file_cache = {}
+    _file_cache_mutex = threading.RLock()
 
     def __init__(self):
         self._logger = logging.getLogger("octoprint.plugins.klipper")
@@ -102,6 +118,13 @@ class KlipperPlugin(
                     "!!! THROTTLE STATE IGNORED !!! You have configured the OctoKlipper plugin to ignore an active throttle state of the underlying system. You might run into stability issues or outright corrupt your install. Consider fixing the throttling issue instead of suppressing it."
                 )
 
+        self.storage = LocalFileStorage(
+            os.path.expanduser(self._settings.get(["configuration", "config_path"])),
+            create=True,
+            really_universal=True,
+        )
+        self._file_manager.add_storage(_FILE_DESTINATION, self.storage)
+
     def on_after_startup(self):
         klipper_port = self._settings.get(["connection", "port"])
         additional_ports = self._settings.global_get(["serial", "additionalPorts"])
@@ -131,6 +154,14 @@ class KlipperPlugin(
                 "description": gettext("Allows to config klipper"),
                 "default_groups": [ADMIN_GROUP],
                 "dangerous": True,
+                "roles": ["admin"],
+            },
+            {
+                "key": "FILES_LIST",
+                "name": "List Klipper Files",
+                "description": gettext("Allows to list klipper files"),
+                "default_groups": [ADMIN_GROUP],
+                "dangerous": False,
                 "roles": ["admin"],
             },
             {
@@ -184,8 +215,8 @@ class KlipperPlugin(
                 ignore_throttled=False,
                 klipper_path="~/klipper/",
                 config_path="~/",
-                baseconfig="printer.cfg",
-                logpath="/tmp/klippy.log",
+                baseconfig="~/printer.cfg",
+                logpath="/tmp/",
                 restart_service_system_command="sudo service klipper restart",
                 restart_host_command="RESTART",
                 restart_firmware_command="FIRMWARE_RESTART",
@@ -259,7 +290,7 @@ class KlipperPlugin(
                     logger.log_info(
                         self, "Migration Step: " + str(current), only_logging=True
                     )
-            except Exception as err:
+            except Exception:
                 logger.log_error(
                     self,
                     "Error on migration to new settings version",
@@ -325,12 +356,6 @@ class KlipperPlugin(
             ),
             dict(
                 type="generic",
-                name="Config Files",
-                template="klipper_files.jinja2",
-                custom_bindings=True,
-            ),
-            dict(
-                type="generic",
                 name="Config Editor",
                 template="klipper_editor.jinja2",
                 custom_bindings=True,
@@ -362,6 +387,9 @@ class KlipperPlugin(
                 "js/klipper_param_macro.js",
                 "js/klipper_graph.js",
                 "js/klipper_backup.js",
+                "js/lib/ace/ace.min.js",
+                "js/lib/ace/mode-klipper_config.js",
+                "js/lib/ace/theme-monokai.min.js",
                 "js/klipper_editor.js",
                 "js/klipper_files.js",
             ],
@@ -418,7 +446,7 @@ class KlipperPlugin(
                 self, "Klipper: Print resumed " + payload["name"], only_logging=False
             )
 
-    def processAtCommand(
+    def process_at_command(
         self, comm_instance, phase, command, parameters, tags=None, *args, **kwargs
     ):
         if command != "SWITCHCONFIG":
@@ -431,14 +459,13 @@ class KlipperPlugin(
         return None
 
     # -- GCODE Hook
-    def process_sent_GCODE(
+    def process_sent_gcode(
         self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs
     ):
         if cmd == "SAVE_CONFIG":
             self.save_config_caught()
 
     def on_parse_gcode(self, comm, line, *args, **kwargs):
-
         if "FIRMWARE_VERSION" in line:
             printerInfo = parse_firmware_line(line)
             if "FIRMWARE_VERSION" in printerInfo:
@@ -491,10 +518,17 @@ class KlipperPlugin(
                 "Error",
                 "Klipper",
                 gettext(
-                    "Klipper can't connect to the firmware on the printer.<br>Make sure that the printer is connected."
+                    (
+                        "Klipper can't connect to the firmware on the printer.<br>"
+                        "Make sure that the printer is connected."
+                    )
                 )
                 + "<br>"
-                + "<a href='https://www.klipper3d.org/Installation.html#configuring-octoprint-to-use-klipper' target='_blank'>"
+                + (
+                    "<a href='"
+                    "https://www.klipper3d.org/Installation.html#configuring-octoprint-to-use-klipper'"
+                    " target='_blank'>"
+                )
                 + gettext("Help for configuring OctoPrint to use Klipper")
                 + "</a>",
                 False,
@@ -510,13 +544,11 @@ class KlipperPlugin(
     def on_api_command(self, command, data):
         if command == "listLogFiles":
             files = []
-            logpath = os.path.expanduser(
-                self._settings.get(["configuration", "logpath"])
+            logpath = os.path.dirname(
+                os.path.expanduser(self._settings.get(["configuration", "logpath"]))
             )
-            if extra.file_exist(self, logpath):
-                for f in glob.glob(
-                    self._settings.get(["configuration", "logpath"]) + "*"
-                ):
+            if extra.folder_exists(self, logpath):
+                for f in glob.glob(os.path.join(logpath, "klippy*.log")):
                     filesize = os.path.getsize(f)
                     filemdate = time.strftime(
                         "%d.%m.%Y %H:%M", time.localtime(os.path.getctime(f))
@@ -551,7 +583,7 @@ class KlipperPlugin(
 
         return [
             (
-                r"/download/configs/(.*)",
+                r"/download/configs/klipper_configs/(.*)",
                 LargeResponseHandler,
                 dict(
                     path=configpath,
@@ -574,9 +606,11 @@ class KlipperPlugin(
             ),
         ]
 
+    ##~~ BlueprintPlugin
+
     # region [rgba(20,40,20,0.5)] APIs
     # Get Content of a backed up config
-    @octoprint.plugin.BlueprintPlugin.route("/backup/<filename>", methods=["GET"])
+    @octoprint.plugin.BlueprintPlugin.route("/backup/<path:filename>", methods=["GET"])
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def get_backup(self, filename):
@@ -586,7 +620,9 @@ class KlipperPlugin(
         return flask.jsonify(config_tools.get_cfg(self, full_path))
 
     # Delete a backed up config
-    @octoprint.plugin.BlueprintPlugin.route("/backup/<filename>", methods=["DELETE"])
+    @octoprint.plugin.BlueprintPlugin.route(
+        "/backup/<path:filename>", methods=["DELETE"]
+    )
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def delete_backup(self, filename):
@@ -618,7 +654,7 @@ class KlipperPlugin(
 
     # restore a backed up configfile
     @octoprint.plugin.BlueprintPlugin.route(
-        "/backup/restore/<filename>", methods=["POST"]
+        "/backup/restore/<path:filename>", methods=["POST"]
     )
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
@@ -633,56 +669,474 @@ class KlipperPlugin(
 
     # ------------------ API for Configs ---------------------------------------------
     # Get Content of a Configfile
-    @octoprint.plugin.BlueprintPlugin.route("/config/<filename>", methods=["GET"])
+    @octoprint.plugin.BlueprintPlugin.route(
+        "/<string:target>/<path:file>", methods=["GET"]
+    )
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
-    def get_config(self, filename):
+    def read_config_file(self, target, file):
+        """
+        Get the content of a configfile
+        :param target: the LocalStorage to get the config from
+        :param file: the file to get the content from
+        :return: the content of the file and the status in the form of a json
+        """
+        if target not in [_FILE_DESTINATION]:
+            flask.abort(400, description="target is invalid")
+        if not self._validate(target, file):
+            flask.abort(404)
+
         cfg_path = os.path.expanduser(
             self._settings.get(["configuration", "config_path"])
         )
-        full_path = os.path.realpath(os.path.join(cfg_path, filename))
-
+        if file == "baseconfig":
+            file = os.path.expanduser(
+                self._settings.get(["configuration", "baseconfig"])
+            )
+        file_path = os.path.dirname(os.path.expanduser(file)).replace(cfg_path, "")
+        filename = os.path.basename(file)
+        full_path = os.path.realpath(os.path.join(cfg_path, file_path, filename))
+        logger.log_debug(self, "read_config_file " + full_path, only_logging=False)
         return flask.jsonify(config_tools.get_cfg(self, full_path))
 
     # Delete a Configfile
-    @octoprint.plugin.BlueprintPlugin.route("/config/<filename>", methods=["DELETE"])
+    @octoprint.plugin.BlueprintPlugin.route(
+        "/<string:target>/<path:filename>", methods=["DELETE"]
+    )
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
-    def delete_config(self, filename):
-        cfg_path = os.path.expanduser(
-            self._settings.get(["configuration", "config_path"])
-        )
-        full_path = os.path.realpath(os.path.join(cfg_path, filename))
-        if (
-            full_path.startswith(cfg_path)
-            and os.path.exists(full_path)
-            and not is_hidden_path(full_path)
-        ):
-            try:
-                os.remove(full_path)
-            except Exception:
-                self._octoklipper_logger.exception(
-                    "Could not delete {}".format(filename)
-                )
-                return flask.jsonify(
-                    status="error",
-                    error=dict(message="Could not delete {}".format(filename)),
-                )
+    def delete_config(self, target, filename):
+        if not self._validate(target, filename):
+            flask.abort(404)
+        if target not in [_FILE_DESTINATION]:
+            flask.abort(400, description="target is invalid")
+        if not self._verifyFileExists(
+            target, filename
+        ) and not self._verifyFolderExists(target, filename):
+            flask.abort(404)
+
+        if self._verifyFileExists(target, filename):
+            logger.log_debug(self, "delete_config File " + filename, only_logging=False)
+            self._file_manager.remove_file(target, filename)
+        elif self._verifyFolderExists(target, filename):
+            logger.log_debug(
+                self, "delete_config Folder " + filename, only_logging=False
+            )
+            self._file_manager.remove_folder(target, filename)
+
         return flask.jsonify(status="success")
 
     # Get a list of all configfiles
-    @octoprint.plugin.BlueprintPlugin.route("/config/list", methods=["GET"])
+    @octoprint.plugin.BlueprintPlugin.route("/", methods=["GET"])
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
-    def list_configs(self):
-        files = config_tools.list_config_files(self, "")
-        path = os.path.expanduser(self._settings.get(["configuration", "config_path"]))
-        return flask.jsonify(
-            status="success",
-            data=dict(
-                files=files["data"]["files"], path=path, max_upload_size=MAX_UPLOAD_SIZE
-            ),
+    def list_config_files(self):
+        filter = flask.request.values.get("filter", False)
+        recursive = (
+            flask.request.values.get("recursive", "false") in valid_boolean_trues
         )
+        force = flask.request.values.get("force", "false") in valid_boolean_trues
+        logger.log_debug(
+            self,
+            "list_config_files filter: "
+            + str(filter)
+            + " recursive: "
+            + str(recursive)
+            + " force: "
+            + str(force),
+            only_logging=False,
+        )
+        try:
+            files = self._get_file_list(
+                _FILE_DESTINATION,
+                filter=filter,
+                recursive=recursive,
+                allow_from_cache=not force,
+            )
+        except Exception as e:
+            self._octoklipper_logger.exception("Could not read configfiles")
+            return flask.jsonify(
+                status="error",
+                error=dict(message="Could not read configfiles", exception=e),
+            )
+
+        try:
+            usage = psutil.disk_usage(
+                os.path.expanduser(self._settings.get(["configuration", "config_path"]))
+            )
+        except Exception as e:
+            self._octoklipper_logger.exception("Could not read disk usage")
+            return flask.jsonify(
+                status="error",
+                error=dict(message="Could not read disk usage", exception=e),
+            )
+
+        data = dict(files=files, free=usage.free, total=usage.total)
+        response = dict()
+        response["status"] = "success"
+        response["data"] = data
+        return flask.jsonify(response)
+
+    @octoprint.plugin.BlueprintPlugin.route("/test", methods=["POST"])
+    @Permissions.FILES_LIST.require(403)
+    def runFilesTest(self):
+        valid_commands = {
+            "sanitize": ["storage", "path", "filename"],
+            "exists": ["storage", "path", "filename"],
+        }
+
+        command, data, response = get_json_command_from_request(
+            flask.request, valid_commands
+        )
+        if response is not None:
+            return response
+
+        def sanitize(storage, path, filename):
+            sanitized_path = self._file_manager.sanitize_path(storage, path)
+            sanitized_name = self._file_manager.sanitize_name(storage, filename)
+            joined = self._file_manager.join_path(
+                storage, sanitized_path, sanitized_name
+            )
+            return sanitized_path, sanitized_name, joined
+
+        if command == "sanitize":
+            _, _, sanitized = sanitize(data["storage"], data["path"], data["filename"])
+            return flask.jsonify(sanitized=sanitized)
+        elif command == "exists":
+            storage = data["storage"]
+            path = data["path"]
+            filename = data["filename"]
+
+            sanitized_path, _, sanitized = sanitize(storage, path, filename)
+
+            exists = self._file_manager.file_exists(storage, sanitized)
+            if exists:
+                suggestion = filename
+                name, ext = os.path.splitext(filename)
+                counter = 0
+                while self._file_manager.file_exists(
+                    storage,
+                    self._file_manager.join_path(
+                        storage,
+                        sanitized_path,
+                        self._file_manager.sanitize_name(storage, suggestion),
+                    ),
+                ):
+                    counter += 1
+                    suggestion = name + "_{}".format(counter) + ext
+                return flask.jsonify(exists=True, suggestion=suggestion)
+            else:
+                return flask.jsonify(exists=False)
+
+    #
+    @octoprint.plugin.BlueprintPlugin.route(
+        "/<string:target>/<path:filename>", methods=["POST"]
+    )
+    @restricted_access
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def klipperFileCommand(self, target, filename):
+        if target not in [_FILE_DESTINATION]:
+            flask.abort(400, description="Unsupported target for storage")
+
+        if not self._validate(target, filename):
+            flask.abort(404)
+
+        # valid file commands, dict mapping command name to mandatory parameters
+        # force is actually not supported on OctoPrints side
+        valid_commands = {
+            "select": [],
+            "unselect": [],
+            "copy": ["destination"],
+            "move": ["destination", "force"],
+        }
+
+        command, data, response = get_json_command_from_request(
+            flask.request, valid_commands
+        )
+        if response is not None:
+            return response
+
+        if command == "copy" or command == "move":
+            with Permissions.FILES_UPLOAD.require(403):
+                if not self._verifyFileExists(
+                    target, filename
+                ) and not self._verifyFolderExists(target, filename):
+                    flask.abort(404)
+
+                is_file = self._file_manager.file_exists(target, filename)
+                is_folder = self._file_manager.folder_exists(target, filename)
+                if not (is_file or is_folder):
+                    flask.abort(
+                        400,
+                        description="Neither file nor folder, can't {}".format(command),
+                    )
+
+                path, name = self._file_manager.split_path(target, filename)
+
+                destination = data["destination"]
+                dst_path, dst_name = self._file_manager.split_path(target, destination)
+                sanitized_destination = self._file_manager.join_path(
+                    target, dst_path, self._file_manager.sanitize_name(target, dst_name)
+                )
+
+                # Check for exception thrown by _verifyFolderExists,
+                # if outside the root directory
+                try:
+                    if (
+                        self._verifyFolderExists(target, destination)
+                        and sanitized_destination != filename
+                    ):
+                        # destination is an existing folder and not ourselves (= display rename),
+                        # we'll assume we are supposed
+                        # to move filename to this folder under the same name
+                        destination = self._file_manager.join_path(
+                            target, destination, name
+                        )
+
+                except Exception:
+                    flask.abort(
+                        409,
+                        description="Exception thrown by storage, bad folder/file name?",
+                    )
+
+                if self._verifyFileExists(target, destination):
+                    flask.abort(409, description="File does already exist")
+                if self._verifyFolderExists(target, destination):
+                    flask.abort(409, description="Folder does already exist")
+
+                if command == "copy":
+                    if is_file:
+                        self._file_manager.copy_file(target, filename, destination)
+                    else:
+                        self._file_manager.copy_folder(target, filename, destination)
+
+                elif command == "move":
+                    with Permissions.FILES_DELETE.require(403):
+                        # destination already there AND not ourselves (= display rename)? error...
+                        if (
+                            self._verifyFolderExists(target, destination)
+                        ) and sanitized_destination != filename:
+                            flask.abort(409, description="Folder does already exist")
+
+                        if is_file:
+                            self.storage.move_file(filename, destination)
+                        else:
+                            self.storage.move_folder(filename, destination)
+
+                location = flask.url_for(
+                    ".read_config_file",
+                    target=target,
+                    file=destination,
+                    _external=True,
+                )
+                result = {
+                    "name": name,
+                    "path": destination,
+                    "origin": _FILE_DESTINATION,
+                    "refs": {"resource": location},
+                }
+                if is_file:
+                    result["refs"]["download"] = (
+                        flask.url_for(".list_config_files", _external=True)
+                        + "downloads/files/"
+                        + target
+                        + "/"
+                        + urlquote(destination)
+                    )
+
+                r = flask.make_response(flask.jsonify(result), 201)
+                r.headers["Location"] = location
+                return r
+
+        return NO_CONTENT
+
+    # file upload and add folder
+    @octoprint.plugin.BlueprintPlugin.route("/<string:target>", methods=["POST"])
+    @restricted_access
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def upload_config_file(self, target):
+        # return self._file_manager.add_folder(
+        # _FILE_DESTINATION, path, ignore_existing=ignore_existing, display=display
+        # )
+        input_name = "file"
+        input_upload_name = input_name + ".name"
+        input_upload_path = input_name + ".path"
+        if (
+            input_upload_name in flask.request.values
+            and input_upload_path in flask.request.values
+        ):
+            if target not in [_FILE_DESTINATION]:
+                flask.abort(404)
+
+            upload = octoprint.filemanager.util.DiskFileWrapper(
+                flask.request.values[input_upload_name],
+                flask.request.values[input_upload_path],
+            )
+
+            # Store any additional user data the caller may have passed.
+            userdata = None
+            if "userdata" in flask.request.values:
+                import json
+
+                try:
+                    userdata = json.loads(flask.request.values["userdata"])
+                except Exception:
+                    flask.abort(400, description="userdata contains invalid JSON")
+
+            # determine future filename of file to be uploaded, abort if it can't be uploaded
+            try:
+                canonPath, canonFilename = self._file_manager.canonicalize(
+                    _FILE_DESTINATION, upload.filename
+                )
+                if flask.request.values.get("path"):
+                    canonPath = flask.request.values.get("path")
+                if flask.request.values.get("filename"):
+                    canonFilename = flask.request.values.get("filename")
+
+                futurePath = self._file_manager.sanitize_path(
+                    _FILE_DESTINATION, canonPath
+                )
+                futureFilename = self._file_manager.sanitize_name(
+                    _FILE_DESTINATION, canonFilename
+                )
+            except Exception:
+                canonFilename = None
+                futurePath = None
+                futureFilename = None
+
+            if futureFilename is None:
+                flask.abort(415, description="Can not upload file, wrong format?")
+
+            # prohibit overwriting currently selected file while it's being printed
+            futureFullPath = self._file_manager.join_path(
+                _FILE_DESTINATION, futurePath, futureFilename
+            )
+            futureFullPathInStorage = self._file_manager.path_in_storage(
+                _FILE_DESTINATION, futureFullPath
+            )
+
+            if (
+                self._file_manager.file_exists(
+                    _FILE_DESTINATION, futureFullPathInStorage
+                )
+                and flask.request.values.get("noOverwrite") in valid_boolean_trues
+            ):
+                flask.abort(
+                    409, description="File already exists and noOverwrite was set"
+                )
+
+            try:
+                added_file = self._file_manager.add_file(
+                    _FILE_DESTINATION,
+                    futureFullPathInStorage,
+                    upload,
+                    allow_overwrite=True,
+                    display=canonFilename,
+                )
+            except octoprint.filemanager.storage.StorageError as e:
+                if e.code == octoprint.filemanager.storage.StorageError.INVALID_FILE:
+                    flask.abort(400, description="Could not upload file, invalid type")
+                else:
+                    flask.abort(500, description="Could not upload file")
+            else:
+                done = True
+
+            if userdata is not None:
+                # upload included userdata, add this now to the metadata
+                self._file_manager.set_additional_metadata(
+                    _FILE_DESTINATION, added_file, "userdata", userdata
+                )
+
+            files = {}
+            location = flask.url_for(
+                ".read_config_file",
+                target=_FILE_DESTINATION,
+                file=added_file,
+                _external=True,
+            )
+
+            files.update(
+                {
+                    _FILE_DESTINATION: {
+                        "name": futureFilename,
+                        "path": added_file,
+                        "origin": _FILE_DESTINATION,
+                        "refs": {
+                            "resource": location,
+                            "download": flask.url_for(
+                                ".list_config_files", _external=True
+                            )
+                            + "download/configs/"
+                            + _FILE_DESTINATION
+                            + "/"
+                            + urlquote(added_file),
+                        },
+                    }
+                }
+            )
+
+            r = flask.make_response(flask.jsonify(files=files, done=done), 201)
+            r.headers["Location"] = location
+            return r
+
+        elif "foldername" in flask.request.values:
+            foldername = flask.request.values["foldername"]
+
+            if target not in [_FILE_DESTINATION]:
+                flask.abort(400, description="target is invalid")
+
+            canonPath, canonName = self._file_manager.canonicalize(target, foldername)
+            futurePath = self._file_manager.sanitize_path(target, canonPath)
+            futureName = self._file_manager.sanitize_name(target, canonName)
+            if not futureName or not futurePath:
+                flask.abort(400, description="folder name is empty")
+
+            if "path" in flask.request.values and flask.request.values["path"]:
+                futurePath = self._file_manager.sanitize_path(
+                    _FILE_DESTINATION, flask.request.values["path"]
+                )
+
+            futureFullPath = self._file_manager.join_path(
+                target, futurePath, futureName
+            )
+            if octoprint.filemanager.valid_file_type(futureName):
+                flask.abort(
+                    409, description="Can't create folder, please try another name"
+                )
+
+            try:
+                added_folder = self._file_manager.add_folder(
+                    target, futureFullPath, display=canonName
+                )
+            except octoprint.filemanager.storage.StorageError as e:
+                if (
+                    e.code
+                    == octoprint.filemanager.storage.StorageError.INVALID_DIRECTORY
+                ):
+                    flask.abort(
+                        400, description="Could not create folder, invalid directory"
+                    )
+                else:
+                    flask.abort(500, description="Could not create folder")
+
+            location = flask.url_for(
+                ".read_config_file",
+                target=_FILE_DESTINATION,
+                file=added_folder,
+                _external=True,
+            )
+            folder = {
+                "name": futureName,
+                "path": added_folder,
+                "origin": target,
+                "refs": {"resource": location},
+            }
+
+            r = flask.make_response(flask.jsonify(folder=folder, done=True), 201)
+            r.headers["Location"] = location
+            return r
+        else:
+            flask.abort(400, description="No file to upload and no folder to create")
 
     # check syntax of a given data
     @octoprint.plugin.BlueprintPlugin.route("/config/check", methods=["POST"])
@@ -699,15 +1153,33 @@ class KlipperPlugin(
     @restricted_access
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def save_config(self):
+        """
+        Save a configfile
+
+        :param in json filename: name of the file to save
+        :param in json DataToSave: data to save
+        :param in json hasNewName: if the file has a new name
+        :param in json force: if the file should be overwritten
+        :return: status and message
+        """
         data = flask.request.json
-        filename = data.get("filename", [])
-        if filename == []:
+        file = data.get("filename", [])
+        if file == []:
             flask.abort(
                 400,
                 description="Invalid request, the filename is not set",
             )
-        Filecontent = data.get("DataToSave", [])
-        results = config_tools.save_cfg(self, Filecontent, filename)
+        has_new_name = data.get("hasNewName", False)
+        force = data.get("force", False)
+        file_exist = self._file_manager.file_exists(_FILE_DESTINATION, file)
+        if not force and file_exist and has_new_name:
+            results = {"status": "error", "error": {"message": "File already exists"}}
+            return flask.jsonify(results)
+
+        filecontent = data.get("DataToSave", [])
+        is_new_file = True if not file_exist else False
+
+        results = config_tools.save_cfg(self, filecontent, file, is_new_file)
         if results["status"] == "success":
             extra.send_message(self, type="reload", subtype="configlist")
         return flask.jsonify(results)
@@ -901,6 +1373,127 @@ class KlipperPlugin(
 
     # endregion APIs end
 
+    @time_this(
+        logtarget=__name__ + ".timings",
+        message="{func}({func_args},{func_kwargs}) took {timing:.2f}ms",
+        incl_func_args=True,
+        log_enter=True,
+        message_enter="Entering {func}({func_args},{func_kwargs})...",
+    )
+    def _get_file_list(
+        self,
+        origin,
+        path=None,
+        filter=None,
+        recursive=False,
+        level=0,
+        allow_from_cache=True,
+    ):
+        filter_func = None
+        if filter:
+            filter_func = (
+                lambda entry, entry_data: octoprint.filemanager.valid_file_type(
+                    entry, type=filter
+                )
+            )
+
+        with self._file_cache_mutex:
+            cache_key = "{}:{}:{}:{}".format(origin, path, recursive, filter)
+            files, lastmodified = self._file_cache.get(cache_key, ([], None))
+            if (
+                not allow_from_cache
+                or lastmodified is None
+                or lastmodified
+                < self._file_manager.last_modified(origin, path=path, recursive=True)
+            ):
+                files = list(
+                    self._file_manager.list_files(
+                        origin,
+                        path=path,
+                        filter=filter_func,
+                        recursive=recursive,
+                        level=level,
+                        force_refresh=not allow_from_cache,
+                    )[origin].values()
+                )
+                lastmodified = self._file_manager.last_modified(
+                    origin, path=path, recursive=True
+                )
+                self._file_cache[cache_key] = (files, lastmodified)
+
+        def analyse_recursively(files, path=None):
+            if path is None:
+                path = ""
+
+            result = []
+            for file_or_folder in files:
+                # make a shallow copy in order to not accidentally modify the cached data
+                file_or_folder = dict(file_or_folder)
+
+                file_or_folder["origin"] = _FILE_DESTINATION
+
+                if file_or_folder["type"] == "folder":
+                    if "children" in file_or_folder:
+                        file_or_folder["children"] = analyse_recursively(
+                            file_or_folder["children"].values(),
+                            path + file_or_folder["name"] + "/",
+                        )
+
+                    file_or_folder["refs"] = {
+                        "resource": flask.url_for(
+                            ".read_config_file",
+                            target=_FILE_DESTINATION,
+                            file=path + file_or_folder["name"],
+                            _external=True,
+                        )
+                    }
+                else:
+                    file_or_folder["refs"] = {
+                        "resource": flask.url_for(
+                            ".read_config_file",
+                            target=_FILE_DESTINATION,
+                            file=file_or_folder["path"],
+                            _external=True,
+                        ),
+                        "download": flask.url_for(".list_config_files", _external=True)
+                        + "download/configs/"
+                        + _FILE_DESTINATION
+                        + "/"
+                        + urlquote(file_or_folder["path"]),
+                    }
+
+                result.append(file_or_folder)
+
+            return result
+
+        files = analyse_recursively(files)
+
+        return files
+
+    def _getFileDetails(self, origin, path, recursive=True):
+        parent, path = os.path.split(path)
+        files = self._get_file_list(origin, path=parent, recursive=recursive, level=1)
+
+        for f in files:
+            if f["name"] == path:
+                return f
+        else:
+            return None
+
+    def _validate(self, target, filename):
+        return filename == "/".join(
+            map(
+                lambda x: self._file_manager.sanitize_name(target, x),
+                filename.split("/"),
+            )
+        )
+
+    def _verifyFileExists(self, origin, filename):
+        return self._file_manager.file_exists(origin, filename)
+
+    def _verifyFolderExists(self, origin, foldername):
+        return self._file_manager.folder_exists(origin, foldername)
+
     def get_additional_commands(self, *args, **kwargs):
         return [
             {
@@ -919,6 +1512,9 @@ class KlipperPlugin(
                 + "",
             }
         ]
+
+    def support_cfg_klipperfiles(self, *args, **kwargs):
+        return dict(config=dict(cfg=["cfg", "config"]))
 
     def get_update_information(self):
         return dict(
@@ -956,8 +1552,9 @@ def __plugin_load__():
         "octoprint.system.additional_commands": __plugin_implementation__.get_additional_commands,
         "octoprint.server.http.routes": __plugin_implementation__.route_hook,
         "octoprint.access.permissions": __plugin_implementation__.get_additional_permissions,
-        "octoprint.comm.protocol.atcommand.sending": __plugin_implementation__.processAtCommand,
-        "octoprint.comm.protocol.gcode.sent": __plugin_implementation__.process_sent_GCODE,
+        "octoprint.filemanager.extension_tree": __plugin_implementation__.support_cfg_klipperfiles,
+        "octoprint.comm.protocol.atcommand.sending": __plugin_implementation__.process_at_command,
+        "octoprint.comm.protocol.gcode.sent": __plugin_implementation__.process_sent_gcode,
         "octoprint.comm.protocol.gcode.received": __plugin_implementation__.on_parse_gcode,
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
     }

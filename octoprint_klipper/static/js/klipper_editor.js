@@ -18,17 +18,22 @@ $(function () {
     var self = this;
     var editor = null;
     var editordialog = $("#klipper_editor");
-    var reloadConfigLock = false;
+    var changedConfigConfirmationDialogShown = false;
     var minLimitFontSize = 6;
     var maxLimitFontSize = 25;
 
     self.settings = parameters[0];
     self.klipperViewModel = parameters[1];
+    self.klipperFilesViewModel = parameters[2];
+    self.loginState = parameters[3];
+    self.access = parameters[4];
+    self.files = parameters[5];
 
-    self.CfgFilename = ko.observable("");
-    self.CfgContent = ko.observable("");
-    self.loadedConfig = "";
-    self.CfgChangedExtern = false;
+    self.cfgContent = ko.observable("");
+    self.loadedConfigContent = "";
+    self.loadedConfigFilename = "";
+    self.cfgChangedExtern = false;
+    self.configChangedExternallyDialog = $("#klipper_file_changed_ext_dialog");
 
     self.fontSize = ko.observable("");
 
@@ -83,6 +88,7 @@ $(function () {
     });
 
     self.onShown = function () {
+      self.klipperFilesViewModel.requestData({ force: true });
       self.checkExternChange();
       editor.focus();
       self.setEditorDivSize();
@@ -102,9 +108,17 @@ $(function () {
       }
     };
 
+    self.isEditorDirty = function () {
+      if (self.loadedConfigContent != self.cfgContent()) {
+        return true;
+      } else {
+        return false;
+      }
+    };
+
     self.closeEditor = function () {
-      self.CfgContent(editor.getValue());
-      if (self.loadedConfig != self.CfgContent()) {
+      self.cfgContent(editor.getValue());
+      if (self.isEditorDirty()) {
         var opts = {
           title: gettext("Closing without saving"),
           message: gettext("Your file seems to have changed.") + "<br />" + gettext("Do you really want to close it?"),
@@ -146,15 +160,15 @@ $(function () {
     //initialize the modal window and return done when finished
     self.process = function (config) {
       return new Promise(function (resolve) {
-        self.loadedConfig = config.content;
-        self.CfgFilename(config.file);
-        self.CfgContent(config.content);
-        reloadConfigLock = false;
+        self.loadedConfigContent = config.content;
+        self.klipperViewModel.currentCfgFilename(config.file);
+        self.cfgContent(config.content);
+        changedConfigConfirmationDialogShown = false;
         self._fromLocalStorage();
 
         if (editor) {
-          editor.session.setValue(self.CfgContent());
-          self.CfgChangedExtern = false;
+          editor.session.setValue(self.cfgContent());
+          self.cfgChangedExtern = false;
           editor.setFontSize(self.fontSize());
           editor.clearSelection();
           self.klipperViewModel.sleep(500).then(function () {
@@ -166,44 +180,43 @@ $(function () {
     };
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
-      //receive from backend after a SAVE_CONFIG
-      if (plugin == "klipper" && data.type == "reload" && data.subtype == "config") {
-        self.klipperViewModel.consoleMessage("debug", "onDataUpdaterPluginMessage klipper reload baseconfig");
-        self.ConfigChangedAfterSave_Config();
+      if (plugin == "klipper") {
+        if (data.type == "reload" && data.subtype == "config") {
+          //receive from backend after a SAVE_CONFIG
+          self.klipperViewModel.consoleMessage("debug", "onDataUpdaterPluginMessage klipper reload baseconfig");
+          self.configChangedAfterSave_Config();
+        }
       }
     };
 
-    //set externally changed config flag if the current file is the base config
-    self.ConfigChangedAfterSave_Config = function () {
+    //set externally changed config flag
+    self.configChangedAfterSave_Config = function () {
       if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
-      if (self.CfgFilename() == self.settings.settings.plugins.klipper.configuration.baseconfig()) {
-        self.CfgChangedExtern = true;
-        self.checkExternChange();
-      }
+      self.cfgChangedExtern = true;
+      self.checkExternChange();
     };
 
     //check if the config was externally changed and ask for a reload
     self.checkExternChange = function () {
-      var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
-      if (self.CfgChangedExtern && self.CfgFilename() == baseconfig && !reloadConfigLock) {
+      if (!changedConfigConfirmationDialogShown) {
         if (editordialog.is(":visible")) {
-          self.CfgChangedExtern = false;
-          reloadConfigLock = true; //prevent another dialog popUp
+          self.cfgChangedExtern = false;
+          changedConfigConfirmationDialogShown = true; //prevent another dialog popUp
 
           var cancel = function () {
-            reloadConfigLock = false;
+            changedConfigConfirmationDialogShown = false;
           };
 
           var perform = function () {
-            reloadConfigLock = false;
+            changedConfigConfirmationDialogShown = false;
             self.reloadFromFile();
           };
 
           var html = "<p>" + gettext("Reload Configfile after SAVE_CONFIG?") + "</p>";
 
           showConfirmationDialog({
-            title: gettext("Externally changed config") + " " + baseconfig,
+            title: gettext("Externally changed config"),
             html: html,
             proceed: gettext("Proceed"),
             onclose: cancel,
@@ -252,6 +265,8 @@ $(function () {
                 resolve(true);
               } else {
                 self.editorFocusDelay(1000);
+                self.klipperViewModel.consoleMessage("error", "checkSyntax failed");
+                self.klipperViewModel.showPopUp("error", gettext("SyntaxCheck"), response.error.message, true);
                 resolve(false);
               }
             })
@@ -268,48 +283,176 @@ $(function () {
       var options = options || {};
       var closing = options.closing || false;
 
-      if (self.CfgFilename() != "" && self.CfgFilename() != "Change Filename") {
-        if (editor.session) {
-          if (self.settings.settings.plugins.klipper.configuration.parse_check() == true) {
-            // check Syntax and wait for response
-            self.checkSyntax().then((syntaxOK) => {
-              if (syntaxOK === false) {
-                // Ask if we should save a faulty config anyway
-                self.askSaveFaulty().then((areWeSaving) => {
-                  if (areWeSaving === false) {
-                    // Not saving
-                    showMessageDialog(gettext("Faulty config not saved!"), {
-                      title: gettext("Save Config"),
-                      onclose: function () {
-                        self.editorFocusDelay(1000);
-                      },
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
+
+      if ((self.cfgChangedExtern = true)) {
+        let path = self.klipperFilesViewModel.currentPath();
+        let filename = self.klipperViewModel.currentCfgFilename();
+        // show klipper_file_changed dialog
+        OctoPrint.plugins.klipper
+          .exists(self.klipperViewModel.storageLocation, path, filename)
+          .done(function (response) {
+            if (response.exists) {
+              $("input", self.configChangedExternallyDialog).val("").prop("placeholder", response.suggestion);
+              $("a.file-rename", self.configChangedExternallyDialog)
+                .prop("disabled", false)
+                .off("click")
+                .on("click", function () {
+                  var newName = $("input", self.configChangedExternallyDialog).val();
+                  if (newName === "") newName = response.suggestion;
+
+                  OctoPrint.plugins.klipper
+                    .exists(self.klipperViewModel.storageLocation, path, newName)
+                    .done(function (r) {
+                      if (r.exists) {
+                        $(".control-group", self.configChangedExternallyDialog).addClass("error");
+                        $(".help-block", self.configChangedExternallyDialog).show();
+                      } else {
+                        $(".control-group", self.configChangedExternallyDialog).removeClass("error");
+                        $(".help-block", self.configChangedExternallyDialog).hide();
+                        self.configChangedExternallyDialog.modal("hide");
+                        self.cfgChangedExtern = false;
+
+                        self.klipperViewModel.currentCfgFilename = newName;
+                        self.saveCfg(options);
+                      }
                     });
-                  } else {
-                    // Save anyway
-                    self.saveRequest(closing);
-                  }
                 });
-              } else {
-                // Syntax is ok
-                self.saveRequest(closing);
-              }
-            });
-          } else {
-            self.saveRequest(closing);
-          }
-        }
+              $("a.file-overwrite", self.configChangedExternallyDialog)
+                .off("click")
+                .on("click", function () {
+                  self.configChangedExternallyDialog.modal("hide");
+                  self.cfgChangedExtern = false;
+                  self.saveCfg(options);
+                });
+              self.configChangedExternallyDialog.modal("show");
+            } else {
+              self.cfgChangedExtern = false;
+              self.saveCfg(options);
+            }
+          });
       } else {
-        showMessageDialog(gettext("No filename set"), {
-          title: gettext("Save Config"),
-        });
+        if (
+          self.klipperViewModel.currentCfgFilename() != "" &&
+          self.klipperViewModel.currentCfgFilename() != "Change Filename"
+        ) {
+          if (editor.session) {
+            if (self.settings.settings.plugins.klipper.configuration.parse_check() == true) {
+              // check Syntax and wait for response
+              self.checkSyntax().then((syntaxOK) => {
+                if (syntaxOK === false) {
+                  // Ask if we should save a faulty config anyway
+                  self.askSaveFaulty().then((areWeSaving) => {
+                    if (areWeSaving === false) {
+                      // Not saving
+                      showMessageDialog(gettext("Faulty config not saved!"), {
+                        title: gettext("Save Config"),
+                        onclose: function () {
+                          self.editorFocusDelay(1000);
+                        },
+                      });
+                    } else {
+                      // Save anyway
+                      self.saveRequest(closing);
+                    }
+                  });
+                } else {
+                  // Syntax is ok
+                  self.saveRequest(closing);
+                }
+              });
+            } else {
+              self.saveRequest(closing);
+            }
+          }
+        } else {
+          showMessageDialog(gettext("No filename set"), {
+            title: gettext("Save Config"),
+          });
+        }
       }
     };
 
+    self.loadBaseConfig = function () {
+      var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
+      self.klipperViewModel.consoleMessage("debug", "loadBaseConfig:" + baseconfig);
+      self.openConfig("baseconfig");
+    };
+
+    self.loadFile = function (data) {
+      if (!self.loginState.hasPermission(self.access.permissions.FILES_SELECT)) return;
+
+      if (!data) {
+        return;
+      }
+
+      if (self.isEditorDirty() === true) {
+        var selection = function (index) {
+          switch (index) {
+            case 0:
+              self.openConfig(data.path);
+              break;
+            case 1:
+              self.editorFocusDelay(1000);
+              break;
+            case 2:
+              self.saveCfg({ closing: false });
+              if (!self.isEditorDirty()) {
+                self.openConfig(data.path);
+              }
+              break;
+          }
+        };
+
+        var opts = {
+          title: gettext("Switching without saving"),
+          message:
+            gettext("Your file seems to have changed.") +
+            "<br />" +
+            gettext("Do you really want to switch to another file?"),
+          selections: [gettext("Switch"), gettext("Do not switch"), gettext("Save & Switch")],
+          maycancel: false,
+          onselect: function (index) {
+            if (index > -1) {
+              selection(index);
+            }
+          },
+        };
+
+        showSelectionDialog(opts);
+      } else {
+        self.openConfig(data.path);
+      }
+    };
+
+    self.openConfig = function (file) {
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
+
+      OctoPrint.plugins.klipper
+        .getCfg(self.klipperViewModel.storageLocation, file)
+        .done(function (response) {
+          if (response.status == "success") {
+            var config = {
+              content: response.data.body.content,
+              file: response.data.body.file,
+            };
+            self.process(config);
+            self.loadedConfigFilename = config.file;
+            self.klipperFilesViewModel.highlightCurrentFilename();
+          } else {
+            self.klipperViewModel.consoleMessage("error", "openConfig failed: " + response.error.message);
+          }
+        })
+        .fail(function (response) {
+          self.klipperViewModel.consoleMessage("error", "openConfig failed: " + response.responseText);
+        });
+    };
+
     self.reloadFromFile = function () {
-      if (self.CfgFilename() != "") {
-        self.klipperViewModel.consoleMessage("debug", "Reload " + self.CfgFilename());
+      if (self.klipperViewModel.currentCfgFilename() != "") {
+        self.klipperViewModel.consoleMessage("debug", "Reload " + self.klipperViewModel.currentCfgFilename());
         OctoPrint.plugins.klipper
-          .getCfg(self.CfgFilename())
+          .getCfg(self.klipperViewModel.storageLocation, self.klipperViewModel.currentCfgFilename())
           .done(function (response) {
             self.klipperViewModel.consoleMessage("debug", "reloadFromFile done");
             if (response.status == "error") {
@@ -318,10 +461,11 @@ $(function () {
               });
             } else {
               self.klipperViewModel.showPopUp("success", gettext("Reload Config"), gettext("File reloaded."));
-              self.CfgChangedExtern = false;
+              self.cfgChangedExtern = false;
               if (editor) {
                 editor.session.setValue(response.data.body);
-                self.loadedConfig = response.data.body;
+                self.loadedConfigContent = response.data.body;
+                self.loadedConfigFilename = self.klipperViewModel.currentCfgFilename();
                 editor.clearSelection();
                 editor.focus();
               }
@@ -339,7 +483,54 @@ $(function () {
       }
     };
 
-    self.onStartup = function () {
+    self.newFile = function () {
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
+      var config = {
+        content: "",
+        file: "Change Filename",
+      };
+
+      let switch_selection = -1;
+
+      if (self.isEditorDirty()) {
+        var opts = {
+          title: gettext("New file without saving"),
+          message:
+            gettext("Your current file seems to have changed.") +
+            "<br />" +
+            gettext("Do you really want to switch to a new file?"),
+          selections: [gettext("Switch"), gettext("Do not switch"), gettext("Save & Switch")],
+          maycancel: false,
+          onselect: function (index) {
+            if (index > -1) {
+              switch_selection = index;
+            }
+          },
+        };
+
+        showSelectionDialog(opts);
+      }
+      switch (switch_selection) {
+        case 0:
+          self.process(config);
+          break;
+        case 1:
+          self.editorFocusDelay(1000);
+          break;
+        case 2:
+          self.saveCfg({ closing: false });
+          if (!self.isEditorDirty()) {
+            self.process(config);
+          }
+          break;
+      }
+
+      self.process(config);
+    };
+
+    self.onStartup = function () {};
+
+    self.prepareAceEditor = function () {
       ace.config.set("basePath", "plugin/klipper/static/js/lib/ace/");
       editor = ace.edit("plugin-klipper-config");
       editor.setTheme("ace/theme/monokai");
@@ -355,31 +546,77 @@ $(function () {
       });
 
       editor.session.on("change", function (delta) {
-        self.CfgContent(editor.getValue());
+        self.cfgContent(editor.getValue());
         editor.resize();
       });
     };
 
+    self.onStartupComplete = function () {
+      self.prepareAceEditor();
+      self.loadBaseConfig();
+    };
+
+    /**
+     * Wait and then focus the editor
+     * @param {number} delay Delay in ms
+     * @returns {void}
+     */
     self.editorFocusDelay = function (delay) {
       self.klipperViewModel.sleep(delay).then(function () {
         editor.focus();
       });
     };
 
-    self.saveRequest = function (closing) {
+    /**
+     * Saves the config
+     * @param {boolean} closing Saves and closes the editor
+     * @param {boolean} force  Forcing the save
+     */
+    self.saveRequest = function (closing, force) {
       self.klipperViewModel.consoleMessage("debug", "SaveCfg start");
+      let hasNewName = false;
+      force = force || false;
+      if (self.klipperViewModel.currentCfgFilename() != self.loadedConfigFilename) {
+        self.klipperViewModel.consoleMessage(
+          "debug",
+          "SaveCfg filename changed to " +
+            self.klipperViewModel.currentCfgFilename() +
+            " from " +
+            self.loadedConfigFilename
+        );
+        hasNewName = true;
+      }
       OctoPrint.plugins.klipper
-        .saveCfg(editor.session.getValue(), self.CfgFilename())
+        .saveCfg(editor.session.getValue(), self.klipperViewModel.currentCfgFilename(), hasNewName, force)
         .done(function (response) {
           if (response.status == "success") {
             self.klipperViewModel.showPopUp("success", gettext("Save Config"), gettext("File saved."));
-            self.loadedConfig = editor.session.getValue(); //set loaded config to current for resetting dirtyEditor
+            self.loadedConfigContent = editor.session.getValue(); //set loaded config to current for resetting dirtyEditor
+            self.loadedConfigFilename = self.klipperViewModel.currentCfgFilename();
             if (closing) {
               editordialog.modal("hide");
             }
             if (self.settings.settings.plugins.klipper.configuration.restart_onsave() == true) {
               self.klipperViewModel.requestRestart();
             }
+          } else if (response.status == "error" && response.message == "File already exists") {
+            // show confirmation dialog
+            let opts = {
+              title: gettext("Overwrite file"),
+              message: gettext("The file already exists.") + "<br />" + gettext("Do you really want to overwrite it?"),
+              selections: [gettext("Overwrite"), gettext("Do not overwrite")],
+              maycancel: false,
+              onselect: function (index) {
+                if (index > -1) {
+                  if (index == 0) {
+                    self.saveRequest(closing, true);
+                  } else {
+                    self.editorFocusDelay(1000);
+                  }
+                }
+              },
+            };
+            showSelectionDialog(opts);
           } else {
             showMessageDialog(gettext("File not saved!") + "<br>" + response.error["message"], {
               title: gettext("Save Config"),
@@ -402,7 +639,19 @@ $(function () {
 
   OCTOPRINT_VIEWMODELS.push({
     construct: KlipperEditorViewModel,
-    dependencies: ["settingsViewModel", "klipperViewModel"],
-    elements: ["#klipper_editor"],
+    dependencies: [
+      "settingsViewModel",
+      "klipperViewModel",
+      "klipperFilesViewModel",
+      "loginStateViewModel",
+      "accessViewModel",
+      "filesViewModel",
+    ],
+    elements: [
+      "#klipper_editor",
+      "#klipper_add_folder_dialog",
+      "#klipper_move_file_or_folder_dialog",
+      "#klipper_upload_exists_dialog",
+    ],
   });
 });

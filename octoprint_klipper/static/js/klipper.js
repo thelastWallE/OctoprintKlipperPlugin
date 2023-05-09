@@ -36,12 +36,13 @@ $(function () {
     // optional
     self.piSupport = parameters[7];
 
+    self.storageLocation = "klipper_configs";
+
     self.shortStatus_navbar = ko.observable();
     self.shortStatus_navbar_hover = ko.observable();
     self.shortStatus_sidebar = ko.observable();
     self.shortStatus_type = ko.observable("");
-    self.host_version = ko.observable();
-    self.host_remote_version = ko.observable();
+    self.currentCfgFilename = ko.observable("");
 
     self.octoklipperReleasedVersion = ko.observable();
     self.octoklipperReleasedVersionForOctoprint = ko.observable();
@@ -262,17 +263,6 @@ $(function () {
       editorDialog.modal({
         show: "true",
         width: "90%",
-        backdrop: "static",
-      });
-    };
-
-    self.showFilesDialog = function () {
-      self.consoleMessage("debug", "showFilesDialog");
-      var dialog = $("#klipper_files_dialog");
-      dialog.modal({
-        show: "true",
-        width: "60%",
-        minWidth: "500px",
         backdrop: "static",
       });
     };

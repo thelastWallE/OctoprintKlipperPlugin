@@ -8,13 +8,24 @@
   var OctoKlipperClient = function (base) {
     this.base = base;
     this.url = this.base.getBlueprintUrl("klipper");
-  };
+    this.testUrl = this.url + "test";
+    this.downloadUrl = this.url + "download/configs";
 
-  var downloadUrl = "download/configs";
-  var url = this.url;
+    this.resourceForLocation = function (location) {
+      return this.url + OctoPrintClient.escapePath(location);
+    };
 
-  OctoKlipperClient.prototype.get = function (refresh, opts) {
-    return this.base.get(this.url, opts);
+    this.downloadForLocation = function (location) {
+      return this.downloadUrl + "/" + OctoPrintClient.escapePath(location);
+    };
+
+    this.downloadForEntry = function (location, filename) {
+      return this.downloadForLocation(location) + "/" + OctoPrintClient.escapePath(filename);
+    };
+
+    this.resourceForEntry = function (location, filename) {
+      return this.resourceForLocation(location) + "/" + OctoPrintClient.escapePath(filename);
+    };
   };
 
   OctoKlipperClient.prototype.getServerInfo = function (opts) {
@@ -42,8 +53,8 @@
     return this.base.postJson(this.url + "update", data, opts);
   };
 
-  OctoKlipperClient.prototype.getCfg = function (config, opts) {
-    return this.base.get(this.url + "config/" + config, opts);
+  OctoKlipperClient.prototype.getCfg = function (location, config, opts) {
+    return this.base.get(this.resourceForEntry(location, config), opts);
   };
 
   OctoKlipperClient.prototype.modifyServicefile = function (path, opts) {
@@ -61,23 +72,7 @@
   };
 
   OctoKlipperClient.prototype.listCfg = function (opts) {
-    return this.base.get(this.url + "config/list", opts);
-  };
-
-  var resourceForLocation = function (location) {
-    return url + "/" + OctoPrintClient.escapePath(location);
-  };
-
-  var downloadForLocation = function (location) {
-    return downloadUrl + "/" + OctoPrintClient.escapePath(location);
-  };
-
-  var downloadForEntry = function (location, filename) {
-    return downloadForLocation(location) + "/" + OctoPrintClient.escapePath(filename);
-  };
-
-  var resourceForEntry = function (location, filename) {
-    return resourceForLocation(location) + "/" + OctoPrintClient.escapePath(filename);
+    return this.base.get(this.url + "list", opts);
   };
 
   var preProcessList = function (response) {
@@ -97,7 +92,7 @@
         element.weight = 1;
       }
     };
-    _.each(response.files, recursiveCheck);
+    _.each(response.data.files, recursiveCheck);
   };
 
   OctoKlipperClient.prototype.list = function (recursively, force, opts) {
@@ -112,20 +107,19 @@
       query.force = force;
     }
 
-    return this.base.getWithQuery(url, query, opts).done(preProcessList);
+    return this.base.getWithQuery(this.url, query, opts).done(preProcessList);
   };
 
   OctoKlipperClient.prototype.delete = function (location, path, opts) {
-    return this.base.delete(resourceForEntry(location, path), opts);
+    return this.base.delete(this.resourceForEntry(location, path), opts);
   };
 
   OctoKlipperClient.prototype.issueEntryCommand = function (location, entryname, command, data, opts) {
-    var url = resourceForEntry(location, entryname);
-    return this.base.issueCommand(url, command, data, opts);
+    return this.base.issueCommand(this.resourceForEntry(location, entryname), command, data, opts);
   };
 
-  OctoKlipperClient.prototype.move = function (location, path, destination, opts) {
-    return this.issueEntryCommand(location, path, "move", { destination: destination }, opts);
+  OctoKlipperClient.prototype.move = function (location, path, destination, force, opts) {
+    return this.issueEntryCommand(location, path, "move", { destination: destination, force: force }, opts);
   };
 
   OctoKlipperClient.prototype.createFolder = function (location, name, path, opts) {
@@ -134,11 +128,20 @@
       data.path = path;
     }
 
-    return this.base.postForm(resourceForLocation(location), data, opts);
+    return this.base.postForm(this.resourceForLocation(location), data, opts);
   };
 
   OctoKlipperClient.prototype.exists = function (location, path, filename, opts) {
-    return this.base.issueCommand(testUrl, "exists", { storage: location, path: path, filename: filename }, opts);
+    if ((path == undefined || path == "") && filename.contains("/")) {
+      path = filename.split("/").pop();
+      filename = filename.split("/")[filename.length - 1];
+      for (dir in path) {
+        if (dir !== "") {
+          path = path + "/" + dir;
+        }
+      }
+    }
+    return this.base.issueCommand(this.testUrl, "exists", { storage: location, path: path, filename: filename }, opts);
   };
 
   OctoKlipperClient.prototype.listCfgBak = function (opts) {
@@ -155,20 +158,43 @@
     return this.base.postJson(this.url + "config/check", data, opts);
   };
 
-  OctoKlipperClient.prototype.saveCfg = function (content, filename, opts) {
+  /**
+   * Saves a file to the server
+   * @param {string} content The content of the file to save
+   * @param {string} filename The name of the file to save
+   * @param {boolean} hasNewName Whether the file has a new name
+   * @param {boolean} force Whether to force the save
+   * @param {object} opts Additional options
+   */
+  OctoKlipperClient.prototype.saveCfg = function (content, filename, hasNewName, force, opts) {
     content = content || [];
     filename = filename || [];
+    hasNewName = hasNewName || false;
+    force = force || false;
+    opts = opts || {};
 
     var data = {
       DataToSave: content,
       filename: filename,
+      hasNewName: hasNewName,
+      force: force,
     };
 
     return this.base.postJson(this.url + "config/save", data, opts);
   };
 
-  OctoKlipperClient.prototype.deleteCfg = function (config, opts) {
-    return this.base.delete(this.url + "config/" + config, opts);
+  OctoKlipperClient.prototype.download = function (location, path, opts) {
+    return this.base.download(this.downloadForEntry(location, path), opts);
+  };
+
+  OctoKlipperClient.prototype.upload = function (location, file, data) {
+    data = data || {};
+
+    var filename = data.filename || undefined;
+    if (data.userdata && typeof data.userdata === "object") {
+      data.userdata = JSON.stringify(userdata);
+    }
+    return this.base.upload(resourceForLocation(location), file, filename, data);
   };
 
   OctoKlipperClient.prototype.deleteBackup = function (backup, opts) {

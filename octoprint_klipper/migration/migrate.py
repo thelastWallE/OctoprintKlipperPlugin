@@ -114,6 +114,21 @@ def migrate_settings_6(self, settings):
     settings.set(["macros"], macros)
 
 
+def migrate_settings_7(self, settings):
+    old_log_path = settings.get(["configuration", "logpath"])
+    if old_log_path[-4:] == ".log":
+        new_log_path = os.path.dirname(old_log_path)
+        logger.log_info(
+            self,
+            "migrate setting for 'configuration/logpath': "
+            + old_log_path
+            + " -> "
+            + new_log_path,
+            only_logging=False,
+        )
+        settings.set(["configuration", "logpath"], new_log_path)
+
+
 def migrate_settings(self, settings, old, new=""):
     """migrate a setting to setting with new name and/or position.
     If new is unset only delete the setting
@@ -148,6 +163,7 @@ def migrater(self, current, settings):
         "4": migrate_settings_4,
         "5": migrate_settings_5,
         "6": migrate_settings_6,
+        "7": migrate_settings_7,
     }
 
     if current is not None:
