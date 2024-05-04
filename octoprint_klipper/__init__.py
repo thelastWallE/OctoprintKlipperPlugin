@@ -69,6 +69,8 @@ class KlipperPlugin(
             logging.DEBUG if self._settings.get_boolean(["debug_logging"]) else logging.INFO)
         self._octoklipper_logger.propagate = False
 
+        self.set_plugin_settings_overlay()
+
     def on_after_startup(self):
         klipper_port = self._settings.get(["connection", "port"])
         additional_ports = self._settings.global_get(
@@ -136,6 +138,7 @@ class KlipperPlugin(
                 config_path="~/",
                 baseconfig="printer.cfg",
                 logpath="/tmp/klippy.log",
+                restart_service_command="sudo service klipper restart",
                 reload_command="RESTART",
                 restart_onsave=True,
                 confirm_reload=True,
@@ -149,6 +152,7 @@ class KlipperPlugin(
 
     def on_settings_save(self, data):
         old_debug_logging = self._settings.get_boolean(["configuration", "debug_logging"])
+        old_restart_service_command = self._settings.get(["configuration", "restart_service_command"])
 
         octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
 
@@ -158,6 +162,10 @@ class KlipperPlugin(
                 self._octoklipper_logger.setLevel(logging.DEBUG)
             else:
                 self._octoklipper_logger.setLevel(logging.INFO)
+
+        new_restart_service_command = self._settings.get(["configuration", "restart_service_command"])
+        if old_restart_service_command != new_restart_service_command:
+            self.set_plugin_settings_overlay()
 
     def get_settings_restricted_paths(self):
         return dict(
@@ -566,6 +574,11 @@ class KlipperPlugin(
         return flask.jsonify(command = reload_command)
 # APIs end
 
+    def set_plugin_settings_overlay(self):
+        command = self._settings.get(["configuration", "restart_service_command"])
+
+        __plugin_settings_overlay__['system']['actions'][0]['command'] = command
+        __plugin_settings_overlay__['system']['actions'][0]['confirm'] = '<h3><center><b>' + gettext("You are about to restart Klipper!") + '<br>' + gettext("This will stop ongoing prints!") + '</b></center></h3><br>Command = "' + command + '"'
 
     def get_update_information(self):
         return dict(
@@ -597,9 +610,7 @@ __plugin_settings_overlay__ = {
     'system': {
         'actions': [{
             'action': 'octoklipper_restart',
-            'command': 'sudo service klipper restart',
             'name': gettext('Restart Klipper'),
-            'confirm': '<h3><center><b>' + gettext("You are about to restart Klipper!") + '<br>' + gettext("This will stop ongoing prints!") + '</b></center></h3><br>Command = "sudo service klipper restart"'
         }]
     }
 }
