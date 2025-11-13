@@ -8,10 +8,6 @@
       data-bind="click: connectionState.connect, text: connectionState.buttonText(), enable: loginState.isUser()">{{ _('Connect') }}</button>
 
     <div class="btn-group action-buttons klipper-row-fluid">
-      <!-- ko ifnot: settings.settings.plugins.klipper.connection.hide_config_button -->
-      <button class="btn klipper-fluid-item-1" title="{{ _('Configs') }}"
-        data-bind="visible: hasPermKo('CONFIG'), click: showFilesDialog">{{ _('Configs') }}</button>
-      <!-- /ko -->
       <!-- ko ifnot: settings.settings.plugins.klipper.connection.hide_editor_button -->
       <button class="btn klipper-fluid-item-1" title="{{ _('Open Editor') }}"
         data-bind="visible: hasPermKo('CONFIG'), click: showEditorDialog">{{ _('Open Editor') }}</button>

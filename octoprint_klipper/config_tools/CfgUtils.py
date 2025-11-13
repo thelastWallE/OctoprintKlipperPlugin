@@ -31,44 +31,32 @@ def list_config_files(self, path_type):
     """
 
     files = []
-    if path_type == "backup":
-        cfg_path = os.path.join(self.get_plugin_data_folder(), "configs", "*")
-    else:
-        cfg_path = os.path.expanduser(
-            self._settings.get(["configuration", "config_path"])
-        )
-        cfg_path = os.path.join(cfg_path, "*.cfg")
+    data_folder = self.get_plugin_data_folder()
+    cfg_path = os.path.join(data_folder, "configs", "**")
     try:
-        cfg_files = glob.glob(cfg_path)
+        cfg_files = glob.glob(cfg_path, recursive=True)
     except IOError as e:
-        logger.error("Could not load configuration files in %s", cfg_path)
-        return {"status": "error", "error": {"message": e}}
+        return extra.return_error(
+            self, "Could not load configuration files in {}".format(cfg_path), "list", e
+        )
     logger.log_debug(
-        self, "list_cfg_files " + path_type + " Path: " + cfg_path, only_logging=False
+        self,
+        "list_backed_cfg_files " + path_type + " Path: " + cfg_path,
+        only_logging=False,
     )
 
     for f in cfg_files:
+        url = f.replace(os.path.join(data_folder, "configs"), "")
         filesize = os.path.getsize(f)
         filemdate = time.localtime(os.path.getmtime(f))
-        if path_type != "backup":
-            url = (
-                flask.url_for("index")
-                + "plugin/klipper/download/configs/"
-                + os.path.basename(f)
-            )
-        else:
-            url = (
-                flask.url_for("index")
-                + "plugin/klipper/download/backup/"
-                + os.path.basename(f)
-            )
+        download_url = flask.url_for("index") + "plugin/klipper/download/backup/" + url
         files.append(
             dict(
-                name=os.path.basename(f),
+                name=url,
                 file=f,
                 bytes=filesize,
                 mdate=time.strftime("%d.%m.%Y %H:%M", filemdate),
-                url=url,
+                url=download_url,
             )
         )
         logger.log_debug(
@@ -86,33 +74,22 @@ def get_cfg(self, file):
     Returns:
         dict: Status and the content of the file.
     """
-
-    if not file:
-        cfg_path = os.path.expanduser(
-            self._settings.get(["configuration", "configpath"])
-        )
-        file = os.path.join(
-            cfg_path, self._settings.get(["configuration", "baseconfig"])
-        )
-    if extra.file_exist(self, file):
-        logger.log_debug(self, "get_cfg_files Path: " + file, only_logging=False)
+    if extra.file_exists(self, file):
         try:
             with io.open(file, "r", encoding="utf-8") as f:
                 file_content = f.read()
         except IOError as Err:
-            logger.log_error(
+            extra.return_error(
                 self,
                 gettext("Error: Klipper config file not found at:")
                 + " {}".format(file)
                 + "\n"
                 + gettext("IOError:")
                 + " {}".format(Err),
-                only_logging=False,
+                "read",
             )
-            status = "error"
-            error_text = Err
         except UnicodeDecodeError as Err:
-            logger.log_error(
+            extra.return_error(
                 self,
                 gettext("Decode Error:")
                 + "\n"
@@ -123,27 +100,21 @@ def get_cfg(self, file):
                 + gettext(
                     "Or you can also paste your config \ninto the Editor and save it."
                 ),
-                only_logging=False,
+                "decode",
             )
-            status = "error"
-            error_text = Err
-        else:
-            status = "success"
     else:
-        status = "error"
-        error_text = gettext("File not found!")
-    if status == "success":
-        return dict(status=status, data=dict(body=file_content))
-    else:
-        return dict(status=status, error=dict(message=error_text))
+        extra.return_error(self, gettext("File not found!"))
+
+    return dict(status="success", data=dict(body=dict(content=file_content, file=file)))
 
 
-def save_cfg(self, content, filename):
+def save_cfg(self, content, file, is_new_file=False):
     """Save the configuration file to given file.
 
     Args:
         content (str): The content of the configuration.
-        filename (str): The filename of the configuration file. Default is "printer.cfg"
+        filename (str): The filename of the configuration file.
+        is_new_file (bool): If the file is a new file. Default is False.
 
     Returns:
         dict: Status and error text.
@@ -154,45 +125,51 @@ def save_cfg(self, content, filename):
     configpath = os.path.expanduser(
         self._settings.get(["configuration", "config_path"])
     )
-    if filename == "":
-        filename = self._settings.get(["configuration", "baseconfig"])
-    if filename[-4:] != ".cfg":
-        filename += ".cfg"
 
-    filepath = os.path.join(configpath, filename)
+    filepath = os.path.dirname(file)
+    if file[-4:] not in (".cfg", ".txt"):
+        file += ".cfg"
+    filename = os.path.basename(file)
+    complete_filepath = os.path.join(configpath, filepath, filename)
 
-    results = extra.create_directory(self, configpath)
+    results = extra.create_directory(self, os.path.join(configpath, filepath))
     if results["status"] == "error":
         return results
 
     logger.log_debug(
         self, "Writing Klipper config to {}".format(filepath), only_logging=False
     )
+    if not is_new_file:
+        try:
+            results = copy_cfg_to_backup(self, complete_filepath)
+        except IOError:
+            return extra.return_error(
+                self,
+                "Error: Couldn't open Klipper config file: {}".format(
+                    complete_filepath
+                ),
+                "backup",
+            )
+        else:
+            if results["status"] == "error":
+                results["step"] = "backup"
+                return results
     try:
-        with io.open(filepath, "w", encoding="utf-8") as f:
+        with io.open(complete_filepath, "w", encoding="utf-8") as f:
             f.write(content)
     except IOError:
-        logger.log_error(
-            self,
-            "Error: Couldn't open Klipper config file: {}".format(filepath),
-            only_logging=False,
+        return extra.return_error(
+            "Error: Couldn't open Klipper config file: {}".format(complete_filepath),
+            "save",
         )
-        return {
-            "status": "error",
-            "error": {
-                "message": gettext(
-                    "Error: Couldn't open Klipper config file: {}".format(filepath)
-                )
-            },
-        }
+
     else:
         logger.log_debug(
-            self, "Written Klipper config to {}".format(filepath), only_logging=False
+            self,
+            "Written Klipper config to {}".format(complete_filepath),
+            only_logging=False,
         )
-    finally:
-        results = copy_cfg_to_backup(self, filepath)
-        if results["status"] == "error":
-            return results
+
     return {
         "status": "success",
         "data": {"body": gettext("Klipper config file saved!")},
@@ -211,7 +188,6 @@ def check_config(self, data):
     try:
         if sys.version_info[0] < 3:
             dataToValidated = configparser.RawConfigParser()
-            import StringIO
 
             buf = StringIO.StringIO(data)
             dataToValidated.readfp(buf)
@@ -220,8 +196,7 @@ def check_config(self, data):
             dataToValidated.read_string(data)
     except configparser.Error as error:
         parsed_error = parse_error_message(self, error)
-        logger.log_debug(self, "check_cfg: NOK!", only_logging=False)
-        return {"status": "error", "error": {"message": parsed_error}}
+        return extra.return_error(self, parsed_error)
     else:
         result = check_float(self, dataToValidated)
         if result["status"] == "error":
@@ -262,6 +237,8 @@ def check_float(self, dataToValidated):
             for x in value_search_list:
                 if dataToValidated.has_option(y, x):
                     a_float = dataToValidated.getfloat(y, x)
+                    if a_float:
+                        pass
     except ValueError as error:
         complete_error = "\n"
         +"Invalid Value for <b>" + x + "</b> in Section: <b>" + y + "</b>\n"
@@ -279,9 +256,8 @@ def check_float(self, dataToValidated):
         pass
     else:
         return {"status": "success"}
-    finally:
-        if error_list:
-            return {"status": "error", "error": {"message": error_list}}
+    if error_list:
+        return extra.return_error(error_list)
 
 
 def copy_cfg_to_backup(self, src):
@@ -295,46 +271,43 @@ def copy_cfg_to_backup(self, src):
     """
 
     if not os.path.isfile(src):
-        logger.log_error(
-            self, "Error: Config file not found: {}".format(src), only_logging=False
+        return extra.return_error(
+            "Error: Config file not found: {}".format(src),
+            "backup",
         )
-        return {
-            "status": "error",
-            "error": {
-                "message": gettext("Error: Config file not found: {}".format(src))
-            },
-        }
+    cfg_path = (
+        os.path.expanduser(self._settings.get(["configuration", "config_path"]))
+        + os.sep
+    )
+    file = src.replace(cfg_path, "")
+    cfg_bak_path = os.path.join(self.get_plugin_data_folder(), "configs", "")
+    file_bak_path = os.path.join(cfg_bak_path, file)
 
-    cfg_path = os.path.join(self.get_plugin_data_folder(), "configs", "")
-    filename = os.path.basename(src)
-    results = extra.create_directory(self, cfg_path)
+    results = extra.create_directory(self, cfg_bak_path)
     if results["status"] == "error":
         return results
 
-    dst = os.path.join(cfg_path, filename)
     logger.log_debug(
-        self, "copy_cfg_to_backup:" + src + " to " + dst, only_logging=False
+        self, "copy_cfg_to_backup:" + src + " to " + file_bak_path, only_logging=False
     )
-    if src == dst:
-        return {
-            "status": "error",
-            "error": {"message": "Source and destination are the same"},
-        }
+    if src == file_bak_path:
+        return extra.return_error(self, "Source and destination are the same", "backup")
     try:
-        copyfile(src, dst)
+        copyfile(src, file_bak_path)
     except IOError:
-        logger.log_error(
-            self,
-            "Error: Couldn't copy Klipper config file to {}".format(dst),
-            only_logging=False,
+        return extra.return_error(
+            "Error: Couldn't copy Klipper config file to {}".format(file_bak_path),
+            "backup",
+        )
+    else:
+        logger.log_debug(
+            self, "CfgBackup " + file_bak_path + " written", only_logging=False
         )
         return {
-            "status": "error",
-            "error": {"message": "Couldn't copy Klipper config file to {}".format(dst)},
-        }
-    else:
-        logger.log_debug(self, "CfgBackup " + dst + " written", only_logging=False)
-        return {
             "status": "success",
-            "data": {"body": gettext("Klipper config file copied to {}".format(dst))},
+            "data": {
+                "body": gettext(
+                    "Klipper config file copied to {}".format(file_bak_path)
+                )
+            },
         }

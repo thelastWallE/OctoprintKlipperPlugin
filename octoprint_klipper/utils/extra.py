@@ -1,19 +1,13 @@
 # -*- coding: utf-8 -*-
-import platform
 import os
 import datetime
 import glob
 import io
 import re
-import shlex
-import subprocess
 import sarge
-import threading
+from os import path
 
-try:
-    from octoprint.util.commandline import CommandlineCaller, CommandlineError
-except ImportError:
-    pass
+
 from octoprint.util.platform import CLOSE_FDS
 
 from shutil import copy
@@ -41,13 +35,10 @@ def update_status(self, subtype, status):
     send_message(self, type="status", subtype=subtype, payload=status)
 
 
-def file_exist(self, filepath, **kwargs):
+def file_exists(self, filepath):
     """
-    Returns if a file exists and shows default a PopUp if not
+    Returns true if a file exists else false
     """
-    # TODO rework this to a more general function, maybe just use the one from octoprint
-    PopUp = kwargs.get("PopUp", True)
-    from os import path
 
     if not path.isfile(filepath):
         logger.log_debug(
@@ -59,18 +50,26 @@ def file_exist(self, filepath, **kwargs):
             + gettext("does not exist!"),
             only_logging=False,
         )
-        if PopUp:
-            send_message(
-                self,
-                type="PopUp",
-                subtype="warning",
-                title="OctoKlipper Settings",
-                payload=gettext("File")
-                + ": <br />"
-                + filepath
-                + "<br /> "
-                + gettext("does not exist!"),
-            )
+        return False
+    else:
+        return True
+
+
+def folder_exists(self, folderpath):
+    """
+    Returns true if a folder exists else false
+    """
+
+    if not path.isdir(folderpath):
+        logger.log_debug(
+            self,
+            gettext("Folder")
+            + ": <br />"
+            + folderpath
+            + "<br /> "
+            + gettext("does not exist!"),
+            only_logging=False,
+        )
         return False
     else:
         return True
@@ -117,7 +116,7 @@ def execute_command(self, command):
         "Command: {}".format(command),
         only_logging=True,
     )
-    stdout_text = ""
+
     # we run this with shell=True since we have to trust whatever
     # our admin configured as command and since we want to allow
     # shell-alike handling here...
@@ -167,17 +166,13 @@ def copy_file(self, file, dst):
         try:
             copy(file, dst)
         except IOError as Error:
-            logger.log_error(
-                self, "Error: File not found at: {}".format(file), only_logging=False
+            return return_error(
+                self, "Error: File not found at: {}".format(file), Error
             )
-            return {"status": "error", "error": {"message": Error}}
         else:
             logger.log_debug(self, "File copied: " + file, only_logging=False)
             return {"status": "success"}
-    return {
-        "status": "error",
-        "error": {"message": "File not found at: {}".format(file)},
-    }
+    return return_error(self, "File not found at: {}".format(file))
 
 
 def save_servicefile(self, content, config_path):
@@ -205,12 +200,11 @@ def save_servicefile(self, content, config_path):
         try:
             os.mkdir(config_path)
         except OSError as Error:
-            logger.log_error(
+            return return_error(
                 self,
                 "Error: Creation of the backup directory {} failed".format(config_path),
-                only_logging=False,
+                Error,
             )
-            return {"status": "error", "error": {"message": Error}}
         else:
             logger.log_debug(
                 self, "Directory {} created".format(config_path), only_logging=False
@@ -220,12 +214,11 @@ def save_servicefile(self, content, config_path):
         with io.open(servicefile_path, "w", encoding="utf-8") as f:
             f.write(content)
     except IOError as Error:
-        logger.log_error(
+        return return_error(
             self,
             "Error: Couldn't write Klipper servicefile: {}".format(servicefile_path),
-            only_logging=False,
+            Error,
         )
-        return {"status": "error", "error": {"message": Error}}
     else:
         logger.log_debug(
             self,
@@ -234,8 +227,10 @@ def save_servicefile(self, content, config_path):
         )
     finally:
         success, error = copy_servicefile_to_backup(self, servicefile_path)
-        if not success:
-            return {"status": "error", "error": {"message": error}}
+
+    if not success:
+        return return_error(self, error)
+
     return {"status": "success", "data": {"path": servicefile_path}}
 
 
@@ -348,7 +343,7 @@ def copy_servicefile_to_backup(self, source):
 
 
 def create_directory(self, path):
-    """Create a directory.
+    """Create a directory if it not exists.
 
     Args:
         path (str): The path to the directory.
@@ -374,3 +369,32 @@ def create_directory(self, path):
             return {"status": "success"}
     else:
         return {"status": "success"}
+
+
+def return_error(self, message, step="", e=None):
+    """Returns an error message.
+
+    Args:
+        message (str): Error message to be returned.
+        step (str, optional): Step where the error occured. Defaults to "".
+        e (Exception, optional): Exception to be logged. Defaults to None.
+
+    Returns:
+        dict: Status and error message.
+    """
+
+    if e:
+        logger.log_error(
+            self, "Error: {}".format(message) + "\n" + str(e), only_logging=False
+        )
+    else:
+        logger.log_error(
+            self,
+            "Error: {}".format(message),
+            only_logging=False,
+        )
+    return {
+        "status": "error",
+        "error": {"message": gettext(message)},
+        "step": step,
+    }
