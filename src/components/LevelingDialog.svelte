@@ -1,9 +1,9 @@
 <script>
-  import { settings } from '../stores/klipper.js';
+  import { klipperStore } from '../stores/klipper.js';
 
   let { show, onClose = () => {} } = $props();
 
-  let config = $derived($settings);
+  let config = $derived(klipperStore.settings);
   let activePoint = $state(-1);
   let points = $derived(config?.probe?.points || []);
   let pointCount = $derived(points.length);

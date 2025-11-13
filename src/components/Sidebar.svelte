@@ -1,5 +1,5 @@
 <script>
-  import { shortStatusSidebar, settings, isActive, permissions } from '../stores/klipper.js';
+  import { klipperStore } from '../stores/klipper.js';
   import { api } from '../lib/api.js';
 
   let { 
@@ -10,10 +10,10 @@
     navbarClicked = () => {}
   } = $props();
 
-  let status = $derived($shortStatusSidebar);
-  let config = $derived($settings);
-  let active = $derived($isActive);
-  let perms = $derived($permissions);
+  let status = $derived(klipperStore.shortStatusSidebar);
+  let config = $derived(klipperStore.settings);
+  let active = $derived(klipperStore.isActive);
+  let perms = $derived(klipperStore.permissions);
 
   async function handleConnect() {
     if (connectionState?.connect) {

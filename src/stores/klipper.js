@@ -1,47 +1,48 @@
-// Svelte 5 stores using runes for the Klipper plugin state
-import { writable } from 'svelte/store';
+// Svelte 5 store using $state runes for the Klipper plugin state
+class KlipperStore {
+  // Connection state
+  isConnected = $state(false);
+  isActive = $state(false);
 
-// Connection state
-export const isConnected = writable(false);
-export const isActive = writable(false);
+  // Status display
+  shortStatusNavbar = $state('');
+  shortStatusNavbarHover = $state('');
+  shortStatusSidebar = $state('');
 
-// Status display
-export const shortStatusNavbar = writable('');
-export const shortStatusNavbarHover = writable('');
-export const shortStatusSidebar = writable('');
+  // Log messages
+  logMessages = $state([]);
 
-// Log messages
-export const logMessages = writable([]);
+  // Settings
+  settings = $state({});
 
-// Settings
-export const settings = writable({});
-
-// Login state
-export const loginState = writable({
-  isUser: false,
-  isAdmin: false
-});
-
-// Permissions
-export const permissions = writable({
-  CONFIG: false,
-  MACRO: false
-});
-
-// Helper functions
-export function addLogMessage(type, time, msg) {
-  logMessages.update(messages => {
-    const newMessage = { type, time, msg };
-    return [newMessage, ...messages].slice(0, 100); // Keep last 100 messages
+  // Login state
+  loginState = $state({
+    isUser: false,
+    isAdmin: false
   });
+
+  // Permissions
+  permissions = $state({
+    CONFIG: false,
+    MACRO: false
+  });
+
+  // Helper methods
+  addLogMessage(type, time, msg) {
+    const newMessage = { type, time, msg };
+    this.logMessages = [newMessage, ...this.logMessages].slice(0, 100); // Keep last 100 messages
+  }
+
+  clearLogMessages() {
+    this.logMessages = [];
+  }
+
+  updateStatus(status) {
+    this.shortStatusNavbar = status.navbar || '';
+    this.shortStatusNavbarHover = status.navbarHover || '';
+    this.shortStatusSidebar = status.sidebar || '';
+  }
 }
 
-export function clearLogMessages() {
-  logMessages.set([]);
-}
-
-export function updateStatus(status) {
-  shortStatusNavbar.set(status.navbar || '');
-  shortStatusNavbarHover.set(status.navbarHover || '');
-  shortStatusSidebar.set(status.sidebar || '');
-}
+// Export a singleton instance
+export const klipperStore = new KlipperStore();

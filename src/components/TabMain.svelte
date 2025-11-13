@@ -1,5 +1,5 @@
 <script>
-  import { logMessages, isActive, settings, permissions } from '../stores/klipper.js';
+  import { klipperStore } from '../stores/klipper.js';
   import { api } from '../lib/api.js';
 
   let { 
@@ -16,10 +16,10 @@
   } = $props();
 
   // Svelte 5 runes for reactive state
-  let messages = $derived($logMessages);
-  let active = $derived($isActive);
-  let config = $derived($settings);
-  let perms = $derived($permissions);
+  let messages = $derived(klipperStore.logMessages);
+  let active = $derived(klipperStore.isActive);
+  let config = $derived(klipperStore.settings);
+  let perms = $derived(klipperStore.permissions);
 
   async function handleGetStatus() {
     try {
