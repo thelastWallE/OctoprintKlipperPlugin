@@ -17,7 +17,7 @@ vscode.env
 .venv
 OctoKlipper.egg-info
 
-# Node.js and build artifacts
+# Node.js
 node_modules/
 package-lock.json
-octoprint_klipper/static/dist/
+# Note: octoprint_klipper/static/dist/ is NOT ignored - we commit build artifacts for the plugin
