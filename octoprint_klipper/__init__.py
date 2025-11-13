@@ -387,11 +387,10 @@ class KlipperPlugin(
                 "js/klipper_param_macro.js",
                 "js/klipper_graph.js",
                 "js/klipper_backup.js",
-                "js/lib/ace/ace.min.js",
-                "js/lib/ace/mode-klipper_config.js",
-                "js/lib/ace/theme-monokai.min.js",
                 "js/klipper_editor.js",
-                "js/klipper_files.js",
+                # Svelte 5 components
+                "dist/klipper-svelte.js",
+                "js/klipper_svelte_bridge.js"
             ],
             clientjs=["clientjs/klipper.js"],
             css=["css/klipper.css"],

@@ -16,3 +16,8 @@ thunder-tests
 vscode.env
 .venv
 OctoKlipper.egg-info
+
+# Node.js and build artifacts
+node_modules/
+package-lock.json
+octoprint_klipper/static/dist/
