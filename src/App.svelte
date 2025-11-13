@@ -15,6 +15,9 @@
   import TabMain from './components/TabMain.svelte';
   import Sidebar from './components/Sidebar.svelte';
   import Navbar from './components/Navbar.svelte';
+  import LevelingDialog from './components/LevelingDialog.svelte';
+  import PidTuningDialog from './components/PidTuningDialog.svelte';
+  import OffsetDialog from './components/OffsetDialog.svelte';
 
   let { 
     octoprintSettings = {},
@@ -23,6 +26,11 @@
     octoprintAccess = {},
     type = 'tab' // 'tab', 'sidebar', or 'navbar'
   } = $props();
+
+  // Dialog visibility state
+  let showLevelingDlg = $state(false);
+  let showPidTuningDlg = $state(false);
+  let showOffsetDlg = $state(false);
 
   onMount(() => {
     // Initialize API
@@ -93,31 +101,26 @@
   }
 
   function showEditorDialog() {
-    // Trigger the existing editor dialog
+    // Trigger the existing editor dialog (still using jQuery for now)
     if (typeof globalThis.$ !== 'undefined') {
       globalThis.$("#klipper_editor").modal({ show: true, width: "90%", backdrop: "static" });
     }
   }
 
   function showLevelingDialog() {
-    if (typeof globalThis.$ !== 'undefined') {
-      globalThis.$("#klipper_leveling_dialog").modal({ show: true, backdrop: "static" });
-    }
+    showLevelingDlg = true;
   }
 
   function showPidTuningDialog() {
-    if (typeof globalThis.$ !== 'undefined') {
-      globalThis.$("#klipper_pid_tuning_dialog").modal({ show: true, backdrop: "static" });
-    }
+    showPidTuningDlg = true;
   }
 
   function showOffsetDialog() {
-    if (typeof globalThis.$ !== 'undefined') {
-      globalThis.$("#klipper_offset_dialog").modal({ show: true, backdrop: "static" });
-    }
+    showOffsetDlg = true;
   }
 
   function showGraphDialog() {
+    // Trigger the existing graph dialog (still using jQuery for now)
     if (typeof globalThis.$ !== 'undefined') {
       globalThis.$("#klipper_graph_dialog").modal({ show: true, backdrop: "static" });
     }
@@ -159,3 +162,8 @@
 {:else if type === 'navbar'}
   <Navbar {navbarClicked} />
 {/if}
+
+<!-- Svelte Dialogs -->
+<LevelingDialog bind:show={showLevelingDlg} onClose={() => showLevelingDlg = false} />
+<PidTuningDialog bind:show={showPidTuningDlg} onClose={() => showPidTuningDlg = false} />
+<OffsetDialog bind:show={showOffsetDlg} onClose={() => showOffsetDlg = false} />
