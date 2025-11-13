@@ -1,10 +1,10 @@
 <script>
-  import { settings } from '../stores/klipper.js';
+  import { klipperStore } from '../stores/klipper.js';
   import { api } from '../lib/api.js';
 
   let { show, onClose = () => {} } = $props();
 
-  let config = $derived($settings);
+  let config = $derived(klipperStore.settings);
   let heater = $state('extruder');
   let targetTemp = $state(200);
   let fan = $state(0);

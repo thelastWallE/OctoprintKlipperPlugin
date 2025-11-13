@@ -1,10 +1,10 @@
 <script>
-  import { shortStatusNavbar, shortStatusNavbarHover } from '../stores/klipper.js';
+  import { klipperStore } from '../stores/klipper.js';
 
   let { navbarClicked = () => {} } = $props();
 
-  let status = $derived($shortStatusNavbar);
-  let statusHover = $derived($shortStatusNavbarHover);
+  let status = $derived(klipperStore.shortStatusNavbar);
+  let statusHover = $derived(klipperStore.shortStatusNavbarHover);
 </script>
 
 <a 

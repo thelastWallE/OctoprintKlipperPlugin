@@ -1,16 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { 
-    isConnected, 
-    isActive, 
-    logMessages, 
-    settings, 
-    loginState, 
-    permissions,
-    addLogMessage,
-    clearLogMessages,
-    updateStatus
-  } from './stores/klipper.js';
+  import { klipperStore } from './stores/klipper.js';
   import { api } from './lib/api.js';
   import TabMain from './components/TabMain.svelte';
   import Sidebar from './components/Sidebar.svelte';
@@ -37,17 +27,17 @@
     api.init();
 
     // Set up initial state from OctoPrint
-    settings.set(octoprintSettings?.settings?.plugins?.klipper || {});
+    klipperStore.settings = octoprintSettings?.settings?.plugins?.klipper || {};
     
-    loginState.set({
+    klipperStore.loginState = {
       isUser: octoprintLoginState?.isUser?.() || false,
       isAdmin: octoprintLoginState?.isAdmin?.() || false
-    });
+    };
 
-    permissions.set({
+    klipperStore.permissions = {
       CONFIG: octoprintLoginState?.hasPermissionKo?.(octoprintAccess?.permissions?.PLUGIN_KLIPPER_CONFIG) || false,
       MACRO: octoprintLoginState?.hasPermissionKo?.(octoprintAccess?.permissions?.PLUGIN_KLIPPER_MACRO) || false
-    });
+    };
 
     // Set up message listener from OctoPrint
     if (typeof OctoPrint !== 'undefined' && OctoPrint.socket) {
@@ -64,11 +54,11 @@
 
   function handlePluginMessage(data) {
     if (data.type === "status") {
-      updateStatus(data);
-      isActive.set(data.isActive || false);
-      isConnected.set(data.isConnected || false);
+      klipperStore.updateStatus(data);
+      klipperStore.isActive = data.isActive || false;
+      klipperStore.isConnected = data.isConnected || false;
     } else if (data.type === "log") {
-      addLogMessage(data.subtype || 'info', data.time || '', data.message || '');
+      klipperStore.addLogMessage(data.subtype || 'info', data.time || '', data.message || '');
     }
   }
 
@@ -77,27 +67,27 @@
       const connected = octoprintConnectionState.isOperational?.() || 
                        octoprintConnectionState.isPrinting?.() || 
                        octoprintConnectionState.isPaused?.() || false;
-      isConnected.set(connected);
-      isActive.set(connected);
+      klipperStore.isConnected = connected;
+      klipperStore.isActive = connected;
     }
   }
 
   function handleGetStatus(result) {
     if (result && result.status) {
-      updateStatus(result.status);
+      klipperStore.updateStatus(result.status);
     }
   }
 
   function handleRestartHost() {
-    addLogMessage('info', new Date().toLocaleTimeString(), 'Restarting Klipper host...');
+    klipperStore.addLogMessage('info', new Date().toLocaleTimeString(), 'Restarting Klipper host...');
   }
 
   function handleRestartFirmware() {
-    addLogMessage('info', new Date().toLocaleTimeString(), 'Restarting Klipper firmware...');
+    klipperStore.addLogMessage('info', new Date().toLocaleTimeString(), 'Restarting Klipper firmware...');
   }
 
   function handleClearLog() {
-    clearLogMessages();
+    klipperStore.clearLogMessages();
   }
 
   function showEditorDialog() {
@@ -127,7 +117,7 @@
   }
 
   function executeMacro(macro) {
-    addLogMessage('info', new Date().toLocaleTimeString(), `Executing macro: ${macro.name || macro}`);
+    klipperStore.addLogMessage('info', new Date().toLocaleTimeString(), `Executing macro: ${macro.name || macro}`);
   }
 
   function navbarClicked() {
