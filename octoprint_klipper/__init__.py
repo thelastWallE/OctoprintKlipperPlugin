@@ -307,24 +307,7 @@ class KlipperPlugin(
         return [
             dict(type="navbar", custom_bindings=True),
             dict(type="settings", custom_bindings=True),
-            dict(
-                type="generic",
-                name="Assisted Bed Leveling",
-                template="klipper_leveling_dialog.jinja2",
-                custom_bindings=True,
-            ),
-            dict(
-                type="generic",
-                name="PID Tuning",
-                template="klipper_pid_tuning_dialog.jinja2",
-                custom_bindings=True,
-            ),
-            dict(
-                type="generic",
-                name="Coordinate Offset",
-                template="klipper_offset_dialog.jinja2",
-                custom_bindings=True,
-            ),
+            # Leveling, PID Tuning, and Offset dialogs now handled by Svelte components
             dict(
                 type="tab",
                 name="Klipper",
@@ -336,11 +319,13 @@ class KlipperPlugin(
                 type="sidebar",
                 custom_bindings=True,
                 icon="rocket",
-                replaces="connection"
-                if self._settings.get_boolean(
-                    ["connection", "replace_connection_panel"]
-                )
-                else "",
+                replaces=(
+                    "connection"
+                    if self._settings.get_boolean(
+                        ["connection", "replace_connection_panel"]
+                    )
+                    else ""
+                ),
             ),
             dict(
                 type="generic",
@@ -381,16 +366,14 @@ class KlipperPlugin(
             js=[
                 "js/klipper.js",
                 "js/klipper_settings.js",
-                "js/klipper_leveling.js",
-                "js/klipper_pid_tuning.js",
-                "js/klipper_offset.js",
+                # Leveling, PID tuning, and offset dialogs now handled by Svelte
                 "js/klipper_param_macro.js",
                 "js/klipper_graph.js",
                 "js/klipper_backup.js",
                 "js/klipper_editor.js",
                 # Svelte 5 components
                 "dist/klipper-svelte.js",
-                "js/klipper_svelte_bridge.js"
+                "js/klipper_svelte_bridge.js",
             ],
             clientjs=["clientjs/klipper.js"],
             css=["css/klipper.css"],
