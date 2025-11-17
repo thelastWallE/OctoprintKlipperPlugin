@@ -1,3 +1,19 @@
+<!--
+@component
+Assisted Bed Leveling dialog that guides users through manual bed leveling
+by moving the print head to configured probe points in sequence.
+
+**Props:**
+- `show` - Boolean to control dialog visibility
+- `onClose` - Function called when the dialog is closed
+
+**Usage:**
+```html
+<LevelingDialog
+  show={showLeveling}
+  onClose={() => showLeveling = false} />
+```
+-->
 <script>
   import { klipperStore } from '../stores/klipper.js';
 
@@ -81,21 +97,21 @@
         </div>
         <div class="modal-body">
           <div class="control-group">
-            <label class="control-label">Points: {pointCount}</label>
+            <div class="control-label">Points: {pointCount}</div>
             <div class="controls">
-              <button 
+              <button
                 class="btn btn-primary"
                 onclick={startLeveling}
                 disabled={activePoint >= 0}>
                 Start Leveling
               </button>
-              <button 
+              <button
                 class="btn btn-danger"
                 onclick={stopLeveling}
                 disabled={activePoint < 0}>
                 Stop Leveling
               </button>
-              <button 
+              <button
                 class="btn"
                 onclick={gotoHome}>
                 Home
@@ -105,17 +121,17 @@
 
           {#if activePoint >= 0}
             <div class="control-group">
-              <label class="control-label">
+              <div class="control-label">
                 Current Point: {activePoint + 1} of {pointCount}
-              </label>
+              </div>
               <div class="controls">
-                <button 
+                <button
                   class="btn"
                   onclick={previousPoint}
                   disabled={activePoint <= 0}>
                   <i class="icon-arrow-left"></i> Previous
                 </button>
-                <button 
+                <button
                   class="btn"
                   onclick={nextPoint}
                   disabled={activePoint >= pointCount - 1}>
@@ -126,10 +142,10 @@
           {/if}
 
           <div class="control-group">
-            <label class="control-label">Jump to Point:</label>
+            <div class="control-label">Jump to Point:</div>
             <div class="controls">
               {#each points as point, index}
-                <button 
+                <button
                   class="btn btn-small"
                   class:btn-primary={activePoint === index}
                   onclick={() => jumpToPoint(index)}>

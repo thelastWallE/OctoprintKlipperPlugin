@@ -1,3 +1,19 @@
+<!--
+@component
+Coordinate Offset dialog for setting X, Y, and Z offsets using the
+SET_GCODE_OFFSET command.
+
+**Props:**
+- `show` - Boolean to control dialog visibility
+- `onClose` - Function called when the dialog is closed
+
+**Usage:**
+```html
+<OffsetDialog
+  show={showOffset}
+  onClose={() => showOffset = false} />
+```
+-->
 <script>
   import { api } from '../lib/api.js';
 
@@ -35,23 +51,23 @@
         </div>
         <div class="modal-body">
           <div class="control-group">
-            <label class="control-label">X Offset (mm)</label>
+            <label class="control-label" for="offset-x">X Offset (mm)</label>
             <div class="controls">
-              <input type="number" bind:value={offsetX} step="0.1" />
+              <input id="offset-x" type="number" bind:value={offsetX} step="0.1" />
             </div>
           </div>
 
           <div class="control-group">
-            <label class="control-label">Y Offset (mm)</label>
+            <label class="control-label" for="offset-y">Y Offset (mm)</label>
             <div class="controls">
-              <input type="number" bind:value={offsetY} step="0.1" />
+              <input id="offset-y" type="number" bind:value={offsetY} step="0.1" />
             </div>
           </div>
 
           <div class="control-group">
-            <label class="control-label">Z Offset (mm)</label>
+            <label class="control-label" for="offset-z">Z Offset (mm)</label>
             <div class="controls">
-              <input type="number" bind:value={offsetZ} step="0.01" />
+              <input id="offset-z" type="number" bind:value={offsetZ} step="0.01" />
             </div>
           </div>
 

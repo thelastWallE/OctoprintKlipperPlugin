@@ -1,8 +1,30 @@
+<!--
+@component
+Sidebar component for OctoPrint that provides Klipper connection controls,
+status display, and quick access to macros.
+
+**Props:**
+- `connectionState` - OctoPrint connection state object
+- `loginState` - OctoPrint login state object
+- `showEditorDialog` - Function to show the configuration editor
+- `executeMacro` - Function called when a macro is executed
+- `navbarClicked` - Function called when status is clicked
+
+**Usage:**
+```html
+<Sidebar
+  connectionState={connection}
+  loginState={login}
+  showEditorDialog={() => openEditor()}
+  executeMacro={(macro) => runMacro(macro)}
+  navbarClicked={() => switchToKlipperTab()} />
+```
+-->
 <script>
   import { klipperStore } from '../stores/klipper.js';
   import { api } from '../lib/api.js';
 
-  let { 
+  let {
     connectionState,
     loginState,
     showEditorDialog = () => {},
@@ -33,14 +55,14 @@
 
 <div class="control-group">
   <div class="controls">
-    <label 
+    <label
       for="connection_printers"
       class:disabled={connectionState && !connectionState.isErrorOrClosed()}
       >
       Printer Profile
     </label>
-    
-    <select 
+
+    <select
       id="connection_printers"
       bind:value={connectionState.selectedPrinter}
       disabled={connectionState && !connectionState.isErrorOrClosed()}
@@ -53,7 +75,7 @@
       {/if}
     </select>
 
-    <button 
+    <button
       class="btn btn-block"
       onclick={handleConnect}
       disabled={!loginState?.isUser}
@@ -62,7 +84,7 @@
     </button>
 
     {#if !config?.connection?.hide_editor_button && perms.CONFIG}
-      <button 
+      <button
         class="btn btn-block"
         onclick={() => showEditorDialog()}
         title="Open Editor">
@@ -74,24 +96,24 @@
 
 {#if config?.configuration?.shortStatus_sidebar}
   <div id="shortStatus_SideBar" class="plugin-klipper-sidebar">
-    <a 
-      href="#"
-      onclick={(e) => { e.preventDefault(); navbarClicked(); }}
+    <button
+      type="button"
+      onclick={navbarClicked}
       title="Go to OctoKlipper Tab">
       <div class="msg">{@html status}</div>
-    </a>
+    </button>
   </div>
 {/if}
 
 {#if perms.MACRO}
   <div class="control-group">
     <div class="controls">
-      <label class="control-label small">
+      <div class="control-label small">
         <i class="icon-list-alt"></i> Macros
-      </label>
+      </div>
       {#each config?.macros || [] as macro}
         {#if macro.sidebar}
-          <button 
+          <button
             class="btn btn-block"
             onclick={() => handleMacro(macro)}
             disabled={!active}>
@@ -102,3 +124,19 @@
     </div>
   </div>
 {/if}
+
+<style>
+  #shortStatus_SideBar button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    text-align: inherit;
+  }
+  #shortStatus_SideBar button:hover {
+    text-decoration: underline;
+  }
+</style>

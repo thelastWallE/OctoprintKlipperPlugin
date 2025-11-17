@@ -1,3 +1,19 @@
+<!--
+@component
+PID Tuning dialog for calibrating heater PID parameters by heat cycling
+the extruder or heated bed.
+
+**Props:**
+- `show` - Boolean to control dialog visibility
+- `onClose` - Function called when the dialog is closed
+
+**Usage:**
+```html
+<PidTuningDialog
+  show={showPidTuning}
+  onClose={() => showPidTuning = false} />
+```
+-->
 <script>
   import { klipperStore } from '../stores/klipper.js';
   import { api } from '../lib/api.js';
@@ -39,9 +55,9 @@
         </div>
         <div class="modal-body">
           <div class="control-group">
-            <label class="control-label">Heater</label>
+            <label class="control-label" for="pid-heater">Heater</label>
             <div class="controls">
-              <select bind:value={heater}>
+              <select id="pid-heater" bind:value={heater}>
                 <option value="extruder">Extruder</option>
                 <option value="heater_bed">Heated Bed</option>
               </select>
@@ -49,16 +65,16 @@
           </div>
 
           <div class="control-group">
-            <label class="control-label">Target Temperature (°C)</label>
+            <label class="control-label" for="pid-temp">Target Temperature (°C)</label>
             <div class="controls">
-              <input type="number" bind:value={targetTemp} min="0" max="300" />
+              <input id="pid-temp" type="number" bind:value={targetTemp} min="0" max="300" />
             </div>
           </div>
 
           <div class="control-group">
-            <label class="control-label">Fan Speed (%)</label>
+            <label class="control-label" for="pid-fan">Fan Speed (%)</label>
             <div class="controls">
-              <input type="number" bind:value={fan} min="0" max="100" />
+              <input id="pid-fan" type="number" bind:value={fan} min="0" max="100" />
             </div>
           </div>
 

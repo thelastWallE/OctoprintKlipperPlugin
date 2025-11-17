@@ -1,9 +1,41 @@
+<!--
+@component
+Main tab content for the Klipper plugin, displaying log messages and providing
+controls for Klipper operations, tools, and macros.
+
+**Props:**
+- `onGetStatus` - Function called when getting Klipper status
+- `onRestartHost` - Function called when restarting Klipper host
+- `onRestartFirmware` - Function called when restarting firmware
+- `showEditorDialog` - Function to show the configuration editor
+- `showLevelingDialog` - Function to show the bed leveling dialog
+- `showPidTuningDialog` - Function to show the PID tuning dialog
+- `showOffsetDialog` - Function to show the coordinate offset dialog
+- `showGraphDialog` - Function to show the log analysis graph dialog
+- `executeMacro` - Function called when a macro is executed
+- `onClearLog` - Function called when clearing the log
+
+**Usage:**
+```html
+<TabMain
+  onGetStatus={() => getStatus()}
+  onRestartHost={() => restartHost()}
+  onRestartFirmware={() => restartFirmware()}
+  showEditorDialog={() => openEditor()}
+  showLevelingDialog={() => showLeveling = true}
+  showPidTuningDialog={() => showPidTuning = true}
+  showOffsetDialog={() => showOffset = true}
+  showGraphDialog={() => showGraph = true}
+  executeMacro={(macro) => runMacro(macro)}
+  onClearLog={() => clearMessages()} />
+```
+-->
 <script>
   import { klipperStore } from '../stores/klipper.js';
   import { api } from '../lib/api.js';
 
-  let { 
-    onGetStatus = () => {}, 
+  let {
+    onGetStatus = () => {},
     onRestartHost = () => {},
     onRestartFirmware = () => {},
     showEditorDialog = () => {},
@@ -64,18 +96,18 @@
 
 <div class="row-fluid">
   <div id="left-side">
-    <label class="klipper-inline">
+    <div class="klipper-inline">
       <i class="icon-tasks"></i> Messages
-    </label>
+    </div>
     {#if perms.CONFIG}
-      <button 
+      <button
         class="btn btn-small pull-right"
         onclick={() => showEditorDialog()}
         title="Open the OctoKlipper Settings">
         <i class="fa icon-black fa-wrench"></i>
       </button>
     {/if}
-    
+
     <div class="plugin-klipper-log">
       {#each messages as message}
         <div class="log-item {message.type}">
@@ -84,10 +116,10 @@
         </div>
       {/each}
     </div>
-    
+
     &nbsp;
-    <button 
-      class="btn btn-mini pull-right clear-btn" 
+    <button
+      class="btn btn-mini pull-right clear-btn"
       onclick={clearLog}
       title="Clear Log">
       <i class="fa fa-trash"></i> Clear Log
@@ -98,8 +130,7 @@
     <div class="control-group">
       <div class="control-group">
         <div class="controls">
-          <label class="control-label"></label>
-          <button 
+          <button
             class="btn btn-block btn-small"
             onclick={handleGetStatus}
             disabled={!active}
@@ -107,7 +138,7 @@
             <i class="fa icon-black fa-info-circle"></i> Get Status
           </button>
           {#if perms.CONFIG}
-            <button 
+            <button
               class="btn btn-block btn-small"
               onclick={() => showEditorDialog()}
               title="Show the Editor">
@@ -119,17 +150,17 @@
 
       <div class="control-group">
         <div class="controls">
-          <label class="control-label small">
+          <div class="control-label small">
             <i class="icon-refresh"></i> Restart
-          </label>
-          <button 
+          </div>
+          <button
             class="btn btn-block btn-small"
             onclick={handleRestartHost}
             disabled={!active}
             title="This will cause the host software to reload its config and perform an internal reset">
             Host
           </button>
-          <button 
+          <button
             class="btn btn-block btn-small"
             onclick={handleRestartFirmware}
             disabled={!active}
@@ -141,31 +172,31 @@
 
       <div class="control-group">
         <div class="controls">
-          <label class="control-label">
+          <div class="control-label">
             <i class="icon-wrench"></i> Tools
-          </label>
-          <button 
+          </div>
+          <button
             class="btn btn-block btn-small"
             onclick={() => showLevelingDialog()}
             disabled={!active}
             title="Assists in manually leveling your printbed by moving the head to a configurable set of positions in sequence.">
             Assisted Bed Leveling
           </button>
-          <button 
+          <button
             class="btn btn-block btn-small"
             onclick={() => showPidTuningDialog()}
             disabled={!active}
             title="Determines optimal PID parameters by heat cycling the hotend/bed.">
             PID Tuning
           </button>
-          <button 
+          <button
             class="btn btn-block btn-small"
             onclick={() => showOffsetDialog()}
             disabled={!active}
             title="Sets a offset for subsequent GCODE coordinates.">
             Coordinate Offset
           </button>
-          <button 
+          <button
             class="btn btn-block btn-small"
             onclick={() => showGraphDialog()}
             title="Assists in debugging performance issues by analyzing the Klipper log files.">
@@ -176,12 +207,12 @@
 
       {#if perms.MACRO}
         <div class="controls">
-          <label class="control-label">
+          <div class="control-label">
             <i class="icon-list-alt"></i> Macros
-          </label>
+          </div>
           {#each config?.macros || [] as macro}
             {#if macro.tab}
-              <button 
+              <button
                 class="btn btn-block btn-small"
                 onclick={() => handleMacro(macro)}
                 disabled={!active}>
