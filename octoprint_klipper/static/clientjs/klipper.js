@@ -61,14 +61,7 @@
   };
 
   OctoKlipperClient.prototype.restoreBackup = function (backup, opts) {
-    return this.base.get(this.url + "backup/restore/" + backup, opts);
-  };
-
-  OctoKlipperClient.prototype.restoreBackupFromUpload = function (file, data) {
-    data = data || {};
-
-    var filename = data.filename || undefined;
-    return this.base.upload(this.url + "restore", file, filename, data);
+    return this.base.post(this.url + "backup/restore/" + backup, opts);
   };
 
   OctoPrintClient.registerPluginComponent("klipper", OctoKlipperClient);

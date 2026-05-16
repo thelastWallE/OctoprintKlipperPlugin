@@ -21,25 +21,9 @@ $(function () {
     self.klipperViewModel = parameters[1];
     self.access = parameters[2];
 
-    self.header = OctoPrint.getRequestHeaders({
-      "content-type": "application/json",
-      "cache-control": "no-cache",
-    });
-
-    self.apiUrl = OctoPrint.getSimpleApiUrl("klipper");
-    self.Url = OctoPrint.getBlueprintUrl("klipper");
-
     self.markedForFileRestore = ko.observableArray([]);
 
     self.CfgContent = ko.observable();
-
-    //uploads
-    self.maxUploadSize = ko.observable(0);
-    self.backupUploadData = undefined;
-    self.backupUploadName = ko.observable();
-    self.isAboveUploadSize = function (data) {
-      return data.size > self.maxUploadSize();
-    };
 
     self.onStartupComplete = function () {
       $('#klipper_backups_dialog').css('display', 'none');

@@ -1,12 +1,16 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-import glob
-import os, time, sys
-import io
-import flask
 
-from octoprint_klipper.util import *
-from flask_babel import gettext
+import glob
+import io
+import os
+import sys
+import time
 from shutil import copy, copyfile
+
+import flask
+from flask_babel import gettext
+
+from octoprint_klipper.util import file_exist, log_debug, log_error, send_message
 
 try:
     import configparser
@@ -209,7 +213,7 @@ def is_float_ok(self, dataToValidated):
         for y in sections_search_list:
             for x in value_search_list:
                 if dataToValidated.has_option(y, x):
-                    a_float = dataToValidated.getfloat(y, x)
+                    dataToValidated.getfloat(y, x)
     except ValueError as error:
         log_error(
             self,
