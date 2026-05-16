@@ -419,8 +419,11 @@ class KlipperPlugin(
         return False
 
     def route_hook(self, server_routes, *args, **kwargs):
+        from octoprint.server import app
+        from octoprint.server.util.flask import permission_validator
         from octoprint.server.util.tornado import (
             LargeResponseHandler,
+            access_validation_factory,
             path_validation_factory,
         )
         from octoprint.util import is_hidden_path
@@ -428,14 +431,21 @@ class KlipperPlugin(
                         self._settings.get(["configuration", "config_path"])
                     )
         bak_path = os.path.join(self.get_plugin_data_folder(), "configs", "")
+        config_download_access = access_validation_factory(
+            app,
+            permission_validator,
+            Permissions.PLUGIN_KLIPPER_CONFIG,
+        )
 
         return [
             (r"/download/configs/(.*)", LargeResponseHandler, dict(path=configpath,
                                                            as_attachment=True,
+                                                           access_validation=config_download_access,
                                                            path_validation=path_validation_factory(lambda path: not is_hidden_path(path),
                                                                                                    status_code=404))),
             (r"/download/backup/(.*)", LargeResponseHandler, dict(path=bak_path,
                                                            as_attachment=True,
+                                                           access_validation=config_download_access,
                                                            path_validation=path_validation_factory(lambda path: not is_hidden_path(path),
                                                                                                    status_code=404)))
         ]
