@@ -417,6 +417,9 @@ class KlipperPlugin(
     def is_blueprint_protected(self):
         return True
 
+    def is_blueprint_csrf_protected(self):
+        return True
+
     def route_hook(self, server_routes, *args, **kwargs):
         from octoprint.server import app
         from octoprint.server.util.flask import permission_validator
@@ -485,7 +488,7 @@ class KlipperPlugin(
         return flask.jsonify(files = files)
 
     # restore a backed up configfile
-    @octoprint.plugin.BlueprintPlugin.route("/backup/restore/<filename>", methods=["GET"])
+    @octoprint.plugin.BlueprintPlugin.route("/backup/restore/<filename>", methods=["POST"])
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def restore_backup(self, filename):
         configpath = os.path.expanduser(

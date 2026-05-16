@@ -61,7 +61,7 @@
   };
 
   OctoKlipperClient.prototype.restoreBackup = function (backup, opts) {
-    return this.base.get(this.url + "backup/restore/" + backup, opts);
+    return this.base.post(this.url + "backup/restore/" + backup, opts);
   };
 
   OctoPrintClient.registerPluginComponent("klipper", OctoKlipperClient);
