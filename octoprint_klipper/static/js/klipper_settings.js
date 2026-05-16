@@ -24,11 +24,6 @@ $(function () {
     self.klipperBackupViewModel = parameters[3];
     self.access = parameters[4];
 
-    self.header = OctoPrint.getRequestHeaders({
-      "content-type": "application/json",
-      "cache-control": "no-cache",
-    });
-
     self.markedForFileRemove = ko.observableArray([]);
     self.PathToConfigs = ko.observable("");
 
