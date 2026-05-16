@@ -237,6 +237,9 @@ class KlipperPlugin(
 
 
     # -- Template Plugin
+    def is_template_autoescaped(self):
+        return True
+
     def get_template_configs(self):
         return [
             dict(type="navbar", custom_bindings=True),
