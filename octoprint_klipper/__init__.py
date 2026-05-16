@@ -559,7 +559,7 @@ class KlipperPlugin(
             )
         Filecontent = data.get("DataToSave", [])
         saved = cfgUtils.save_cfg(self, Filecontent, filename)
-        if saved == True:
+        if saved:
             send_message(self, type = "reload", subtype = "configlist")
         return flask.jsonify(saved = saved)
 
