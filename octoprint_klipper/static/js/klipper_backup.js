@@ -21,14 +21,6 @@ $(function () {
     self.klipperViewModel = parameters[1];
     self.access = parameters[2];
 
-    self.header = OctoPrint.getRequestHeaders({
-      "content-type": "application/json",
-      "cache-control": "no-cache",
-    });
-
-    self.apiUrl = OctoPrint.getSimpleApiUrl("klipper");
-    self.Url = OctoPrint.getBlueprintUrl("klipper");
-
     self.markedForFileRestore = ko.observableArray([]);
 
     self.cfgContent = ko.observable();
@@ -75,7 +67,7 @@ $(function () {
       "name",
       [],
       [],
-      5
+      5,
     );
 
     self.listBakFiles = function () {
@@ -115,7 +107,7 @@ $(function () {
               "<p>" +
               _.sprintf(
                 gettext("Failed to retrieve config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
-                { name: _.escape(backup) }
+                { name: _.escape(backup) },
               );
             html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>");
             new PNotify({
@@ -135,7 +127,7 @@ $(function () {
             "<p>" +
             _.sprintf(
               gettext("Failed to retrieve config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
-              { name: _.escape(backup) }
+              { name: _.escape(backup) },
             );
           html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
           new PNotify({
@@ -160,10 +152,10 @@ $(function () {
                 "<p>" +
                 _.sprintf(
                   gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
-                  { name: _.escape(backup) }
+                  { name: _.escape(backup) },
                 );
               html += pnotifyAdditionalInfo(
-                '<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>"
+                '<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>",
               );
               new PNotify({
                 title: gettext("Could not remove config"),
@@ -180,7 +172,7 @@ $(function () {
               "<p>" +
               _.sprintf(
                 gettext("Failed to remove config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
-                { name: _.escape(backup) }
+                { name: _.escape(backup) },
               );
             html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
             new PNotify({
@@ -196,7 +188,7 @@ $(function () {
         _.sprintf(gettext('You are about to delete backed up config file "%(name)s".'), {
           name: _.escape(backup),
         }),
-        perform
+        perform,
       );
     };
 
@@ -213,10 +205,10 @@ $(function () {
                 "<p>" +
                 _.sprintf(
                   gettext("Failed to restore config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
-                  { name: _.escape(backup) }
+                  { name: _.escape(backup) },
                 );
               html += pnotifyAdditionalInfo(
-                '<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>"
+                '<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>",
               );
               new PNotify({
                 title: gettext("Could not restore config"),
@@ -235,7 +227,7 @@ $(function () {
               "<p>" +
               _.sprintf(
                 gettext("Failed to restore config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
-                { name: _.escape(backup) }
+                { name: _.escape(backup) },
               );
             html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
             new PNotify({
@@ -265,7 +257,7 @@ $(function () {
 
     self.markFilesOnPage = function () {
       self.markedForFileRestore(
-        _.uniq(self.markedForFileRestore().concat(_.map(self.backups.paginatedItems(), "file")))
+        _.uniq(self.markedForFileRestore().concat(_.map(self.backups.paginatedItems(), "file"))),
       );
     };
 
@@ -288,7 +280,7 @@ $(function () {
         _.sprintf(gettext("You are about to restore %(count)d backed up config files."), {
           count: self.markedForFileRestore().length,
         }),
-        perform
+        perform,
       );
     };
 
@@ -303,7 +295,7 @@ $(function () {
         _.sprintf(gettext("You are about to delete %(count)d backed up config files."), {
           count: self.markedForFileRestore().length,
         }),
-        perform
+        perform,
       );
     };
 
@@ -324,7 +316,7 @@ $(function () {
               self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + filename + " / " + response.error.message);
               deferred.notify(
                 _.sprintf(gettext("Restoring of %(filename)s failed, continuing..."), { filename: _.escape(filename) }),
-                false
+                false,
               );
               return;
             }
@@ -333,7 +325,7 @@ $(function () {
               _.sprintf(gettext("Restored %(filename)s..."), {
                 filename: _.escape(filename),
               }),
-              true
+              true,
             );
             self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + filename + " / " + response.restored);
             self.markedForFileRestore.remove(function (item) {
@@ -343,11 +335,11 @@ $(function () {
           .fail(function (response) {
             self.klipperViewModel.consoleMessage(
               "debug",
-              "restoreCfg: " + filename + " / " + _.escape(response.responseText)
+              "restoreCfg: " + filename + " / " + _.escape(response.responseText),
             );
             deferred.notify(
               _.sprintf(gettext("Restoring of %(filename)s failed, continuing..."), { filename: _.escape(filename) }),
-              false
+              false,
             );
           });
       };
@@ -393,7 +385,7 @@ $(function () {
             if (response.status == "error") {
               deferred.notify(
                 _.sprintf(gettext("Deleting of %(filename)s failed, continuing..."), { filename: _.escape(filename) }),
-                false
+                false,
               );
               return;
             }
@@ -405,7 +397,7 @@ $(function () {
           .fail(function () {
             deferred.notify(
               _.sprintf(gettext("Deleting of %(filename)s failed, continuing..."), { filename: _.escape(filename) }),
-              false
+              false,
             );
           });
       };

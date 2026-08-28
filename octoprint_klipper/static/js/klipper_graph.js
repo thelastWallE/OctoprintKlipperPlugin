@@ -18,10 +18,7 @@ $(function () {
     var self = this;
     self.loginState = parameters[0];
 
-    self.header = OctoPrint.getRequestHeaders({
-      "content-type": "application/json",
-      "cache-control": "no-cache",
-    });
+    self.header = OctoPrint.getRequestHeaders("POST");
 
     self.apiUrl = OctoPrint.getSimpleApiUrl("klipper");
 

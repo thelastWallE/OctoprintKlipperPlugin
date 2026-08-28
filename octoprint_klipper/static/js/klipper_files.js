@@ -23,11 +23,6 @@ $(function () {
     self.loginState = parameters[3];
     self.printerState = parameters[4];
 
-    self.header = OctoPrint.getRequestHeaders({
-      "content-type": "application/json",
-      "cache-control": "no-cache",
-    });
-
     self.markedForFileRemove = ko.observableArray([]);
     self.PathToConfigs = ko.observable("");
     self.allItems = ko.observable(undefined);
@@ -109,7 +104,7 @@ $(function () {
 
     self.loadListStyleFromLocalStorage = function () {
       var listStyle = loadFromLocalStorage(listStyleStorageKey);
-      if (listStyle !== {}) {
+      if (listStyle.length > 0) {
         self.listStyle(listStyle);
       } else {
         self.listStyle(defaultListStyle);
@@ -186,7 +181,7 @@ $(function () {
       "name",
       [],
       listHelperExclusiveFilters,
-      0
+      0,
     );
 
     self.availableFiletypes = ko.pureComputed(function () {
@@ -359,7 +354,7 @@ $(function () {
           "At least one folder doesn't have a 'children' element defined. That means the file list request " +
             "wasn't actually made with 'recursive=true' in the query.\n\n" +
             "This can happen on wrong reverse proxy configs that " +
-            "swallow up query parameters, see https://github.com/OctoPrint/OctoPrint/issues/2572"
+            "swallow up query parameters, see https://github.com/OctoPrint/OctoPrint/issues/2572",
         );
       }
 
@@ -440,7 +435,7 @@ $(function () {
       path.pop();
       self.changeFolderByPath(path.join("/"));
       self.klipperViewModel.currentCfgFilename(
-        self.klipperViewModel.currentCfgFilename().split("/").slice(0, -1).join("/")
+        self.klipperViewModel.currentCfgFilename().split("/").slice(0, -1).join("/"),
       );
     };
 
@@ -513,7 +508,7 @@ $(function () {
         var options = {
           message: _.sprintf(
             gettext('You are about to delete the folder "%(folder)s" which still contains files and/or sub folders.'),
-            { folder: _.escape(folder.name) }
+            { folder: _.escape(folder.name) },
           ),
           onproceed: function () {
             self._removeEntry(folder, event);
@@ -595,7 +590,7 @@ $(function () {
               " " +
               self.moveDestination() +
               ": \n" +
-              gettext(response.responseJSON.error)
+              gettext(response.responseJSON.error),
           );
           self.movingFileOrFolder(false);
         });
@@ -607,7 +602,7 @@ $(function () {
         self.activeRemovals(
           _.filter(self.activeRemovals(), function (e) {
             return e !== "klipper_configs:" + entry.path;
-          })
+          }),
         );
       };
 
@@ -681,7 +676,7 @@ $(function () {
     self.enableMove = function (data) {
       return self.loginState.hasAllPermissions(
         self.access.permissions.FILES_UPLOAD,
-        self.access.permissions.FILES_DELETE
+        self.access.permissions.FILES_DELETE,
       ); // && some way to figure out if there are subfolders;
     };
 
@@ -887,7 +882,7 @@ $(function () {
               $("h3", self.uploadExistsDialog).text(
                 _.sprintf(gettext("File already exists: %(name)s"), {
                   name: file.name,
-                })
+                }),
               );
               $("input", self.uploadExistsDialog).val("").prop("placeholder", response.suggestion);
               $("a.upload-rename", self.uploadExistsDialog)
@@ -965,9 +960,9 @@ $(function () {
         "<p>" +
         _.sprintf(
           gettext(
-            "Could not upload the file. Make sure that it is a readable, valid file with one of these extensions: %(extensions)s"
+            "Could not upload the file. Make sure that it is a readable, valid file with one of these extensions: %(extensions)s",
           ),
-          { extensions: _.escape(extensions) }
+          { extensions: _.escape(extensions) },
         ) +
         "</p>";
       if (data.jqXHR.responseText) {

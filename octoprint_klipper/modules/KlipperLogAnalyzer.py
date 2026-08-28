@@ -164,26 +164,3 @@ class KlipperLogAnalyzer:
             awake=awake,
             buffers=hostbuffers,
         )
-
-    def plot_frequency(self, data, mcu):
-        all_keys = {}
-        for d in data:
-            all_keys.update(d)
-        one_mcu = mcu is not None
-        graph_keys = {
-            key: ([], [])
-            for key in all_keys
-            if (
-                key in ("freq", "adj")
-                or (not one_mcu and (key.endswith(":freq") or key.endswith(":adj")))
-            )
-        }
-        for d in data:
-            st = d["#sampletime"]
-            for key, (times, values) in list(graph_keys.items()):
-                val = d.get(key)
-                if val not in (None, "0", "1"):
-                    times.append(st)
-                    values.append(float(val) / 1000000.0)
-
-        return values

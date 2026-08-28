@@ -240,24 +240,17 @@ def check_float(self, dataToValidated):
                     if a_float:
                         pass
     except ValueError as error:
-        complete_error = "\n"
-        +"Invalid Value for <b>" + x + "</b> in Section: <b>" + y + "</b>\n"
-        +"{}".format(str(error))
+        complete_error = (
+            "\n"
+            + "Invalid Value for <b>" + x + "</b> in Section: <b>" + y + "</b>\n"
+            + "{}".format(str(error))
+        )
         error_list.append(complete_error)
-        """ send_message(
-            self,
-            type = "PopUp",
-            subtype = "warning",
-            title = "Invalid Config data\n",
-            payload = "\n"
-                + "Invalid Value for <b>" + x + "</b> in Section: <b>" + y + "</b>\n"
-                + "{}".format(str(error))
-        ) """
         pass
     else:
         return {"status": "success"}
     if error_list:
-        return extra.return_error(error_list)
+        return extra.return_error(self, "\n".join(error_list))
 
 
 def copy_cfg_to_backup(self, src):

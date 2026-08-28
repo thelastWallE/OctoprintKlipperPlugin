@@ -18,14 +18,6 @@ $(function () {
     var self = this;
     var testLog = undefined;
 
-    self.header = OctoPrint.getRequestHeaders({
-      "content-type": "application/json",
-      "cache-control": "no-cache",
-    });
-
-    self.apiUrl = OctoPrint.getSimpleApiUrl("klipper");
-    self.Url = OctoPrint.getBlueprintUrl("klipper");
-
     self.settings = parameters[0];
     self.loginState = parameters[1];
     self.connectionState = parameters[2];
@@ -165,7 +157,7 @@ $(function () {
           gettext("You can set this command in the settings.") +
           "\n" +
           gettext("Actual command: ") +
-          self.settings.settings.plugins.klipper.configuration.restart_host_command()
+          self.settings.settings.plugins.klipper.configuration.restart_host_command(),
       );
 
       $("#klipper-restart-firmware").attr(
@@ -175,7 +167,7 @@ $(function () {
           gettext("You can set this command in the settings.") +
           "\n" +
           gettext("Actual command: ") +
-          self.settings.settings.plugins.klipper.configuration.restart_firmware_command()
+          self.settings.settings.plugins.klipper.configuration.restart_firmware_command(),
       );
 
       $("#klipper-restart-service").attr(
@@ -185,7 +177,7 @@ $(function () {
           gettext("You can set this command in the settings.") +
           "\n" +
           gettext("Actual command: ") +
-          self.settings.settings.plugins.klipper.configuration.restart_service_system_command()
+          self.settings.settings.plugins.klipper.configuration.restart_service_system_command(),
       );
     };
 
@@ -201,7 +193,7 @@ $(function () {
             self.logMessage(
               null,
               null,
-              `<b>${gettext("Available Klipper Version:")}</b> ${self.host_remote_version()}`
+              `<b>${gettext("Available Klipper Version:")}</b> ${self.host_remote_version()}`,
             );
           } else {
             self.showPopUp("error", "Error", response.error.message);
@@ -316,7 +308,7 @@ $(function () {
         OctoPrint.control.sendGcode(
           // Use .split to create an array of strings which is sent to
           // OctoPrint.control.sendGcode instead of a single string.
-          expanded
+          expanded,
         );
       } else {
         self.paramMacroViewModel.process(macro, self);
@@ -716,7 +708,7 @@ $(function () {
         self._showPopUp("Updater", {
           title: gettext("Can't update while throttled"),
           text: gettext(
-            "Your system is currently throttled. OctoPrint refuses to run updates while in this state due to possible stability issues."
+            "Your system is currently throttled. OctoPrint refuses to run updates while in this state due to possible stability issues.",
           ),
           type: "error",
         });
@@ -882,7 +874,7 @@ $(function () {
           self.sleep(300).then(function () {
             $("#copyToClipboard").attr("data-original-title", gettext("Copy to Clipboard"));
           });
-        }
+        },
       );
     });
 

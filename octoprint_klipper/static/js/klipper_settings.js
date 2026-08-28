@@ -24,11 +24,6 @@ $(function () {
     self.klipperBackupViewModel = parameters[3];
     self.access = parameters[4];
 
-    self.header = OctoPrint.getRequestHeaders({
-      "content-type": "application/json",
-      "cache-control": "no-cache",
-    });
-
     self.PathToConfigs = ko.observable("");
     self.serverOS = ko.observable("");
     self.macros = ko.observableArray([]);
@@ -80,7 +75,7 @@ $(function () {
           } else {
             self.klipperViewModel.consoleMessage(
               "error",
-              "getServerInfo response: " + _.escape(response.error.message)
+              "getServerInfo response: " + _.escape(response.error.message),
             );
           }
         })
@@ -108,7 +103,7 @@ $(function () {
                 " /etc/default/klipper<br>    sudo systemctl restart klipper<br><br>",
               {
                 title: gettext("Manually action needed"),
-              }
+              },
             );
           } else if (response.error) {
             self.klipperViewModel.consoleMessage("error", "modifyServiceFile failed: " + response.error.message);
