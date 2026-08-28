@@ -19,3 +19,18 @@ class TestCheckConfig:
         config = "[probe]\nx_offset = not_a_number\n"
         result = CfgUtils.check_config(plugin_self, config)
         assert result["status"] == "error"
+
+
+class TestGetCfg:
+    def test_missing_file_returns_error(self, plugin_self, tmp_path):
+        missing = str(tmp_path / "does_not_exist.cfg")
+        result = CfgUtils.get_cfg(plugin_self, missing)
+        assert result["status"] == "error"
+
+    def test_existing_file_returns_content(self, plugin_self, tmp_path):
+        cfg = tmp_path / "printer.cfg"
+        cfg.write_text("[probe]\nx_offset = 0.0\n", encoding="utf-8")
+        result = CfgUtils.get_cfg(plugin_self, str(cfg))
+        assert result["status"] == "success"
+        assert result["data"]["body"]["content"] == "[probe]\nx_offset = 0.0\n"
+        assert result["data"]["body"]["file"] == str(cfg)

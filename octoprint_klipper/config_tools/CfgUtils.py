@@ -79,7 +79,7 @@ def get_cfg(self, file):
             with io.open(file, "r", encoding="utf-8") as f:
                 file_content = f.read()
         except IOError as Err:
-            extra.return_error(
+            return extra.return_error(
                 self,
                 gettext("Error: Klipper config file not found at:")
                 + " {}".format(file)
@@ -89,7 +89,7 @@ def get_cfg(self, file):
                 "read",
             )
         except UnicodeDecodeError as Err:
-            extra.return_error(
+            return extra.return_error(
                 self,
                 gettext("Decode Error:")
                 + "\n"
@@ -103,7 +103,7 @@ def get_cfg(self, file):
                 "decode",
             )
     else:
-        extra.return_error(self, gettext("File not found!"))
+        return extra.return_error(self, gettext("File not found!"))
 
     return dict(status="success", data=dict(body=dict(content=file_content, file=file)))
 
