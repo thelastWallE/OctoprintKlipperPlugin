@@ -244,8 +244,39 @@ $(function () {
       }
     });
 
+    self._getConfigPath = function () {
+      if (
+        self.settings &&
+        self.settings.settings &&
+        self.settings.settings.plugins &&
+        self.settings.settings.plugins.klipper &&
+        self.settings.settings.plugins.klipper.configuration &&
+        ko.isObservable(self.settings.settings.plugins.klipper.configuration.config_path)
+      ) {
+        return self.settings.settings.plugins.klipper.configuration.config_path();
+      }
+      return undefined;
+    };
+
     self.onStartupComplete = function () {
       self._fromLocalStorage();
+      self._lastConfigPath = self._getConfigPath();
+    };
+
+    // Called by the editor when it is shown. Keeps the current folder for
+    // everyday use, but resets to the root when the config path changed so the
+    // file browser doesn't stay on a folder from a previous config path.
+    // Returns true if the config path changed since the last time it was shown.
+    self.onEditorShown = function () {
+      var configPath = self._getConfigPath();
+      var changed = self._lastConfigPath !== configPath;
+      if (changed) {
+        self._lastConfigPath = configPath;
+        self.currentPath("");
+        self.searchQuery("");
+      }
+      self.requestData({ force: true });
+      return changed;
     };
 
     self.fromCurrentData = function (data) {

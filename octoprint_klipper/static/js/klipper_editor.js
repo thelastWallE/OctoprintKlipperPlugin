@@ -88,10 +88,27 @@ $(function () {
     });
 
     self.onShown = function () {
-      self.klipperFilesViewModel.requestData({ force: true });
+      if (self.klipperFilesViewModel.onEditorShown()) {
+        // The config path changed, so the previously loaded file may no longer
+        // be part of the registered storage. Unload it to avoid errors on reload.
+        self.unloadFile();
+      }
       self.checkExternChange();
       editor.focus();
       self.setEditorDivSize();
+    };
+
+    // Clear the currently loaded config file from the editor.
+    self.unloadFile = function () {
+      self.loadedConfigContent = "";
+      self.loadedConfigFilename = "";
+      self.klipperViewModel.currentCfgFilename("");
+      self.cfgContent("");
+      self.cfgChangedExtern = false;
+      if (editor) {
+        editor.session.setValue("");
+        editor.clearSelection();
+      }
     };
 
     self.close_selection = function (index) {
@@ -199,7 +216,7 @@ $(function () {
 
     //check if the config was externally changed and ask for a reload
     self.checkExternChange = function () {
-      if (!changedConfigConfirmationDialogShown) {
+      if (!changedConfigConfirmationDialogShown && self.cfgChangedExtern) {
         if (editordialog.is(":visible")) {
           self.cfgChangedExtern = false;
           changedConfigConfirmationDialogShown = true; //prevent another dialog popUp
@@ -434,7 +451,10 @@ $(function () {
           if (response.status == "success") {
             var config = {
               content: response.data.body.content,
-              file: response.data.body.file,
+              // Use the storage-relative path passed in so reload/save work.
+              // The baseconfig is a special virtual file resolved by the
+              // backend, keep its resolved path for saving.
+              file: file === "baseconfig" ? response.data.body.file : file,
             };
             self.process(config);
             self.loadedConfigFilename = config.file;
@@ -528,7 +548,16 @@ $(function () {
       self.process(config);
     };
 
-    self.onStartup = function () {};
+    self.onStartup = function () {
+      // OctoPrint core does not dispatch onShown, so bind the editor modal's
+      // shown event manually to refresh the file list on every open.
+      if (!self._editorShownBound) {
+        self._editorShownBound = true;
+        editordialog.on("shown", function () {
+          self.onShown();
+        });
+      }
+    };
 
     self.prepareAceEditor = function () {
       ace.config.set("basePath", "plugin/klipper/static/js/lib/ace/");
