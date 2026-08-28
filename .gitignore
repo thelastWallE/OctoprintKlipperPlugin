@@ -1,4 +1,6 @@
 *.pyc
+__pycache__/
+.pytest_cache/
 *.swp
 .idea
 *.iml
@@ -16,3 +18,7 @@ thunder-tests
 vscode.env
 .venv
 OctoKlipper.egg-info
+
+.ai-plans
+AGENTS.md
+scripts
