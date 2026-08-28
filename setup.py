@@ -32,7 +32,7 @@ plugin_url = "https://github.com/thelastWallE/OctoprintKlipperPlugin"
 
 plugin_license = "AGPLv3"
 
-plugin_requires = []
+plugin_requires = ["psutil", "sarge"]
 
 plugin_additional_data = []
 

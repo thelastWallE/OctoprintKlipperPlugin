@@ -6,7 +6,6 @@ import datetime
 from distutils.version import LooseVersion
 
 from flask_babel import gettext
-import pkg_resources
 
 import octoprint_klipper.utils.extra as extra
 import octoprint_klipper.utils.logger as logger
