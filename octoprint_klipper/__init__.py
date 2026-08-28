@@ -238,11 +238,24 @@ class KlipperPlugin(
         )
 
     def on_settings_save(self, data):
+        old_config_path = self._settings.get(["configuration", "config_path"])
         old_debug_logging = self._settings.get_boolean(
             ["configuration", "debug_logging"]
         )
 
         octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+
+        new_config_path = self._settings.get(["configuration", "config_path"])
+        if old_config_path != new_config_path:
+            # The storage is created once at startup; recreate it so the file
+            # browser reflects the new config path without a restart.
+            self._file_manager.remove_storage(_FILE_DESTINATION)
+            self.storage = LocalFileStorage(
+                os.path.expanduser(new_config_path),
+                create=True,
+                really_universal=True,
+            )
+            self._file_manager.add_storage(_FILE_DESTINATION, self.storage)
 
         new_debug_logging = self._settings.get_boolean(
             ["configuration", "debug_logging"]
