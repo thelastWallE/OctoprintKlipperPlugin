@@ -999,11 +999,11 @@ msgstr ""
 #: octoprint_klipper/templates/klipper_settings.jinja2:253
 msgid ""
 "This feature assists in manually leveling your print bed by moving the "
-"head to the defined points in sequence.<br />If you use a piece of paper "
+"head to the defined points in sequence. If you use a piece of paper "
 "for leveling, set \"Probe Height\" to the paper thickness eg. \"0.1\"."
 msgstr ""
 "Diese Funktion hilft beim Einstellen des Druckbettes, da es die "
-"angegebenen Punkte automatisch nacheinander anfährt. <br />Wenn man ein "
+"angegebenen Punkte automatisch nacheinander anfährt. Wenn man ein "
 "Papier zum messen nimmt, setzt man \"Messhöhe\" auf die Papierstärke "
 "zBsp.: \"0.1\"."
 
