@@ -562,6 +562,90 @@ $(function () {
       }
     };
 
+    self.versions = ko.observableArray([]);
+    self.versionsInfo = ko.observable("");
+
+    self.showVersionsDialog = function () {
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
+      var filename = self.klipperViewModel.currentCfgFilename();
+      if (!filename || filename == "Change Filename") {
+        self.klipperViewModel.showPopUp("error", gettext("Config History"), gettext("No filename set"));
+        return;
+      }
+      var vdlg = $("#klipper_versions_dialog");
+      // The versions dialog is a sibling of the editor modal, so it is not
+      // part of the editor's binding context. Bind it to this view model once.
+      if (!vdlg.data("klipperBound")) {
+        ko.applyBindings(self, vdlg[0]);
+        vdlg.data("klipperBound", true);
+      }
+      OctoPrint.plugins.klipper
+        .listVersions(filename)
+        .done(function (response) {
+          if (response.status == "success") {
+            self.versions(
+              (response.data.versions || []).map(function (v) {
+                v.sizeText = v.size >= 1024 ? (v.size / 1024).toFixed(1) + " KB" : v.size + " B";
+                return v;
+              }),
+            );
+            self.versionsInfo(_.sprintf(gettext("Versions of %(name)s"), { name: filename }));
+            vdlg.modal({ show: "true", backdrop: "static" });
+          } else {
+            self.klipperViewModel.showPopUp("error", gettext("Config History"), response.error.message, true);
+          }
+        })
+        .fail(function (response) {
+          self.klipperViewModel.showPopUp("error", gettext("Config History"), response.responseText, true);
+        });
+    };
+
+    self.loadVersion = function (version) {
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
+      OctoPrint.plugins.klipper
+        .getCfgBak(version.name)
+        .done(function (response) {
+          if (response.status == "success") {
+            if (editor) {
+              editor.setValue(response.data.body.content);
+              self.klipperViewModel.showPopUp("success", gettext("Config History"), gettext("Version loaded into editor."));
+            }
+          } else {
+            self.klipperViewModel.showPopUp("error", gettext("Config History"), response.error.message, true);
+          }
+        })
+        .fail(function (response) {
+          self.klipperViewModel.showPopUp("error", gettext("Config History"), response.responseText, true);
+        });
+    };
+
+    self.restoreVersion = function (version) {
+      if (!self.klipperViewModel.hasPerm("CONFIG")) return;
+      var filename = self.klipperViewModel.currentCfgFilename();
+      var perform = function () {
+        OctoPrint.plugins.klipper
+          .restoreVersion(filename, version.version)
+          .done(function (response) {
+            if (response.status == "success") {
+              $("#klipper_versions_dialog").modal("hide");
+              self.klipperViewModel.showPopUp("success", gettext("Config History"), gettext("Config restored."));
+              self.reloadFromFile();
+            } else {
+              self.klipperViewModel.showPopUp("error", gettext("Config History"), response.error.message, true);
+            }
+          })
+          .fail(function (response) {
+            self.klipperViewModel.showPopUp("error", gettext("Config History"), response.responseText, true);
+          });
+      };
+      showConfirmationDialog({
+        title: gettext("Restore version?"),
+        html: "<p>" + gettext("This will overwrite the current config with version ") + version.version + ".</p>",
+        proceed: gettext("Proceed"),
+        onproceed: perform,
+      });
+    };
+
     self.newFile = function () {
       if (!self.klipperViewModel.hasPerm("CONFIG")) return;
       var config = {

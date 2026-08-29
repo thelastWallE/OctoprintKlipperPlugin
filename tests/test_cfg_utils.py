@@ -97,7 +97,7 @@ class TestCopyCfgToBackup:
 
         result = CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
         assert result["status"] == "success"
-        assert (data_dir / "configs" / "printer.cfg").exists()
+        assert (data_dir / "configs" / "printer.cfg.1").exists()
 
     def test_backup_file_outside_storage(self, plugin_self, tmp_path):
         config_dir = tmp_path / "klipper_configs"
@@ -113,7 +113,74 @@ class TestCopyCfgToBackup:
 
         result = CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
         assert result["status"] == "success"
-        assert (data_dir / "configs" / "printer.cfg").exists()
+        assert (data_dir / "configs" / "printer.cfg.1").exists()
+
+
+class TestVersionedBackups:
+    def _setup(self, plugin_self, tmp_path, backup_count=5):
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.side_effect = lambda key: {
+            ("configuration", "config_path"): str(config_dir) + os.sep,
+            ("configuration", "backup_count"): backup_count,
+        }.get(tuple(key), None)
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+        return config_dir, data_dir
+
+    def test_creates_versioned_backups(self, plugin_self, tmp_path):
+        config_dir, data_dir = self._setup(plugin_self, tmp_path)
+        src = config_dir / "printer.cfg"
+        src.write_text("[probe]\n", encoding="utf-8")
+
+        for _ in range(3):
+            result = CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
+            assert result["status"] == "success"
+
+        backups = sorted((data_dir / "configs").glob("printer.cfg.*"))
+        assert len(backups) == 3
+        assert backups[0].name == "printer.cfg.1"
+        assert backups[2].name == "printer.cfg.3"
+
+    def test_prunes_to_backup_count(self, plugin_self, tmp_path):
+        config_dir, data_dir = self._setup(plugin_self, tmp_path, backup_count=2)
+        src = config_dir / "printer.cfg"
+        src.write_text("[probe]\n", encoding="utf-8")
+
+        for _ in range(5):
+            result = CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
+            assert result["status"] == "success"
+
+        backups = sorted((data_dir / "configs").glob("printer.cfg.*"))
+        assert len(backups) == 2
+        assert backups[0].name == "printer.cfg.4"
+        assert backups[1].name == "printer.cfg.5"
+
+    def test_list_config_versions(self, plugin_self, tmp_path):
+        config_dir, data_dir = self._setup(plugin_self, tmp_path)
+        src = config_dir / "printer.cfg"
+        src.write_text("[probe]\n", encoding="utf-8")
+        CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
+
+        result = CfgUtils.list_config_versions(plugin_self, "printer.cfg")
+        assert result["status"] == "success"
+        versions = result["data"]["versions"]
+        assert len(versions) == 1
+        assert versions[0]["version"] == 1
+
+    def test_restore_config_version(self, plugin_self, tmp_path):
+        config_dir, data_dir = self._setup(plugin_self, tmp_path)
+        src = config_dir / "printer.cfg"
+        src.write_text("[probe]\nx_offset = 0.0\n", encoding="utf-8")
+        CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
+        # change the source and create a second version
+        src.write_text("[probe]\nx_offset = 1.0\n", encoding="utf-8")
+        CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
+
+        result = CfgUtils.restore_config_version(plugin_self, "printer.cfg", 1)
+        assert result["status"] == "success"
+        assert src.read_text(encoding="utf-8") == "[probe]\nx_offset = 0.0\n"
 
 
 class TestListConfigFiles:

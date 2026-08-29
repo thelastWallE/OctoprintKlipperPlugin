@@ -189,4 +189,41 @@
   </div>
 </div>
 
+<div id="klipper_versions_dialog" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-header">
+    <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
+    <h3>{{ _('Config History') }}</h3>
+  </div>
+  <div class="modal-body">
+    <p data-bind="text: versionsInfo"></p>
+    <table class="table table-striped table-hover table-condensed">
+      <thead>
+        <tr>
+          <th>{{ _('Version') }}</th>
+          <th>{{ _('Date') }}</th>
+          <th>{{ _('Size') }}</th>
+          <th>{{ _('Action') }}</th>
+        </tr>
+      </thead>
+      <tbody data-bind="foreach: versions">
+        <tr>
+          <td data-bind="text: version"></td>
+          <td data-bind="text: timestamp"></td>
+          <td data-bind="text: sizeText"></td>
+          <td>
+            <a href="javascript:void(0)" class="fas fa-file-import" title="{{ _('Load into editor') }}"
+              data-bind="click: $root.loadVersion"></a>
+            &nbsp;|&nbsp;
+            <a href="javascript:void(0)" class="fas fa-undo" title="{{ _('Restore to disk') }}"
+              data-bind="click: $root.restoreVersion"></a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">{{ _('Close') }}</a>
+  </div>
+</div>
+
 {% include "dialogs/configs.jinja2" %}
