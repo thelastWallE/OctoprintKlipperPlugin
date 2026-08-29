@@ -214,6 +214,18 @@
     return this.base.upload(this.url + "restore", file, filename, data);
   };
 
+  OctoKlipperClient.prototype.listVersions = function (file, opts) {
+    return this.base.getWithQuery(this.url + "configversions", { file: file }, opts);
+  };
+
+  OctoKlipperClient.prototype.restoreVersion = function (file, version, opts) {
+    var data = {
+      file: file,
+      version: version,
+    };
+    return this.base.postJson(this.url + "configrestore", data, opts);
+  };
+
   OctoPrintClient.registerPluginComponent("klipper", OctoKlipperClient);
   return OctoKlipperClient;
 });

@@ -164,6 +164,9 @@
         <button class="btn btn-small" data-bind="click: checkSyntax" title="{{ _('Check Syntax') }}">
           <i class="fas fa-spell-check"></i> {{ _('Check Syntax') }}
         </button>
+        <button class="btn btn-small" data-bind="click: showVersionsDialog" title="{{ _('Config History') }}">
+          <i class="fas fa-history"></i> {{ _('History') }}
+        </button>
         <button class="btn btn-small" data-bind="click: function() { $root.saveCfg({closing: true}) }"
           title="{{ _('Save Config and Close') }}">
           <i class="fas fa-save"></i> {{ _('Save & Close') }}

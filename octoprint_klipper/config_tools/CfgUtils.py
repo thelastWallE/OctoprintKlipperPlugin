@@ -47,6 +47,8 @@ def list_config_files(self, path_type):
     )
 
     for f in cfg_files:
+        if not os.path.isfile(f):
+            continue
         # Relative path without a leading separator so it can be used in
         # URLs/routes (a leading "/" or "\\" breaks <path:filename> matching).
         url = os.path.relpath(f, os.path.join(data_folder, "configs")).replace(
@@ -62,12 +64,73 @@ def list_config_files(self, path_type):
                 bytes=filesize,
                 mdate=time.strftime("%d.%m.%Y %H:%M", filemdate),
                 url=download_url,
+                version=_parse_backup_version(url),
             )
         )
         logger.log_debug(
             self, "list_cfg_files " + str(len(files)) + ": " + f, only_logging=False
         )
     return {"status": "success", "data": {"files": files}}
+
+
+def list_config_versions(self, file):
+    """List the backup versions for a specific config file.
+
+    Args:
+        file (str): The config path (storage-relative, absolute or "baseconfig").
+
+    Returns:
+        dict: Status and the list of versions (newest first).
+    """
+    rel = _config_relative_path(self, file)
+    configs_dir = os.path.join(self.get_plugin_data_folder(), "configs")
+    versions = _backup_versions(configs_dir, rel)
+    result = []
+    for version, path in reversed(versions):
+        result.append(
+            dict(
+                version=version,
+                name=os.path.relpath(path, configs_dir).replace(os.sep, "/"),
+                timestamp=time.strftime(
+                    "%d.%m.%Y %H:%M", time.localtime(os.path.getmtime(path))
+                ),
+                size=os.path.getsize(path),
+            )
+        )
+    return {"status": "success", "data": {"versions": result}}
+
+
+def restore_config_version(self, file, version):
+    """Restore a specific backup version to the config path.
+
+    Args:
+        file (str): The config path (storage-relative, absolute or "baseconfig").
+        version (int): The version number to restore.
+
+    Returns:
+        dict: Status of the operation.
+    """
+    rel = _config_relative_path(self, file)
+    configs_dir = os.path.join(self.get_plugin_data_folder(), "configs")
+    backup_path = os.path.join(configs_dir, "{}.{}".format(rel, version))
+    if not os.path.isfile(backup_path):
+        return extra.return_error(
+            self, "Backup version not found: {}".format(version), "restore"
+        )
+    try:
+        with io.open(backup_path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except IOError as e:
+        return extra.return_error(
+            self, "Could not read backup version", "restore", e
+        )
+    target = _resolve_config_path(self, file)
+    try:
+        with io.open(target, "w", encoding="utf-8") as f:
+            f.write(content)
+    except IOError as e:
+        return extra.return_error(self, "Could not restore config", "restore", e)
+    return {"status": "success", "data": {"body": gettext("Config restored.")}}
 
 
 def get_cfg(self, file):
@@ -304,8 +367,70 @@ def check_float(self, dataToValidated):
         }
 
 
+def _config_relative_path(self, file):
+    """Return the config path relative to the config storage (no leading sep)."""
+    cfg_path = os.path.normpath(
+        os.path.expanduser(self._settings.get(["configuration", "config_path"]))
+    ) + os.sep
+    if file == "baseconfig":
+        file = os.path.expanduser(self._settings.get(["configuration", "baseconfig"]))
+    file_norm = os.path.normpath(os.path.expanduser(file))
+    if os.path.isabs(file_norm):
+        if file_norm.startswith(cfg_path):
+            return file_norm[len(cfg_path):]
+        return os.path.basename(file_norm)
+    return file_norm.replace(os.sep, "/")
+
+
+def _resolve_config_path(self, file):
+    """Resolve a config identifier to its absolute filesystem path."""
+    cfg_path = os.path.expanduser(
+        self._settings.get(["configuration", "config_path"])
+    )
+    if file == "baseconfig":
+        file = os.path.expanduser(self._settings.get(["configuration", "baseconfig"]))
+    file_norm = os.path.normpath(os.path.expanduser(file))
+    if os.path.isabs(file_norm):
+        return file_norm
+    return os.path.join(cfg_path, file_norm)
+
+
+def _backup_versions(configs_dir, rel):
+    """Return a sorted list of (version, path) for a config's backups."""
+    pattern = os.path.join(configs_dir, rel + ".*")
+    versions = []
+    for f in glob.glob(pattern):
+        base = os.path.basename(f)
+        suffix = base[len(os.path.basename(rel)):]
+        if suffix.startswith(".") and suffix[1:].isdigit():
+            versions.append((int(suffix[1:]), f))
+    versions.sort(key=lambda x: x[0])
+    return versions
+
+
+def _prune_backups(configs_dir, rel, keep):
+    """Delete backup versions beyond the newest ``keep``."""
+    if keep <= 0:
+        return
+    versions = _backup_versions(configs_dir, rel)
+    for version, path in versions[:-keep]:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
+def _parse_backup_version(name):
+    """Extract the version number from a backup name like 'file.cfg.3'."""
+    base = os.path.basename(name)
+    parts = base.rsplit(".", 1)
+    if len(parts) == 2 and parts[1].isdigit():
+        return int(parts[1])
+    return 0
+
+
 def copy_cfg_to_backup(self, src):
-    """Copy the config file to backup directory of OctoKlipper.
+    """Copy the config file to a versioned backup directory of OctoKlipper.
 
     Args:
         src (str): Path to the config file to copy.
@@ -319,46 +444,54 @@ def copy_cfg_to_backup(self, src):
             "Error: Config file not found: {}".format(src),
             "backup",
         )
-    # Normalize the config path so it has exactly one trailing separator,
-    # regardless of whether the setting already ends with one.
-    cfg_path = os.path.normpath(
-        os.path.expanduser(self._settings.get(["configuration", "config_path"]))
-    ) + os.sep
-    src_norm = os.path.normpath(src)
-    if src_norm.startswith(cfg_path):
-        file = src_norm[len(cfg_path):]
-    else:
-        # The file lives outside the config storage (e.g. the baseconfig);
-        # back it up under its basename.
-        file = os.path.basename(src_norm)
-    cfg_bak_path = os.path.join(self.get_plugin_data_folder(), "configs", "")
-    file_bak_path = os.path.join(cfg_bak_path, file)
+    rel = _config_relative_path(self, src)
+    configs_dir = os.path.join(self.get_plugin_data_folder(), "configs")
 
-    results = extra.create_directory(self, cfg_bak_path)
-    if results["status"] == "error":
-        return results
+    # Migrate a legacy (unversioned) backup to version 1.
+    legacy = os.path.join(configs_dir, rel)
+    if os.path.isfile(legacy):
+        try:
+            os.rename(legacy, os.path.join(configs_dir, rel + ".1"))
+        except OSError:
+            pass
+
+    versions = _backup_versions(configs_dir, rel)
+    next_version = versions[-1][0] + 1 if versions else 1
+    backup_path = os.path.join(configs_dir, "{}.{}".format(rel, next_version))
+
+    try:
+        os.makedirs(os.path.dirname(backup_path), exist_ok=True)
+    except OSError as e:
+        return extra.return_error(
+            "Error: Couldn't create backup directory", "backup", e
+        )
 
     logger.log_debug(
-        self, "copy_cfg_to_backup:" + src + " to " + file_bak_path, only_logging=False
+        self, "copy_cfg_to_backup:" + src + " to " + backup_path, only_logging=False
     )
-    if os.path.normpath(src) == os.path.normpath(file_bak_path):
+    if os.path.normpath(src) == os.path.normpath(backup_path):
         return extra.return_error(self, "Source and destination are the same", "backup")
     try:
-        copyfile(src, file_bak_path)
+        copyfile(src, backup_path)
     except IOError:
         return extra.return_error(
-            "Error: Couldn't copy Klipper config file to {}".format(file_bak_path),
+            "Error: Couldn't copy Klipper config file to {}".format(backup_path),
             "backup",
         )
     else:
+        try:
+            keep = int(self._settings.get(["configuration", "backup_count"]))
+        except (TypeError, ValueError):
+            keep = 5
+        _prune_backups(configs_dir, rel, keep)
         logger.log_debug(
-            self, "CfgBackup " + file_bak_path + " written", only_logging=False
+            self, "CfgBackup " + backup_path + " written", only_logging=False
         )
         return {
             "status": "success",
             "data": {
                 "body": gettext(
-                    "Klipper config file copied to {}".format(file_bak_path)
+                    "Klipper config file copied to {}".format(backup_path)
                 )
             },
         }

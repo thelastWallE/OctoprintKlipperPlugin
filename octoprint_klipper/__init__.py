@@ -232,6 +232,7 @@ class KlipperPlugin(
                 parse_check=False,
                 fontsize=12,
                 hide_error_popups=False,
+                backup_count=5,
                 remote_host_git="https://github.com/Klipper3D/klipper.git",
                 remote_octoklipper_git="https://github.com/thelastWallE/OctoprintKlipperPlugin.git",
             ),
@@ -697,6 +698,22 @@ class KlipperPlugin(
         backupfile = os.path.realpath(os.path.join(data_folder, "configs", filename))
 
         return flask.jsonify(extra.copy_file(self, backupfile, config_path))
+
+    # List the backup versions of a specific config (for the editor revert dialog)
+    @octoprint.plugin.BlueprintPlugin.route("/configversions", methods=["GET"])
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def list_config_versions(self):
+        file = flask.request.values.get("file", "")
+        return flask.jsonify(config_tools.list_config_versions(self, file))
+
+    # Restore a specific backup version to the config path
+    @octoprint.plugin.BlueprintPlugin.route("/configrestore", methods=["POST"])
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def restore_config_version(self):
+        data = flask.request.json
+        file = data.get("file", "")
+        version = data.get("version")
+        return flask.jsonify(config_tools.restore_config_version(self, file, version))
 
     # ------------------ API for Configs ---------------------------------------------
     # Get Content of a Configfile
