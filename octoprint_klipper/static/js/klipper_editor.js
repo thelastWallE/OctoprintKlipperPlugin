@@ -314,15 +314,13 @@ $(function () {
     self._runLinterCheck = function () {
       if (!editor || !self.klipperViewModel.hasPerm("CONFIG")) return;
       if (!editordialog.is(":visible")) return;
-      OctoPrint.plugins.klipper
-        .checkCfg(editor.getValue())
-        .done(function (response) {
-          if (response.status == "success") {
-            self.clearSyntaxMarkers();
-          } else {
-            self.setSyntaxMarkers(response);
-          }
-        });
+      OctoPrint.plugins.klipper.checkCfg(editor.getValue()).done(function (response) {
+        if (response.status == "success") {
+          self.clearSyntaxMarkers();
+        } else {
+          self.setSyntaxMarkers(response);
+        }
+      });
     };
 
     self.checkSyntax = function () {

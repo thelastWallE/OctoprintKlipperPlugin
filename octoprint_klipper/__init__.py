@@ -744,9 +744,7 @@ class KlipperPlugin(
         # paths go through the normal validation.
         if os.path.isabs(file):
             baseconfig_path = os.path.realpath(
-                os.path.expanduser(
-                    self._settings.get(["configuration", "baseconfig"])
-                )
+                os.path.expanduser(self._settings.get(["configuration", "baseconfig"]))
             )
             full_path = os.path.realpath(file)
             if full_path != baseconfig_path:
@@ -754,13 +752,9 @@ class KlipperPlugin(
         else:
             if not self._validate(target, file):
                 flask.abort(404)
-            file_path = os.path.dirname(os.path.expanduser(file)).replace(
-                cfg_path, ""
-            )
+            file_path = os.path.dirname(os.path.expanduser(file)).replace(cfg_path, "")
             filename = os.path.basename(file)
-            full_path = os.path.realpath(
-                os.path.join(cfg_path, file_path, filename)
-            )
+            full_path = os.path.realpath(os.path.join(cfg_path, file_path, filename))
         logger.log_debug(self, "read_config_file " + full_path, only_logging=False)
         return flask.jsonify(config_tools.get_cfg(self, full_path))
 

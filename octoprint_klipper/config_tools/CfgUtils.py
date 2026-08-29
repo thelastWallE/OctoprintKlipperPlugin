@@ -256,9 +256,7 @@ def _find_key_line(content, section, key):
     """Find the 1-based line of ``key`` inside ``section`` in ``content``."""
     if not section or not key:
         return None
-    pattern = re.compile(
-        r"^\s*" + re.escape(key) + r"\s*[:=]", re.IGNORECASE
-    )
+    pattern = re.compile(r"^\s*" + re.escape(key) + r"\s*[:=]", re.IGNORECASE)
     in_section = False
     for i, line in enumerate(content.splitlines(), 1):
         stripped = line.strip()
@@ -349,7 +347,11 @@ def check_float(self, dataToValidated):
         last_key = x
         complete_error = (
             "\n"
-            + "Invalid Value for <b>" + x + "</b> in Section: <b>" + y + "</b>\n"
+            + "Invalid Value for <b>"
+            + x
+            + "</b> in Section: <b>"
+            + y
+            + "</b>\n"
             + "{}".format(str(error))
         )
         error_list.append(complete_error)

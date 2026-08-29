@@ -1,4 +1,5 @@
 """Tests for octoprint_klipper.config_tools.CfgUtils."""
+
 import os
 
 import pytest
@@ -192,7 +193,9 @@ class TestListConfigFiles:
         configs_dir.mkdir(parents=True)
         (configs_dir / "printer.cfg").write_text("[probe]\n", encoding="utf-8")
         (configs_dir / "sub").mkdir()
-        (configs_dir / "sub" / "macro.cfg").write_text("[gcode_macro]\n", encoding="utf-8")
+        (configs_dir / "sub" / "macro.cfg").write_text(
+            "[gcode_macro]\n", encoding="utf-8"
+        )
         plugin_self.get_plugin_data_folder.return_value = str(data_dir)
 
         with mock.patch("flask.url_for", return_value="/"):
