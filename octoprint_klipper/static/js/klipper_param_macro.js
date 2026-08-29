@@ -13,74 +13,76 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-$(function() {
-    function KlipperMacroDialogViewModel(parameters) {
-        var self = this;
+$(function () {
+  function KlipperMacroDialogViewModel(parameters) {
+    var self = this;
 
-        self.parameters = ko.observableArray();
-        self.interpolatedCmd;
-        self.macro;
-        self.macroName = ko.observable();
+    self.parameters = ko.observableArray();
+    self.interpolatedCmd;
+    self.macro;
+    self.macroName = ko.observable();
+    self.callerViewModel = undefined;
 
-        var paramObjRegex = /{(.*?)}/g;
-        var keyValueRegex = /(\w*)\s*:\s*([\w\s°"|\.]*)/g;
+    var paramObjRegex = /{(.*?)}/g;
+    var keyValueRegex = /(\w*)\s*:\s*([\w\s°"|\.]*)/g;
 
-        self.process = function(macro) {
-           self.macro = macro.macro();
-           self.macroName(macro.name());
+    self.process = function (macro, callerViewModel) {
+      self.macro = macro.macro();
+      self.macroName(macro.name());
+      self.callerViewModel = callerViewModel;
 
-           var matches = self.macro.match(paramObjRegex);
-           var params = [];
+      var matches = self.macro.match(paramObjRegex);
+      var params = [];
 
-           for (var i=0; i < matches.length; i++) {
-              var obj = {};
-              var res = keyValueRegex.exec(matches[i]);
+      for (var i = 0; i < matches.length; i++) {
+        var obj = {};
+        var res = keyValueRegex.exec(matches[i]);
 
-              while (res != null) {
-                 if("options" == res[1]) {
-                    obj["options"] = res[2].trim().split("|");
-                 } else {
-                    obj[res[1]] = res[2].trim();
-                 }
-                 res = keyValueRegex.exec(matches[i]);
-              }
-
-              if(!("label" in obj)) {
-                 obj["label"] = "Input " + (i+1);
-              }
-
-              if(!("unit" in obj)) {
-                 obj["unit"] = "";
-              }
-
-              if("default" in obj) {
-                 obj["value"] = obj["default"];
-              }
-
-              params.push(obj);
-           }
-           self.parameters(params);
+        while (res != null) {
+          if ("options" == res[1]) {
+            obj["options"] = res[2].trim().split("|");
+          } else {
+            obj[res[1]] = res[2].trim();
+          }
+          res = keyValueRegex.exec(matches[i]);
         }
 
-        self.executeMacro = function() {
-           var i=-1;
-
-           function replaceParams(match) {
-              i++;
-              return self.parameters()[i]["value"];
-           }
-           // Use .split to create an array of strings which is sent to
-           // OctoPrint.control.sendGcode instead of a single string.
-           expanded = self.macro.replace(paramObjRegex, replaceParams)
-           expanded = expanded.split(/\r\n|\r|\n/);
-
-           OctoPrint.control.sendGcode(expanded);
+        if (!("label" in obj)) {
+          obj["label"] = "Input " + (i + 1);
         }
-    }
 
-    OCTOPRINT_VIEWMODELS.push({
-        construct: KlipperMacroDialogViewModel,
-        dependencies: [],
-        elements: ["#klipper_macro_dialog"]
-    });
+        if (!("unit" in obj)) {
+          obj["unit"] = "";
+        }
+
+        if ("default" in obj) {
+          obj["value"] = obj["default"];
+        }
+
+        params.push(obj);
+      }
+      self.parameters(params);
+    };
+
+    self.executeMacro = function () {
+      var i = -1;
+
+      function replaceParams(match) {
+        i++;
+        return self.parameters()[i]["value"];
+      }
+      // Use .split to create an array of strings which is sent to
+      // OctoPrint.control.sendGcode instead of a single string.
+      expanded = self.macro.replace(paramObjRegex, replaceParams);
+      expanded = expanded.split(/\r\n|\r|\n/);
+      self.callerViewModel.logMessage(null, null, gettext("Execute Macro: ") + self.macroName());
+      OctoPrint.control.sendGcode(expanded);
+    };
+  }
+
+  OCTOPRINT_VIEWMODELS.push({
+    construct: KlipperMacroDialogViewModel,
+    dependencies: [],
+    elements: ["#klipper_macro_dialog"],
+  });
 });

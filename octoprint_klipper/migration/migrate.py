@@ -1,19 +1,24 @@
+# -*- coding: utf-8 -*-
+import os
 import octoprint_klipper.utils.logger as logger
 
 
-def migrate_old_settings(settings):
+def migrate_old_settings(self, settings):
     """
     For Old settings
     """
-    migrate_settings(settings, "serialport", "connection", "port")
+    migrate_settings(self, settings, ["serialport"], ["connection", "port"])
     migrate_settings(
-        settings, "replace_connection_panel", "connection", "replace_connection_panel"
+        self,
+        settings,
+        ["replace_connection_panel"],
+        ["connection", "replace_connection_panel"],
     )
-    migrate_settings(settings, "probeHeight", "probe", "height")
-    migrate_settings(settings, "probeLift", "probe", "lift")
-    migrate_settings(settings, "probeSpeedXy", "probe", "speed_xy")
-    migrate_settings(settings, "probeSpeedZ", "probe", "speed_z")
-    migrate_settings(settings, "configPath", "configuration", "configpath")
+    migrate_settings(self, settings, ["probeHeight"], ["probe", "height"])
+    migrate_settings(self, settings, ["probeLift"], ["probe", "lift"])
+    migrate_settings(self, settings, ["probeSpeedXy"], ["probe", "speed_xy"])
+    migrate_settings(self, settings, ["probeSpeedZ"], ["probe", "speed_z"])
+    migrate_settings(self, settings, ["configPath"], ["configuration", "configpath"])
 
     if settings.has(["probePoints"]):
         points = settings.get(["probePoints"])
@@ -22,49 +27,151 @@ def migrate_old_settings(settings):
         settings.remove(["probePoints"])
 
 
-def migrate_settings(self, settings, old, new, new2=""):
-    """migrate setting to setting with an additional path
+def migrate_settings_3(self, settings):
+    migrate_settings(
+        self,
+        settings,
+        ["configuration", "navbar"],
+        ["configuration", "shortStatus_navbar"],
+    )
+
+
+def migrate_settings_4(self, settings):
+    if settings.has(["configuration", "configpath"]):
+        cfg_path = settings.get(["configuration", "configpath"])
+        new_cfg_path, baseconfig = os.path.split(cfg_path)
+        logger.log_info(
+            self,
+            "migrate setting for 'configuration/config_path': "
+            + cfg_path
+            + " -> "
+            + new_cfg_path,
+            only_logging=False,
+        )
+        logger.log_info(
+            self,
+            "migrate setting for 'configuration/baseconfig': printer.cfg -> "
+            + baseconfig,
+            only_logging=False,
+        )
+        settings.set(["configuration", "config_path"], new_cfg_path)
+        settings.set(["configuration", "baseconfig"], baseconfig)
+        settings.remove(["configuration", "configpath"])
+    if (
+        settings.has(["configuration", "reload_command"])
+        and settings.get(["configuration", "reload_command"]) == "manually"
+    ):
+        logger.log_info(
+            self,
+            "migrate setting for 'configuration/restart_onsave': True -> False",
+            only_logging=False,
+        )
+        settings.set(["configuration", "restart_onsave"], False)
+        settings.remove(["configuration", "reload_command"])
+
+    if settings.has(["config"]):
+        settings.remove(["config"])
+
+    if settings.has(["configuration", "old_config"]):
+        settings.remove(["configuration", "old_config"])
+
+
+def migrate_settings_5(self, settings):
+    migrate_settings(
+        self,
+        settings,
+        ["configuration", "reload_command"],
+        ["configuration", "reload_used"],
+    )
+    migrate_settings(
+        self,
+        settings,
+        ["configuration", "restart_host_command"],
+        ["configuration", "restart_service_system_command"],
+    )
+
+
+def migrate_settings_6(self, settings):
+    """macros=[
+        dict(
+            name="E-Stop",
+            macro="M112",
+            sidebar=True,
+            tab=True,
+            buttonColor="", <- new
+            buttonStyle=""  <- new
+        )
+    ],"""
+
+    macros = settings.get(["macros"])
+    logger.log_info(self, "migrate setting from " + str(macros), only_logging=True)
+
+    for index in range(len(macros)):
+        macros[index]["buttonColor"] = ""
+        macros[index]["buttonStyle"] = ""
+
+    logger.log_info(self, "migrate setting to " + str(macros), only_logging=True)
+    settings.set(["macros"], macros)
+
+
+def migrate_settings_7(self, settings):
+    old_log_path = settings.get(["configuration", "logpath"])
+    if old_log_path[-4:] == ".log":
+        new_log_path = os.path.dirname(old_log_path)
+        logger.log_info(
+            self,
+            "migrate setting for 'configuration/logpath': "
+            + old_log_path
+            + " -> "
+            + new_log_path,
+            only_logging=False,
+        )
+        settings.set(["configuration", "logpath"], new_log_path)
+
+
+def migrate_settings(self, settings, old, new=""):
+    """migrate a setting to setting with new name and/or position.
+    If new is unset only delete the setting
 
     Args:
         settings (any): instance of self._settings
-        old (str): the old setting to migrate
-        new (str): group or only new setting if there is no new2
-        new2 (str, optional): the new setting to migrate to. Defaults to "".
-    """ """"""
+        old (list): the old setting to migrate
+        new (list): the new setting
+    """
     if settings.has(old):
-        if new2 != "":
+        # just like a renaming for the setting
+        if new != "":
             logger.log_info(
-                self,
-                False,
-                "migrate setting for '" + old + "' -> '" + new + "/" + new2 + "'",
+                self, "migrate setting for '" + str(old) + "' -> '" + str(new) + "'"
             )
-            settings.set([new, new2], settings.get(old))
-        else:
-            logger.log_info(self, False, "migrate setting for '" + old + "' -> '" + new + "'")
-            settings.set([new], settings.get(old))
+            settings.set(new, settings.get(old))
         settings.remove(old)
 
 
-def migrate_settings_configuration(self, settings, new, old):
-    """migrate setting in path configuration to new name
+def migrater(self, current, settings):
+    """migrate settings to new version
 
-    :param settings: the class of the mixin
-    :type settings: class
-    :param new: new name
-    :type new: str
-    :param old: the old name
-    :type old: str
+    Args:
+        current (int): current version
+        settings (any): instance of self._settings
+
+    Returns:
+        int: current version
     """
+    migrate_functions = {
+        "3": migrate_settings_3,
+        "4": migrate_settings_4,
+        "5": migrate_settings_5,
+        "6": migrate_settings_6,
+        "7": migrate_settings_7,
+    }
 
-    if settings.has(["configuration", old]):
-        logger.log_info(
-            self,
-            False,
-            "migrate setting for 'configuration/"
-            + old
-            + "' -> 'configuration/"
-            + new
-            + "'",
-        )
-        settings.set(["configuration", new], settings.get(["configuration", old]))
-        settings.remove(["configuration", old])
+    if current is not None:
+        try:
+            migrate_functions[str(current + 1)](self, settings)
+        except Exception as err:
+            logger.log_error(self, err, only_logging=False)
+            raise
+        else:
+            current += 1
+    return current

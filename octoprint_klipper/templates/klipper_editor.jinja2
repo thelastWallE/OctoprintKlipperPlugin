@@ -1,12 +1,16 @@
-<div id="klipper_editor" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="klipper_editor_label" aria-hidden="true">
+<div id="klipper_editor" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="klipper_editor_label"
+  aria-hidden="true">
   <div class="modal-header text-align-center" style="display: flex; align-items: center;">
-    <h3  style="flex-grow: 1;">Editor</h3>
+    <h3 style="flex-grow: 1;">Editor</h3>
     <div style="align-items: center; display: flex;">
-      <button data-bind="click: function() { fontSize(fontSize() - 1); }" title="Verringere Schriftgröße" class="btn">
+      <button data-bind="click: function() { fontSize(fontSize() - 1); }" title="{{ _('Decrease Fontsize') }}"
+        class="btn">
         <i class="fas fa-search-minus"></i>
       </button>
-      <input class="OctoKlipper-input-mb0" type="text" style="width: 20px; text-align: center;" data-bind="value: fontSize">
-      <button data-bind="click: function() { fontSize(fontSize() + 1); }" title="Vergrößere Schriftgröße" class="btn">
+      <input class="OctoKlipper-input-mb0" type="text" style="width: 20px; text-align: center;"
+        data-bind="value: fontSize" title="{{ _('Fontsize') }}">
+      <button data-bind="click: function() { fontSize(fontSize() + 1); }" title="{{ _('Increase Fontsize') }}"
+        class="btn">
         <i class="fas fa-search-plus"></i>
       </button>
       <button type="button" class="close" data-bind="click: closeEditor" style="margin: 0; margin-left: 13px;">
@@ -18,17 +22,121 @@
     <script src="plugin/klipper/static/js/lib/ace/ace.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="plugin/klipper/static/js/lib/ace/theme-monokai.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="plugin/klipper/static/js/lib/ace/mode-klipper_config.js" type="text/javascript"></script>
-    <div class="full-sized-box">
+    <div class="full-sized-box klipper-row-fluid">
+      <div class="config-files" id="config_files">
+        <div class="klipper-config-files" data-test-id="files-list"
+          data-bind="visible: $root.klipperViewModel.hasPermKo('CONFIG')">
+          <form class="form-search"
+            data-bind="submit:$root.klipperFilesViewModel.performSearch, visible: $root.klipperViewModel.hasPermKo('CONFIG')">
+            <div class="search-query-with-clear"
+              data-bind="css: {'active-clear':$root.klipperFilesViewModel.searchQuery()}">
+              <input type="search" class="input-block search-query"
+                data-bind="value:$root.klipperFilesViewModel.searchQuery(), valueUpdate: 'input'"
+                placeholder="{{ _('Search...')|edq }}">
+              <span class="search-clear" data-bind="click:$root.klipperFilesViewModel.clearSearchQuery"><i
+                  class="fas fa-times"></i></span>
+            </div>
+          </form>
+
+          <div class="entry back clickable"
+            data-bind="visible:$root.klipperFilesViewModel.currentPath() != '', click: function() {$root.klipperFilesViewModel.navigateUp(); }"
+            style="display: none">
+            <div class="back-arrow"><i class="fa fa-arrow-left"></i> {{  _('Back') }}</div>
+            <div class="back-path"><small class="muted">{{ _('Currently in') }} <span
+                  data-bind="text:$root.klipperFilesViewModel.currentPath"></span></small></div>
+          </div>
+
+          <div class="scroll-wrapper klipper-vertResize"
+            data-bind="foreach:$root.klipperFilesViewModel.filesAndFolders">
+            <div class="entry"
+              data-bind="attr: { id:$root.klipperFilesViewModel.getEntryId($data) }, template: { name:$root.klipperFilesViewModel.templateFor($data), data: $data }, css: $data.type">
+            </div>
+          </div>
+
+          <script type="text/html" id="files_template_klipper_config">
+            <div class="title clickable" data-bind="click: function() { if ($root.klipperFilesViewModel.enableSelect($data)) {$root.loadFile($data); } else { return; } }, style: { 'font-weight':$root.klipperFilesViewModel.configs.isSelected($data) ? 'bold' : 'normal' }, text: display"></div>
+            <div class="internal" data-bind="visible: display && name != display &&$root.klipperFilesViewModel.showInternalFilename">{{ _('Internal') }}: <span data-bind="text: name"></span></div>
+            <div class="uploaded">{{ _('Uploaded') }}: <span data-bind="text: formatTimeAgo(date), attr: {title: formatDate(date)}"></span></div>
+            <div class="size">{{ _('Size') }}: <span data-bind="text: formatSize(size)"></span></div>
+            <div class="btn-group action-buttons">
+                <a class="btn btn-mini" data-bind="visible: $root.klipperViewModel.hasPermKo('CONFIG'), attr: {href:$root.klipperFilesViewModel.downloadLink($data)}, css: {disabled: !$root.klipperFilesViewModel.downloadLink($data)}" title="{{ _('Download')|edq }}"><i class="fas fa-download"></i></a>
+                <div class="btn btn-mini" data-bind="visible: $root.klipperViewModel.hasPermKo('CONFIG'), click: function(data, event) { if ($root.klipperFilesViewModel.enableMove($data)) {$root.klipperFilesViewModel.showMoveDialog($data, event); } else { return; } }, css: {disabled: !$root.klipperFilesViewModel.enableMove($data)}" title="{{ _('Move')|edq }}"><i class="fas fa-cut"></i></div>
+                <div class="btn btn-mini" data-bind="visible: $root.klipperViewModel.hasPermKo('CONFIG'), click: function(data, event) { if ($root.klipperFilesViewModel.enableRemove($data)) {$root.klipperFilesViewModel.removeFile($data, event); } else { return; } }, css: {disabled: !$root.klipperFilesViewModel.enableRemove($data)}" title="{{ _('Remove')|edq }}"><i class="far fa-trash-alt"></i></div>
+                <div class="btn btn-mini" data-bind="visible: $root.klipperViewModel.hasPermKo('CONFIG'), click: function() { if ($root.klipperFilesViewModel.enableSelect($data)) {$root.loadFile($data); } else { return; } }, css: {disabled: !$root.klipperFilesViewModel.enableSelect($data)}" title="{{ _('Load')|edq }}"><i class="fas fa-file-code"></i></div>
+            </div>
+          </script>
+
+          <script type="text/html" id="files_template_config">
+            <div class="title clickable" data-bind="click: function() { if ($root.enableSelect($data)) {OCTOPRINT_VIEWMODELS.klipperEditorViewModel.loadFile($data); } else { return; } }, style: { 'font-weight':$root.listHelper.isSelected($data) ? 'bold' : 'normal' }, text: display"></div>
+            <div class="internal" data-bind="visible: display && name != display && $root.showInternalFilename">
+            {{ _('Internal') }}: <span data-bind="text: name"></span></div>
+          <div class="uploaded">{{ _('Uploaded') }}: <span
+              data-bind="text: formatTimeAgo(date), attr: {title: formatDate(date)}"></span></div>
+          <div class="size">{{ _('Size') }}: <span data-bind="text: formatSize(size)"></span></div>
+          <div class="btn-group action-buttons">
+            <a class="btn btn-mini"
+              data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.FILES_DOWNLOAD), attr: {href: $root.downloadLink($data)}, css: {disabled: !$root.downloadLink($data)}"
+              title="{{ _('Download')|edq }}"><i class="fas fa-download"></i></a>
+            <div class="btn btn-mini"
+              data-bind="visible: $root.loginState.hasAllPermissionsKo($root.access.permissions.FILES_UPLOAD, $root.access.permissions.FILES_DELETE), click: function(data, event) { if ($root.enableMove($data)) { $root.showMoveDialog($data, event); } else { return; } }, css: {disabled: !$root.enableMove($data)}"
+              title="{{ _('Move')|edq }}"><i class="fas fa-cut"></i></div>
+            <div class="btn btn-mini"
+              data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.FILES_DELETE), click: function(data, event) { if ($root.enableRemove($data)) { $root.removeFile($data, event); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"
+              title="{{ _('Remove')|edq }}"><i class="far fa-trash-alt"></i></div>
+            <div class="btn btn-mini"
+              data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.FILES_SELECT), click: function() { if (!$root.enableSelect($data)) {OCTOPRINT_VIEWMODELS.klipperEditorViewModel.loadFile($data); } else { return; } }, css: {disabled: !$root.enableSelect($data)}"
+              title="{{ _('Load')|edq }}"><i class="fas fa-file-code"></i></div>
+
+          </div>
+          </script>
+
+          <script type="text/html" id="files_template_klipper_folder">
+            <div class="title clickable" data-bind="click:$root.klipperFilesViewModel.changeFolder, style: { 'font-weight':$root.klipperFilesViewModel.configs.isSelected($data) ? 'bold' : 'normal' }"><i class="fas fa-folder-open"></i> <span data-bind="text: display"></span></div>
+            <div class="internal" data-bind="visible: name != display">{{ _('Internal') }}: <span data-bind="text: name"></span></div>
+            <div class="size">{{ _('Size') }}: <span data-bind="text: formatSize(size)"></span></div>
+            <div class="btn-group action-buttons">
+                <div class="btn btn-mini" data-bind="visible: $root.klipperViewModel.hasPermKo('CONFIG'), click: function(data, event) { if ($root.klipperFilesViewModel.enableMove($data)) {$root.klipperFilesViewModel.showMoveDialog($data, event); } else { return; } }, css: {disabled: !$root.klipperFilesViewModel.enableMove($data)}" title="{{ _('Move')|edq }}"><i class="fas fa-cut"></i></div>
+                <div class="btn btn-mini" data-bind="visible: $root.klipperViewModel.hasPermKo('CONFIG'), click: function(data, event) { if ($root.klipperFilesViewModel.enableRemove($data)) {$root.klipperFilesViewModel.removeFolder($data, event); } else { return; } }, css: {disabled: !$root.klipperFilesViewModel.enableRemove($data)}" title="{{ _('Remove') }}"><i class="far fa-trash-alt"></i></div>
+            </div>
+          </script>
+
+        </div>
+        <div style="display: none;"
+          data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.FILES_UPLOAD)">
+          <div class="row-fluid folder-button">
+            <span class="btn addfolder-button" data-bind="click: $root.klipperFilesViewModel.showAddFolderDialog">
+              <i class="fas fa-folder"></i> {{ _('Create folder...') }}
+            </span>
+          </div>
+          <div class="row-fluid upload-buttons">
+            <span class="btn btn-primary fileinput-button" style="margin-bottom: 10px">
+              <i class="fas fa-spinner fa-spin" data-bind="visible: $root.klipperFilesViewModel.uploadingFile"></i>
+              <!-- ko ifnot: $root.klipperFilesViewModel.uploadingFile -->
+              <i class="icon-upload-alt icon-white"></i>
+              <span>{{ _('Upload') }}</span>
+              <input id="klipperconfig_upload" data-test-id="upload-local" accept=".cfg, .config" type="file"
+                name="file" class="fileinput-button">
+              <!-- /ko -->
+            </span>
+          </div>
+          <div id="config_upload_progress" class="progress progress-text-centered">
+            <div class="bar"></div>
+            <span class="progress-text-back"
+              data-bind="css: { 'progress-text-front': ($root.klipperFilesViewModel.uploadProgressPercentage() >= 50), 'progress-text-back': ($root.klipperFilesViewModel.uploadProgressPercentage() < 50) }, text: $root.klipperFilesViewModel.uploadProgressText()"></span>
+          </div>
+        </div>
+      </div>
       <div class="conf-editor" id="conf_editor">
-        <input id="hdnLoadKlipperConfig" type="hidden" data-bind="value: CfgContent">
+        <input id="hdnLoadKlipperConfig" type="hidden" data-bind="value: cfgContent">
         <div id="plugin-klipper-config"></div>
       </div>
     </div>
+
   </div>
   <div class="modal-footer">
     <div class="editor-controls">
       <span class="control-label">{{ _('Filename') }}:</span>
-      <input class="OctoKlipper-input-mb0" type="text" data-bind="value: CfgFilename">
+      <input class="OctoKlipper-input-mb0" type="text" data-bind="value: $root.klipperViewModel.currentCfgFilename">
       <div class="klipper-btn-group klipper-fluid-item-2">
         <button class="btn btn-small" data-bind="click: reloadFromFile" title="{{ _('Reload from file') }}">
           <i class="fas fa-upload"></i> {{ _('Reload from file') }}
@@ -36,7 +144,8 @@
         <button class="btn btn-small" data-bind="click: checkSyntax" title="{{ _('Check Syntax') }}">
           <i class="fas fa-spell-check"></i> {{ _('Check Syntax') }}
         </button>
-        <button class="btn btn-small" data-bind="click: function() { $root.saveCfg({closing: true}) }" title="{{ _('Save Config and Close') }}">
+        <button class="btn btn-small" data-bind="click: function() { $root.saveCfg({closing: true}) }"
+          title="{{ _('Save Config and Close') }}">
           <i class="fas fa-save"></i> {{ _('Save & Close') }}
         </button>
         <button class="btn btn-small" data-bind="click: saveCfg" title="{{ _('Save Config') }}">
@@ -46,3 +155,5 @@
     </div>
   </div>
 </div>
+
+{% include "dialogs/configs.jinja2" %}
