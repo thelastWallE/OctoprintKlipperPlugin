@@ -47,7 +47,11 @@ def list_config_files(self, path_type):
     )
 
     for f in cfg_files:
-        url = f.replace(os.path.join(data_folder, "configs"), "")
+        # Relative path without a leading separator so it can be used in
+        # URLs/routes (a leading "/" or "\\" breaks <path:filename> matching).
+        url = os.path.relpath(f, os.path.join(data_folder, "configs")).replace(
+            os.sep, "/"
+        )
         filesize = os.path.getsize(f)
         filemdate = time.localtime(os.path.getmtime(f))
         download_url = flask.url_for("index") + "plugin/klipper/download/backup/" + url
@@ -315,11 +319,18 @@ def copy_cfg_to_backup(self, src):
             "Error: Config file not found: {}".format(src),
             "backup",
         )
-    cfg_path = (
+    # Normalize the config path so it has exactly one trailing separator,
+    # regardless of whether the setting already ends with one.
+    cfg_path = os.path.normpath(
         os.path.expanduser(self._settings.get(["configuration", "config_path"]))
-        + os.sep
-    )
-    file = src.replace(cfg_path, "")
+    ) + os.sep
+    src_norm = os.path.normpath(src)
+    if src_norm.startswith(cfg_path):
+        file = src_norm[len(cfg_path):]
+    else:
+        # The file lives outside the config storage (e.g. the baseconfig);
+        # back it up under its basename.
+        file = os.path.basename(src_norm)
     cfg_bak_path = os.path.join(self.get_plugin_data_folder(), "configs", "")
     file_bak_path = os.path.join(cfg_bak_path, file)
 
@@ -330,7 +341,7 @@ def copy_cfg_to_backup(self, src):
     logger.log_debug(
         self, "copy_cfg_to_backup:" + src + " to " + file_bak_path, only_logging=False
     )
-    if src == file_bak_path:
+    if os.path.normpath(src) == os.path.normpath(file_bak_path):
         return extra.return_error(self, "Source and destination are the same", "backup")
     try:
         copyfile(src, file_bak_path)

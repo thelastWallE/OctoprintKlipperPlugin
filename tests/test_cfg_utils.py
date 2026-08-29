@@ -1,4 +1,6 @@
 """Tests for octoprint_klipper.config_tools.CfgUtils."""
+import os
+
 import pytest
 
 from octoprint_klipper.config_tools import CfgUtils
@@ -78,3 +80,61 @@ class TestGetCfg:
         assert result["status"] == "success"
         assert result["data"]["body"]["content"] == "[probe]\nx_offset = 0.0\n"
         assert result["data"]["body"]["file"] == str(cfg)
+
+
+class TestCopyCfgToBackup:
+    def test_backup_with_trailing_separator_config_path(self, plugin_self, tmp_path):
+        # config_path ends with a separator, as in the real settings
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.return_value = str(config_dir) + os.sep
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        src = config_dir / "printer.cfg"
+        src.write_text("[probe]\n", encoding="utf-8")
+
+        result = CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
+        assert result["status"] == "success"
+        assert (data_dir / "configs" / "printer.cfg").exists()
+
+    def test_backup_file_outside_storage(self, plugin_self, tmp_path):
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.return_value = str(config_dir) + os.sep
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        # File outside the config storage (e.g. the baseconfig)
+        src = tmp_path / "printer.cfg"
+        src.write_text("[probe]\n", encoding="utf-8")
+
+        result = CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
+        assert result["status"] == "success"
+        assert (data_dir / "configs" / "printer.cfg").exists()
+
+
+class TestListConfigFiles:
+    def test_backup_name_has_no_leading_separator(self, plugin_self, tmp_path):
+        from unittest import mock
+
+        data_dir = tmp_path / "data"
+        configs_dir = data_dir / "configs"
+        configs_dir.mkdir(parents=True)
+        (configs_dir / "printer.cfg").write_text("[probe]\n", encoding="utf-8")
+        (configs_dir / "sub").mkdir()
+        (configs_dir / "sub" / "macro.cfg").write_text("[gcode_macro]\n", encoding="utf-8")
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        with mock.patch("flask.url_for", return_value="/"):
+            result = CfgUtils.list_config_files(plugin_self, "backup")
+
+        assert result["status"] == "success"
+        names = {f["name"] for f in result["data"]["files"]}
+        assert "printer.cfg" in names
+        assert "sub/macro.cfg" in names
+        # No leading separator that would break <path:filename> route matching
+        for name in names:
+            assert not name.startswith(("/", "\\"))

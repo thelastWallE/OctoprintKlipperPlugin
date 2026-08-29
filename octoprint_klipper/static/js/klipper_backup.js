@@ -118,8 +118,8 @@ $(function () {
             });
             return;
           }
-          $("#klipper_backups_dialog textarea").attr("rows", response.data.body.split(/\r\n|\r|\n/).length);
-          self.cfgContent(response.data.body);
+          $("#klipper_backups_dialog textarea").attr("rows", response.data.body.content.split(/\r\n|\r|\n/).length);
+          self.cfgContent(response.data.body.content);
         })
         .fail(function (response) {
           self.klipperViewModel.consoleMessage("error", "Error getting backup: " + backup);
