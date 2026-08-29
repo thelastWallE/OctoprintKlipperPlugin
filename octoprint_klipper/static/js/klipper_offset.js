@@ -33,39 +33,30 @@ $(function () {
 
     self.setOffset = function () {
       if (self.adjust()) {
-        self.klipperViewModel.logMessage("","info", "SET_GCODE_OFFSET\n X_ADJUST=" +
-        self.offsetX() +
-        " Y_ADJUST=" +
-        self.offsetY() +
-        " Z_ADJUST=" +
-        self.offsetZ())
-        OctoPrint.control.sendGcode(
-          "SET_GCODE_OFFSET X_ADJUST=" +
+        self.klipperViewModel.logMessage(
+          "",
+          "info",
+          "SET_GCODE_OFFSET\n X_ADJUST=" +
             self.offsetX() +
             " Y_ADJUST=" +
             self.offsetY() +
             " Z_ADJUST=" +
             self.offsetZ()
         );
-      } else {
-        self.klipperViewModel.logMessage("","info", "SET_GCODE_OFFSET\n X=" +
-        self.offsetX() +
-        " Y=" +
-        self.offsetY() +
-        " Z=" +
-        self.offsetZ())
         OctoPrint.control.sendGcode(
-          "SET_GCODE_OFFSET X=" +
-            self.offsetX() +
-            " Y=" +
-            self.offsetY() +
-            " Z=" +
-            self.offsetZ()
+          "SET_GCODE_OFFSET X_ADJUST=" + self.offsetX() + " Y_ADJUST=" + self.offsetY() + " Z_ADJUST=" + self.offsetZ()
+        );
+      } else {
+        self.klipperViewModel.logMessage(
+          "",
+          "info",
+          "SET_GCODE_OFFSET\n X=" + self.offsetX() + " Y=" + self.offsetY() + " Z=" + self.offsetZ()
+        );
+        OctoPrint.control.sendGcode(
+          "SET_GCODE_OFFSET X=" + self.offsetX() + " Y=" + self.offsetY() + " Z=" + self.offsetZ()
         );
       }
     };
-
-
   }
 
   OCTOPRINT_VIEWMODELS.push({

@@ -1,0 +1,114 @@
+<div id="klipper_add_folder_dialog" class="modal hide fade-in">
+  <div class="modal-header">
+    <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
+    <h3>{{ _('Create Folder') }}</h3>
+  </div>
+  <div class="modal-body">
+    <p>{{ _('Please specify the name of the folder to create.') }}</p>
+    <form class="form-horizontal" action="javascript:void(0)">
+      <div class="control-group">
+        <label class="control-label">{{ _('Folder name') }}</label>
+        <div class="controls">
+          <input type="text" data-bind="value: $root.klipperFilesViewModel.addFolderName, valueUpdate: 'afterkeydown'">
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">{{ _('Cancel') }}</a>
+    <a href="#" class="btn btn-primary"
+      data-bind="click: function() { if ($root.klipperFilesViewModel.enableAddFolder()) { $root.klipperFilesViewModel.addFolder() } }, enabled: $root.klipperFilesViewModel.enableAddFolder(), css: {disabled: !$root.klipperFilesViewModel.enableAddFolder()}"><i
+        class="fas fa-spinner fa-spin" data-bind="visible: $root.klipperFilesViewModel.addingFolder"></i>
+      {{ _('Create') }}</a>
+  </div>
+</div>
+
+<div id="klipper_move_file_or_folder_dialog" class="modal hide fade-in">
+  <div class="modal-header">
+    <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
+    <h3>{{ _('Move File or Folder') }}</h3>
+  </div>
+  <div class="modal-body">
+    <form class="form-vertical" action="javascript:void(0)">
+      <div class="control-group" data-bind="css: {error: $root.klipperFilesViewModel.moveError().length > 0}">
+        <label class="control-label">{{ _('Select destination folder for ') }}<span
+            data-bind="text: $root.klipperFilesViewModel.moveEntry().display"></span> ({{ _('Currently:') }} <span
+            data-bind="text: $root.klipperFilesViewModel.moveSource"></span>)</label>
+        <div class="controls">
+          <select class="input-block-level"
+            data-bind="value: $root.klipperFilesViewModel.moveDestination, options: $root.klipperFilesViewModel.folderList"></select>
+          <span class="help-block"><small class="text-error"
+              data-bind="text: $root.klipperFilesViewModel.moveError, visible: $root.klipperFilesViewModel.moveError().length > 0"
+              style="display: none"></small></span>
+        </div>
+        <label class="control-label">{{ _('Set destination filename ') }} ({{ _('Currently:') }} <span
+            data-bind="text: $root.klipperFilesViewModel.moveSourceFilename()"></span>)</label>
+        <div class="controls">
+          <input class="input-block-level" data-bind="value: $root.klipperFilesViewModel.moveDestinationFilename" />
+        </div>
+
+        <p> {{ _('File/Folder will be moved to: ') }} <span
+            data-bind="text: $root.klipperFilesViewModel.moveDestinationFullpath()"></span></p>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">{{ _('Cancel') }}</a>
+    <a href="#" class="btn btn-primary"
+      data-bind="click: function() { if (($root.klipperFilesViewModel.moveSource() !== $root.klipperFilesViewModel.moveDestination() || $root.klipperFilesViewModel.moveSourceFilename() !== $root.klipperFilesViewModel.moveDestinationFilename()) && !$root.klipperFilesViewModel.movingFileOrFolder()) { $root.klipperFilesViewModel.moveFileOrFolder($root.klipperFilesViewModel.moveEntry().path, $root.klipperFilesViewModel.moveDestinationFullpath(), false) } else {} }, css: {disabled: ($root.klipperFilesViewModel.moveSource() === $root.klipperFilesViewModel.moveDestination() && $root.klipperFilesViewModel.moveSourceFilename() === $root.klipperFilesViewModel.moveDestinationFilename()) || $root.klipperFilesViewModel.movingFileOrFolder()}"><i
+        class="fas fa-spinner fa-spin" data-bind="visible: $root.klipperFilesViewModel.movingFileOrFolder"></i>
+      {{ _('Move') }}</a>
+  </div>
+</div>
+
+<div id="klipper_upload_exists_dialog" class="modal hide fade-in">
+  <div class="modal-header">
+    <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
+    <h3>{{ _('File already exists') }}</h3>
+  </div>
+  <div class="modal-body">
+    <p>
+      {{ _('If you want to rename the file, you may do so below. A collision free suggestion has already been made.') }}
+    </p>
+    <form class="form-horizontal" action="javascript:void(0)">
+      <div class="control-group">
+        <label class="control-label">{{ _('Rename to') }}</label>
+        <div class="controls">
+          <input type="text" class="input-block-level">
+          <span class="help-block" style="display: none">{{ _('File already exists') }}</span>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <a href="javascript:void(0)" class="btn" data-dismiss="modal" aria-hidden="true">{{ _('Cancel') }}</a>
+    <a href="javascript:void(0)" class="btn btn-primary upload-rename">{{ _('Upload (rename)') }}</a>
+    <a href="javascript:void(0)" class="btn btn-danger upload-overwrite">{{ _('Upload (overwrite)') }}</a>
+  </div>
+</div>
+
+<div id="klipper_file_changed_ext_dialog" class="modal hide fade-in">
+  <div class="modal-header">
+    <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
+    <h3>{{ _('File changed externally') }}</h3>
+  </div>
+  <div class="modal-body">
+    <p>
+      {{ _('The file you are trying to upload has been changed externally. If you want to upload the file anyway, you may do so below. A collision free suggestion has already been made.') }}
+    </p>
+    <form class="form-horizontal" action="javascript:void(0)">
+      <div class="control-group">
+        <label class="control-label">{{ _('Rename to') }}</label>
+        <div class="controls">
+          <input type="text" class="input-block-level">
+          <span class="help-block" style="display: none">{{ _('File changed externally') }}</span>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <a href="javascript:void(0)" class="btn" data-dismiss="modal" aria-hidden="true">{{ _('Cancel') }}</a>
+    <a href="javascript:void(0)" class="btn btn-primary upload-rename">{{ _('Save (rename)') }}</a>
+    <a href="javascript:void(0)" class="btn btn-danger upload-overwrite">{{ _('Save (overwrite)') }}</a>
+  </div>
+</div>

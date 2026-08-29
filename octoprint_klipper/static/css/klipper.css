@@ -1,6 +1,6 @@
 .plugin-klipper-sidebar {
   padding: 1px;
-  height: auto;
+  min-height: 100px;
   max-height: 100px;
   border: 1px solid #aaa;
   width: 98%;
@@ -10,12 +10,12 @@
   overflow: auto;
 }
 
-.KlipperShortStatusWarning{
+.KlipperShortStatusWarning {
   background-color: #f2f60084;
   color: #000 !important;
 }
 
-.KlipperShortStatusError{
+.KlipperShortStatusError {
   background-color: #f2000084;
   color: #000 !important;
 }
@@ -93,12 +93,6 @@ ul#klipper-settings {
   margin: 5px;
 }
 
-#tab_plugin_klipper_main .row-fluid {
-  display: flex;
-  flex-flow: row wrap;
-  align-items: stretch;
-}
-
 @media all and (max-width: 940px) {
   #tab_plugin_klipper_main .row-fluid {
     /* On small screens, we are no longer using row direction but column */
@@ -112,12 +106,20 @@ ul#klipper-settings {
   padding-top: 5px;
 }
 
+.klipper-logfilters {
+  padding: 0px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  width: 100%;
+  word-break: break-word;
+}
+
 #tab_plugin_klipper_main .span8 label {
   float: left;
 }
 
 #tab_plugin_klipper_main #right-side {
-  flex: 1 1;
+  flex: 1 2;
   max-width: 200px;
   min-width: 100px;
 }
@@ -150,10 +152,14 @@ ul#klipper-settings {
   resize: none;
 }
 
+.octoklipper-donate {
+  float: left;
+}
+
 .klipper-copyicon {
   position: absolute;
-    top: 2.3em;
-    right: 2.5em;
+  top: 2.3em;
+  right: 2.5em;
   margin-top: 4px;
   margin-left: 4px;
   width: 11px;
@@ -170,20 +176,20 @@ ul#klipper-settings {
 }
 
 @keyframes klipper-pulse {
-	0% {
-		transform: scale(1);
-    color:rgba(221, 255, 220, 1)
-	}
+  0% {
+    transform: scale(1);
+    color: rgba(221, 255, 220, 1);
+  }
 
-	75% {
-		transform: scale(1.1);
-    color:rgba(117, 255, 112, 1)
-	}
+  75% {
+    transform: scale(1.1);
+    color: rgba(117, 255, 112, 1);
+  }
 
-	100% {
-		transform: scale(1.7);
-    color:rgba(9, 255, 0, 1)
-	}
+  100% {
+    transform: scale(1.7);
+    color: rgba(9, 255, 0, 1);
+  }
 }
 
 .gap {
@@ -217,8 +223,8 @@ div#klipper_backups_dialog div.modal-body {
 
 div#klipper_backups_dialog .editor-controls {
   flex: 0 auto;
-	display: flex;
-	align-items: stretch;
+  display: flex;
+  align-items: stretch;
   flex-flow: row wrap;
 }
 
@@ -253,8 +259,9 @@ div#settings_plugin_klipper div.tab-content {
   overflow: auto;
 }
 
-div#settings_plugin_klipper div.tab-content .border{
+div#settings_plugin_klipper div.tab-content .border {
   border-bottom: 1px solid;
+  border-top: 1px solid;
 }
 
 div#settings_plugin_klipper div.tab-footer {
@@ -279,7 +286,7 @@ div#settings_plugin_klipper div.tab-content div#conf.tab-pane div.control-group 
   flex-direction: column;
 }
 
-div#settings_plugin_klipper div.control-group div.controls p{
+div#settings_plugin_klipper div.control-group div.controls p {
   padding-top: 5px;
 }
 
@@ -296,11 +303,13 @@ div#settings_plugin_klipper div.control-group div.controls p{
   overflow-y: scroll;
 }
 
-#settings_plugin_klipper table {
+#settings_plugin_klipper table,
+table.plugin-octoklipper {
   table-layout: unset !important;
 }
 
-#settings_plugin_klipper .table-fixed thead th {
+#settings_plugin_klipper .table-fixed thead th,
+.plugin-octoklipper.table-fixed thead th {
   position: sticky;
   top: 0;
   background-color: rgba(12, 5, 5, 0.85);
@@ -312,7 +321,6 @@ div#settings_plugin_klipper div.control-group div.controls p{
 }
 
 @media (max-width: 979px) {
-
   /* div#klipper_editor.modal {
     height: unset !important;
   } */
@@ -321,12 +329,10 @@ div#settings_plugin_klipper div.control-group div.controls p{
     margin-bottom: 1px;
     margin-left: 5px;
   }
-
 }
 
-
 .octoprint-container.UICMainCont.container-fluid {
-  margin-top:0px !important;
+  margin-top: 0px !important;
 }
 
 div#klipper_editor .modal-header div button.btn + button.btn {
@@ -345,17 +351,44 @@ input[type="text"].OctoKlipper-input-mb0 {
   margin-bottom: 0px !important;
 }
 
-
 div#klipper_editor .modal-footer .editor-controls {
-	flex: 0 auto;
-	display: flex;
-	align-items: center;
+  flex: 0 auto;
+  display: flex;
+  align-items: center;
 }
 
+div#klipper_editor div.config-files {
+  flex: 0 auto;
+  margin-top: 5px;
+  min-width: 200px;
+  overflow: auto;
+}
+
+#config_files .klipper-config-files .entry {
+  padding: 5px;
+  line-height: 20px;
+  border-bottom: 1px solid rgb(221, 221, 221);
+  position: relative;
+}
+
+#config_files .klipper-config-files .entry .title {
+  text-overflow: ellipsis;
+  word-break: break-all;
+  margin-right: 30px;
+}
+
+#config_files .klipper-config-files .entry .action-buttons {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
+
+.klipper-vertResize {
+  resize: vertical;
+}
 
 div#klipper_editor div.conf-editor {
-  width: 99%;
-  width: calc(100% - 4px);
+  flex: 3 auto;
   margin-top: 5px;
   overflow: auto;
 }
@@ -437,4 +470,25 @@ div#settings_plugin_klipper div#macros label.control-label {
 
 #klipper_graph_canvas {
   margin-top: 15px;
+}
+
+.klipper-wrapper {
+  position: relative;
+}
+
+.klipper-bordered {
+  border: 1px solid gray;
+  border-radius: 6px;
+  position: relative;
+  margin: 10px;
+  padding: 10px;
+}
+
+.klipper-control-label-bordered {
+  position: absolute;
+  top: -1.2ex;
+  z-index: 1;
+  left: 2em;
+  background-color: #eeeeee;
+  padding: 0 5px;
 }

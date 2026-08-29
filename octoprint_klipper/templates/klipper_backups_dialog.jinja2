@@ -1,12 +1,13 @@
-<div id="klipper_backups_dialog" class="modal hide fade large" tabindex="-1" role="dialog" aria-labelledby="klipper_backups_dialog_label"
-  aria-hidden="true">
+<div id="klipper_backups_dialog" class="modal hide fade large" tabindex="-1" role="dialog"
+  aria-labelledby="klipper_backups_dialog_label" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">&times;</button>
-    <h3 >{{ _('Backups') }}</h3>
+    <h3>{{ _('Backups') }}</h3>
   </div>
   <div class="modal-body">
     <div class="editor-controls">
-      <div class="klipper-btn-group klipper-fluid-item-1" data-bind="visible: $root.klipperViewModel.hasRightKo('CONFIG')">
+      <div class="klipper-btn-group klipper-fluid-item-1"
+        data-bind="visible: $root.klipperViewModel.hasPermKo('CONFIG')">
         <div class="btn-group">
           <button class="btn btn-small dropdown-toggle" data-toggle="dropdown">
             <i class="far fa-square"></i>
@@ -42,16 +43,22 @@
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu dropdown-menu-right">
-            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('name'); }"><i class="fas fa-check"
-                  data-bind="style: {visibility: backups.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i> {{ _('Sort by name') }}
+            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('name'); }"><i
+                  class="fas fa-check"
+                  data-bind="style: {visibility: backups.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i>
+                {{ _('Sort by name') }}
                 ({{ _('ascending') }})</a>
             </li>
-            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('date'); }"><i class="fas fa-check"
-                  data-bind="style: {visibility: backups.currentSorting() == 'date' ? 'visible' : 'hidden'}"></i> {{ _('Sort by date') }}
+            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('date'); }"><i
+                  class="fas fa-check"
+                  data-bind="style: {visibility: backups.currentSorting() == 'date' ? 'visible' : 'hidden'}"></i>
+                {{ _('Sort by date') }}
                 ({{ _('descending') }})</a>
             </li>
-            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('size'); }"><i class="fas fa-check"
-                  data-bind="style: {visibility: backups.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i> {{ _('Sort by file size') }}
+            <li><a href="javascript:void(0)" data-bind="click: function() { backups.changeSorting('size'); }"><i
+                  class="fas fa-check"
+                  data-bind="style: {visibility: backups.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i>
+                {{ _('Sort by file size') }}
                 ({{ _('descending') }})</a>
             </li>
           </ul>
@@ -70,32 +77,34 @@
       <tbody data-bind="foreach: backups.paginatedItems">
         <tr data-bind="attr: {title: name}">
           <td class="klipper_baks_checkbox"><input type="checkbox"
-              data-bind="value: file, checked: $root.markedForFileRestore, invisible: !$root.klipperViewModel.hasRightKo('CONFIG')" />
+              data-bind="value: file, checked: $root.markedForFileRestore, invisible: !$root.klipperViewModel.hasPermKo('CONFIG')" />
           </td>
           <td class="klipper_baks_name" data-bind="text: name"></td>
           <td class="klipper_baks_size" data-bind="text: size"></td>
           <td class="klipper_baks_action">
             <a href="javascript:void(0)" class="far fa-trash-alt" title="{{ _('Delete') }}"
-              data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, click: function() { $parent.removeCfg($data.name); }"></a>
+              data-bind="css: {disabled: !$root.klipperViewModel.hasPermKo('CONFIG')()}, click: function() { $parent.removeCfg($data.name); }"></a>
             &nbsp;|&nbsp;
             <a href="javascript:void(0)" class="fas fa-undo" title="{{ _('Restore') }}"
-              data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, click: function() { $parent.restoreBak($data.name); }"></a>
+              data-bind="css: {disabled: !$root.klipperViewModel.hasPermKo('CONFIG')()}, click: function() { $parent.restoreBak($data.name); }"></a>
             &nbsp;|&nbsp;
             <a href="javascript:void(0)" class="fas fa-download" title="{{ _('Download') }}"
-              data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, attr: { href: ($root.klipperViewModel.hasRightKo('CONFIG')()) ? $data.url : 'javascript:void(0)'}"></a>
+              data-bind="css: {disabled: !$root.klipperViewModel.hasPermKo('CONFIG')()}, attr: { href: ($root.klipperViewModel.hasPermKo('CONFIG')()) ? $data.url : 'javascript:void(0)'}"></a>
             &nbsp;|&nbsp;
             <a href="javascript:void(0)" class="fas fa-eye" title="{{ _('Preview') }}"
-              data-bind="css: {disabled: !$root.klipperViewModel.hasRightKo('CONFIG')()}, click: function() { $parent.showCfg($data.name); }"></a>
+              data-bind="css: {disabled: !$root.klipperViewModel.hasPermKo('CONFIG')()}, click: function() { $parent.showCfg($data.name); }"></a>
           </td>
         </tr>
       </tbody>
     </table>
     <div class="pagination pagination-mini pagination-centered">
       <ul>
-        <li data-bind="css: {disabled: backups.currentPage() === 0}"><a href="javascript:void(0)" data-bind="click: backups.prevPage">«</a></li>
+        <li data-bind="css: {disabled: backups.currentPage() === 0}"><a href="javascript:void(0)"
+            data-bind="click: backups.prevPage">«</a></li>
       </ul>
       <ul data-bind="foreach: backups.pages">
-        <li data-bind="css: { active: $data.number === $root.backups.currentPage(), disabled: $data.number === -1 }"><a href="javascript:void(0)"
+        <li data-bind="css: { active: $data.number === $root.backups.currentPage(), disabled: $data.number === -1 }"><a
+            href="javascript:void(0)"
             data-bind="text: $data.text, click: function() { $root.backups.changePage($data.number); }"></a></li>
       </ul>
       <ul>
@@ -104,12 +113,12 @@
       </ul>
     </div>
     <div class="textarea">
-      <textarea rows="21" readonly data-bind="value: CfgContent" id="klipper_bak_text"></textarea>
+      <textarea rows="21" readonly data-bind="value: cfgContent" id="klipper_bak_text"></textarea>
     </div>
   </div>
   <div class="modal-footer">
-    <a href="https://www.paypal.com/donate/?business=7P63W664NF8LA&item_name=OctoKlipper" class="btn btn-mini"
-      target="_blank">
+    <a href="https://www.paypal.com/donate/?business=7P63W664NF8LA&item_name=OctoKlipper"
+      class="btn btn-mini octoklipper-donate" target="_blank">
       <i class="fab fa-paypal"> {{ _('Donate') }}</i>
     </a>
   </div>
