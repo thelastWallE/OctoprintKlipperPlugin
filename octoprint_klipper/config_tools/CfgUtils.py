@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import glob
 import os
+import re
 import time
 import sys
 import io
@@ -176,6 +177,31 @@ def save_cfg(self, content, file, is_new_file=False):
     }
 
 
+def _error_line(error):
+    """Extract the 1-based line number from a configparser error."""
+    lineno = getattr(error, "lineno", None)
+    if lineno is None and getattr(error, "errors", None):
+        lineno = error.errors[0][0]
+    return lineno
+
+
+def _find_key_line(content, section, key):
+    """Find the 1-based line of ``key`` inside ``section`` in ``content``."""
+    if not section or not key:
+        return None
+    pattern = re.compile(
+        r"^\s*" + re.escape(key) + r"\s*[:=]", re.IGNORECASE
+    )
+    in_section = False
+    for i, line in enumerate(content.splitlines(), 1):
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            in_section = stripped[1:-1].strip().lower() == section.lower()
+        elif in_section and pattern.match(line):
+            return i
+    return None
+
+
 def check_config(self, data):
     """Checks the given data on parsing errors.
 
@@ -183,7 +209,7 @@ def check_config(self, data):
         data (str): Content to be validated.
 
     Returns:
-        dict: Status and if errors also the error message.
+        dict: Status and if errors also the error message and line.
     """
     try:
         if sys.version_info[0] < 3:
@@ -196,11 +222,21 @@ def check_config(self, data):
             dataToValidated.read_string(data)
     except configparser.Error as error:
         parsed_error = parse_error_message(self, error)
-        return extra.return_error(self, parsed_error)
+        # Log to the log files but don't broadcast a socket message: the
+        # frontend linter shows squiggle markers instead of a toast.
+        logger.log_error(self, "Error: {}".format(parsed_error), only_logging=True)
+        return {
+            "status": "error",
+            "error": {"message": gettext(parsed_error)},
+            "line": _error_line(error),
+        }
     else:
         result = check_float(self, dataToValidated)
         if result["status"] == "error":
             logger.log_debug(self, "check_cfg: NOK!", only_logging=False)
+            result["line"] = _find_key_line(
+                data, result.get("section"), result.get("key")
+            )
             return result
         logger.log_debug(self, "check_cfg: OK", only_logging=False)
         return {"status": "success"}
@@ -225,12 +261,14 @@ def check_float(self, dataToValidated):
         dataToValidated (ConfigParser): ConfigParser object with the data to be validated.
 
     Returns:
-        dict: Status and if failed also the error text.
+        dict: Status and if failed also the error text, section and key.
     """
 
     sections_search_list = ["bltouch", "probe"]
     value_search_list = ["x_offset", "y_offset", "z_offset"]
     error_list = []
+    last_section = None
+    last_key = None
     try:
         # cycle through sections and then values
         for y in sections_search_list:
@@ -240,6 +278,8 @@ def check_float(self, dataToValidated):
                     if a_float:
                         pass
     except ValueError as error:
+        last_section = y
+        last_key = x
         complete_error = (
             "\n"
             + "Invalid Value for <b>" + x + "</b> in Section: <b>" + y + "</b>\n"
@@ -250,7 +290,14 @@ def check_float(self, dataToValidated):
     else:
         return {"status": "success"}
     if error_list:
-        return extra.return_error(self, "\n".join(error_list))
+        error_text = "\n".join(error_list)
+        logger.log_error(self, "Error: {}".format(error_text), only_logging=True)
+        return {
+            "status": "error",
+            "error": {"message": gettext(error_text)},
+            "section": last_section,
+            "key": last_key,
+        }
 
 
 def copy_cfg_to_backup(self, src):

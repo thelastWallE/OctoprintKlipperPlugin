@@ -15,6 +15,41 @@ class TestIsFloat:
         assert extra.is_float("1.2.3") is False
 
 
+class TestSplitFilenamePath:
+    def test_plain_filename(self):
+        assert extra.split_filename_path("printer.cfg") == ("", "printer.cfg")
+
+    def test_forward_slash_path(self):
+        assert extra.split_filename_path("config/printer.cfg") == (
+            "config",
+            "printer.cfg",
+        )
+
+    def test_nested_forward_slash_path(self):
+        assert extra.split_filename_path("config/sub/printer.cfg") == (
+            "config/sub",
+            "printer.cfg",
+        )
+
+    def test_backslash_path(self):
+        assert extra.split_filename_path("config\\printer.cfg") == (
+            "config",
+            "printer.cfg",
+        )
+
+    def test_mixed_separators(self):
+        assert extra.split_filename_path("config/sub\\printer.cfg") == (
+            "config/sub",
+            "printer.cfg",
+        )
+
+    def test_leading_slash(self):
+        assert extra.split_filename_path("/printer.cfg") == ("", "printer.cfg")
+
+    def test_empty_filename(self):
+        assert extra.split_filename_path("") == ("", "")
+
+
 class TestKeyExist:
     def test_key_exists(self):
         assert extra.key_exist({"a": {"b": 1}}, "a", "b") is True

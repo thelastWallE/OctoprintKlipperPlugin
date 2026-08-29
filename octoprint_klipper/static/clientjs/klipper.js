@@ -132,14 +132,13 @@
   };
 
   OctoKlipperClient.prototype.exists = function (location, path, filename, opts) {
-    if ((path == undefined || path == "") && filename.contains("/")) {
-      path = filename.split("/").pop();
-      filename = filename.split("/")[filename.length - 1];
-      for (dir in path) {
-        if (dir !== "") {
-          path = path + "/" + dir;
-        }
-      }
+    // The filename may be a full storage-relative path (e.g. "config/printer.cfg").
+    // Split it into path + name so the backend never receives a name containing
+    // "/" or "\\" (sanitize_name raises ValueError on those).
+    if (filename.indexOf("/") !== -1 || filename.indexOf("\\") !== -1) {
+      var parts = filename.split(/[\/\\]/);
+      filename = parts.pop();
+      path = parts.join("/");
     }
     return this.base.issueCommand(this.testUrl, "exists", { storage: location, path: path, filename: filename }, opts);
   };

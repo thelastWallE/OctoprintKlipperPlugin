@@ -40,6 +40,9 @@ $(function () {
     self.octoklipperReleasedVersionForOctoprint = ko.observable();
     self.octoklipperInstalledVersion = ko.observable();
 
+    self.host_version = ko.observable();
+    self.host_remote_version = ko.observable();
+
     self.log = ko.observableArray([]);
     self.plainLogLines = ko.observableArray([]);
 
@@ -125,7 +128,7 @@ $(function () {
     };
 
     self.showPopUp = function (popupType = "info", popupTitle, message, hide = true) {
-      popupTitle ? popupTitle + "<br />" : (popupTitle = "");
+      popupTitle = popupTitle ? popupTitle + "<br />" : "";
 
       let title = "OctoKlipper: <br />" + popupTitle;
       var options = {
@@ -142,8 +145,8 @@ $(function () {
           delay: 5000,
           animation: "none",
         };
-        FullOptions = Object.assign(options, errorOpts);
-        self._showPopUp(FullOptions);
+        let FullOptions = Object.assign(options, errorOpts);
+        self._showPopUp("Standard", FullOptions);
       } else {
         new PNotify(options);
       }
@@ -602,7 +605,7 @@ $(function () {
     };
 
     self.saveOption = function (dir, option, value) {
-      if (!_.includes(["fontsize", "confirm_reload", "parse_check", "logFilters"], option)) {
+      if (!_.includes(["fontsize", "confirm_reload", "parse_check", "restart_onsave", "logFilters"], option)) {
         return;
       }
 

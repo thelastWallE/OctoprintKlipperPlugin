@@ -64,8 +64,8 @@ $(function () {
       self.limitFontsize();
 
       if (editor) {
-        editor.setFontSize(self.fontSize());
-        editor.resize();
+        editor.updateOptions({ fontSize: self.fontSize() });
+        editor.layout();
       }
 
       self.saveFontSize();
@@ -94,6 +94,9 @@ $(function () {
         self.unloadFile();
       }
       self.checkExternChange();
+      // Run the linter on open so squiggles are visible immediately for the
+      // loaded config (the content may not change when the dialog is shown).
+      self._scheduleSyntaxCheck();
       editor.focus();
       self.setEditorDivSize();
     };
@@ -106,8 +109,8 @@ $(function () {
       self.cfgContent("");
       self.cfgChangedExtern = false;
       if (editor) {
-        editor.session.setValue("");
-        editor.clearSelection();
+        editor.setValue("");
+        editor.setPosition({ lineNumber: 1, column: 1 });
       }
     };
 
@@ -170,7 +173,7 @@ $(function () {
       self.addStyleAttribute(klipper_modal_body, "height: " + height + "px !important;");
       klipper_config.css("height", height);
       if (editor) {
-        editor.resize();
+        editor.layout();
       }
     };
 
@@ -184,10 +187,11 @@ $(function () {
         self._fromLocalStorage();
 
         if (editor) {
-          editor.session.setValue(self.cfgContent());
+          editor.setValue(self.cfgContent());
+          self.clearSyntaxMarkers();
           self.cfgChangedExtern = false;
-          editor.setFontSize(self.fontSize());
-          editor.clearSelection();
+          editor.updateOptions({ fontSize: self.fontSize() });
+          editor.setPosition({ lineNumber: 1, column: 1 });
           self.klipperViewModel.sleep(500).then(function () {
             self.setEditorDivSize();
             resolve("done");
@@ -268,19 +272,74 @@ $(function () {
       });
     };
 
+    self.setSyntaxMarkers = function (response) {
+      if (!editor || !monaco) return;
+      var model = editor.getModel();
+      if (!model) return;
+      var line = response.line || 1;
+      var lineCount = model.getLineCount();
+      if (line > lineCount) line = lineCount;
+      var markers = [
+        {
+          severity: monaco.MarkerSeverity.Error,
+          message: (response.error ? response.error.message : gettext("Syntax error")).replace(/<[^>]*>/g, ""),
+          startLineNumber: line,
+          startColumn: 1,
+          endLineNumber: line,
+          endColumn: model.getLineMaxColumn(line),
+        },
+      ];
+      monaco.editor.setModelMarkers(model, "klipper", markers);
+    };
+
+    self.clearSyntaxMarkers = function () {
+      if (!editor || !monaco) return;
+      var model = editor.getModel();
+      if (!model) return;
+      monaco.editor.setModelMarkers(model, "klipper", []);
+    };
+
+    self._syntaxCheckTimer = null;
+    self._scheduleSyntaxCheck = function () {
+      if (self._syntaxCheckTimer) {
+        clearTimeout(self._syntaxCheckTimer);
+      }
+      self._syntaxCheckTimer = setTimeout(function () {
+        self._syntaxCheckTimer = null;
+        self._runLinterCheck();
+      }, 800);
+    };
+
+    // Linter: silently update the squiggle markers while typing. No toasts.
+    self._runLinterCheck = function () {
+      if (!editor || !self.klipperViewModel.hasPerm("CONFIG")) return;
+      if (!editordialog.is(":visible")) return;
+      OctoPrint.plugins.klipper
+        .checkCfg(editor.getValue())
+        .done(function (response) {
+          if (response.status == "success") {
+            self.clearSyntaxMarkers();
+          } else {
+            self.setSyntaxMarkers(response);
+          }
+        });
+    };
+
     self.checkSyntax = function () {
       return new Promise((resolve, reject) => {
-        if (editor.session) {
+        if (editor) {
           self.klipperViewModel.consoleMessage("debug", "checkSyntax started");
 
           OctoPrint.plugins.klipper
-            .checkCfg(editor.session.getValue())
+            .checkCfg(editor.getValue())
             .done(function (response) {
               if (response.status == "success") {
+                self.clearSyntaxMarkers();
                 self.klipperViewModel.showPopUp("success", gettext("SyntaxCheck"), gettext("SyntaxCheck OK"));
                 self.editorFocusDelay(1000);
                 resolve(true);
               } else {
+                self.setSyntaxMarkers(response);
                 self.editorFocusDelay(1000);
                 self.klipperViewModel.consoleMessage("error", "checkSyntax failed");
                 self.klipperViewModel.showPopUp("error", gettext("SyntaxCheck"), response.error.message, true);
@@ -302,7 +361,7 @@ $(function () {
 
       if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
-      if ((self.cfgChangedExtern = true)) {
+      if (self.cfgChangedExtern) {
         let path = self.klipperFilesViewModel.currentPath();
         let filename = self.klipperViewModel.currentCfgFilename();
         // show klipper_file_changed dialog
@@ -353,7 +412,7 @@ $(function () {
           self.klipperViewModel.currentCfgFilename() != "" &&
           self.klipperViewModel.currentCfgFilename() != "Change Filename"
         ) {
-          if (editor.session) {
+          if (editor) {
             if (self.settings.settings.plugins.klipper.configuration.parse_check() == true) {
               // check Syntax and wait for response
               self.checkSyntax().then((syntaxOK) => {
@@ -483,10 +542,10 @@ $(function () {
               self.klipperViewModel.showPopUp("success", gettext("Reload Config"), gettext("File reloaded."));
               self.cfgChangedExtern = false;
               if (editor) {
-                editor.session.setValue(response.data.body);
-                self.loadedConfigContent = response.data.body;
+                editor.setValue(response.data.body.content);
+                self.loadedConfigContent = response.data.body.content;
                 self.loadedConfigFilename = self.klipperViewModel.currentCfgFilename();
-                editor.clearSelection();
+                editor.setPosition({ lineNumber: 1, column: 1 });
                 editor.focus();
               }
             }
@@ -559,30 +618,90 @@ $(function () {
       }
     };
 
-    self.prepareAceEditor = function () {
-      ace.config.set("basePath", "plugin/klipper/static/js/lib/ace/");
-      editor = ace.edit("plugin-klipper-config");
-      editor.setTheme("ace/theme/monokai");
-      editor.session.setMode("ace/mode/klipper_config");
-      editor.clearSelection();
-
-      editor.setOptions({
-        hScrollBarAlwaysVisible: false,
-        vScrollBarAlwaysVisible: false,
-        autoScrollEditorIntoView: true,
-        showPrintMargin: false,
-        //maxLines: "Infinity"
-      });
-
-      editor.session.on("change", function (delta) {
-        self.cfgContent(editor.getValue());
-        editor.resize();
+    self.prepareMonacoEditor = function () {
+      return new Promise(function (resolve) {
+        var init = function () {
+          if (editor) {
+            resolve();
+            return;
+          }
+          var el = document.getElementById("plugin-klipper-config");
+          editor = monaco.editor.create(el, {
+            language: "klipper_config",
+            theme: "klipper-monokai",
+            automaticLayout: true,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            renderWhitespace: "selection",
+            fontSize: self.fontSize() || 12,
+          });
+          // Ensure the language and theme are applied even if the language
+          // module finished loading after the editor was created.
+          monaco.editor.setModelLanguage(editor.getModel(), "klipper_config");
+          editor.updateOptions({ theme: "klipper-monokai" });
+          editor.onDidChangeModelContent(function () {
+            self.cfgContent(editor.getValue());
+            self._scheduleSyntaxCheck();
+          });
+          // apply any content that was set before the editor was ready
+          if (self.cfgContent()) {
+            editor.setValue(self.cfgContent());
+          }
+          resolve();
+        };
+        if (window.__klipperMonacoPromise) {
+          window.__klipperMonacoPromise.then(init);
+        } else if (window.__klipperMonacoReady) {
+          init();
+        } else {
+          // Fallback: load Monaco directly (e.g. if the template script
+          // hasn't run yet).
+          require(["vs/editor/editor.main"], function () {
+            if (!window.__klipperMonacoReady) {
+              var s = document.createElement("script");
+              s.src = "plugin/klipper/static/js/lib/monaco/klipper-config.js";
+              s.onload = function () {
+                window.__klipperMonacoReady = true;
+                init();
+              };
+              document.head.appendChild(s);
+            } else {
+              init();
+            }
+          });
+        }
       });
     };
 
     self.onStartupComplete = function () {
-      self.prepareAceEditor();
-      self.loadBaseConfig();
+      self._bindSettingsSaving();
+      self.prepareMonacoEditor().then(function () {
+        self.loadBaseConfig();
+      });
+    };
+
+    // Persist editor settings when they are toggled in the editor modal.
+    self._bindSettingsSaving = function () {
+      if (
+        !self.settings ||
+        !self.settings.settings ||
+        !self.settings.settings.plugins ||
+        !self.settings.settings.plugins.klipper ||
+        !self.settings.settings.plugins.klipper.configuration
+      ) {
+        return;
+      }
+      var config = self.settings.settings.plugins.klipper.configuration;
+      if (ko.isObservable(config.parse_check)) {
+        config.parse_check.subscribe(function (value) {
+          self.klipperViewModel.saveOption("configuration", "parse_check", value);
+        });
+      }
+      if (ko.isObservable(config.restart_onsave)) {
+        config.restart_onsave.subscribe(function (value) {
+          self.klipperViewModel.saveOption("configuration", "restart_onsave", value);
+        });
+      }
     };
 
     /**
@@ -611,16 +730,16 @@ $(function () {
           "SaveCfg filename changed to " +
             self.klipperViewModel.currentCfgFilename() +
             " from " +
-            self.loadedConfigFilename
+            self.loadedConfigFilename,
         );
         hasNewName = true;
       }
       OctoPrint.plugins.klipper
-        .saveCfg(editor.session.getValue(), self.klipperViewModel.currentCfgFilename(), hasNewName, force)
+        .saveCfg(editor.getValue(), self.klipperViewModel.currentCfgFilename(), hasNewName, force)
         .done(function (response) {
           if (response.status == "success") {
             self.klipperViewModel.showPopUp("success", gettext("Save Config"), gettext("File saved."));
-            self.loadedConfigContent = editor.session.getValue(); //set loaded config to current for resetting dirtyEditor
+            self.loadedConfigContent = editor.getValue(); //set loaded config to current for resetting dirtyEditor
             self.loadedConfigFilename = self.klipperViewModel.currentCfgFilename();
             if (closing) {
               editordialog.modal("hide");

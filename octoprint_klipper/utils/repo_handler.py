@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import re
-import platform
 import datetime
 from distutils.version import LooseVersion
 
@@ -49,42 +48,45 @@ def retrieve_remote_git_tag(self, remote):
         logger.log_info(self, "parsed git version: " + self._git_version)
 
     logger.log_info(self, "Retrieving remote tag for " + remote, only_logging=True)
-    if platform.system() == "Windows":
-        cmd = (
-            "git ls-remote --exit-code --refs --tags "
-            + remote
-            + " | cut --delimiter='/' --fields=3"
-        )
-        output, status = extra.execute_command(self, cmd)
-        logger.log_info(self, "Versionslist Cmd_Output:" + output, only_logging=True)
-        versions_list = output.split("\n")
-        versions_list.pop()
-        if self._octoklipper_debug:
-            logger.log_info(
-                self,
-                "Unsorted VersionList: " + str(versions_list),
-                only_logging=True,
-            )
-        sorted_versions = sorted(versions_list, key=lambda v: LooseVersion(v))
-        if self._octoklipper_debug:
-            logger.log_info(
-                self,
-                "Sorted VersionList: " + str(sorted_versions),
-                only_logging=True,
-            )
-    else:
-        cmd = (
-            "git ls-remote --exit-code --refs --tags "
-            + remote
-            + " | cut --delimiter='/' --fields=3 | sort -V"
-        )
+    # Use plain git ls-remote and parse the output in Python so it works on
+    # Windows too (no dependency on unix tools like cut or sort -V).
+    cmd = "git ls-remote --exit-code --refs --tags " + remote
+    output, status = extra.execute_command(self, cmd)
+    if not status:
+        return output, False
+    logger.log_info(self, "Versionslist Cmd_Output:" + output, only_logging=True)
 
-        # cmd = "git ls-remote --refs --sort=v:refname --tags " + remote
-        # + " | tail --lines=1 | cut --delimiter='/' --fields=3"
-        output, status = extra.execute_command(self, cmd)
-        logger.log_info(self, "Versionslist Cmd_Output:" + output, only_logging=True)
-        sorted_versions = output.split("\n")
-        sorted_versions.pop()
+    # Each line looks like "<sha>\trefs/tags/<tagname>"
+    versions_list = []
+    for line in output.split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split("\t")
+        if len(parts) != 2:
+            continue
+        ref = parts[1]
+        if not ref.startswith("refs/tags/"):
+            continue
+        tag = ref[len("refs/tags/") :]
+        # skip peeled entries for annotated tags
+        if tag.endswith("^{}"):
+            continue
+        versions_list.append(tag)
+
+    if self._octoklipper_debug:
+        logger.log_info(
+            self,
+            "Unsorted VersionList: " + str(versions_list),
+            only_logging=True,
+        )
+    sorted_versions = sorted(versions_list, key=lambda v: LooseVersion(v))
+    if self._octoklipper_debug:
+        logger.log_info(
+            self,
+            "Sorted VersionList: " + str(sorted_versions),
+            only_logging=True,
+        )
 
     version_lists = sort_versionlist(split_versionlist(sorted_versions))
     # get the last stable version number, split it at the delimiter

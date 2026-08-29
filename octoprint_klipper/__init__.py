@@ -356,11 +356,13 @@ class KlipperPlugin(
                 type="sidebar",
                 custom_bindings=True,
                 icon="rocket",
-                replaces="connection"
-                if self._settings.get_boolean(
-                    ["connection", "replace_connection_panel"]
-                )
-                else "",
+                replaces=(
+                    "connection"
+                    if self._settings.get_boolean(
+                        ["connection", "replace_connection_panel"]
+                    )
+                    else ""
+                ),
             ),
             dict(
                 type="generic",
@@ -407,9 +409,6 @@ class KlipperPlugin(
                 "js/klipper_param_macro.js",
                 "js/klipper_graph.js",
                 "js/klipper_backup.js",
-                "js/lib/ace/ace.min.js",
-                "js/lib/ace/mode-klipper_config.js",
-                "js/lib/ace/theme-monokai.min.js",
                 "js/klipper_editor.js",
                 "js/klipper_files.js",
             ],
@@ -714,8 +713,6 @@ class KlipperPlugin(
         """
         if target not in [_FILE_DESTINATION]:
             flask.abort(400, description="target is invalid")
-        if not self._validate(target, file):
-            flask.abort(404)
 
         cfg_path = os.path.expanduser(
             self._settings.get(["configuration", "config_path"])
@@ -724,9 +721,29 @@ class KlipperPlugin(
             file = os.path.expanduser(
                 self._settings.get(["configuration", "baseconfig"])
             )
-        file_path = os.path.dirname(os.path.expanduser(file)).replace(cfg_path, "")
-        filename = os.path.basename(file)
-        full_path = os.path.realpath(os.path.join(cfg_path, file_path, filename))
+
+        # The baseconfig resolves to an absolute filesystem path (it may live
+        # outside the config storage). Resolve it directly; storage-relative
+        # paths go through the normal validation.
+        if os.path.isabs(file):
+            baseconfig_path = os.path.realpath(
+                os.path.expanduser(
+                    self._settings.get(["configuration", "baseconfig"])
+                )
+            )
+            full_path = os.path.realpath(file)
+            if full_path != baseconfig_path:
+                flask.abort(404)
+        else:
+            if not self._validate(target, file):
+                flask.abort(404)
+            file_path = os.path.dirname(os.path.expanduser(file)).replace(
+                cfg_path, ""
+            )
+            filename = os.path.basename(file)
+            full_path = os.path.realpath(
+                os.path.join(cfg_path, file_path, filename)
+            )
         logger.log_debug(self, "read_config_file " + full_path, only_logging=False)
         return flask.jsonify(config_tools.get_cfg(self, full_path))
 
@@ -821,6 +838,12 @@ class KlipperPlugin(
             return response
 
         def sanitize(storage, path, filename):
+            # The filename may be a full storage-relative path (e.g.
+            # "config/printer.cfg"). Split it into path + name so
+            # sanitize_name doesn't raise ValueError on "/" or "\\".
+            subpath, filename = extra.split_filename_path(filename)
+            if subpath:
+                path = subpath
             sanitized_path = self._file_manager.sanitize_path(storage, path)
             sanitized_name = self._file_manager.sanitize_name(storage, filename)
             joined = self._file_manager.join_path(
@@ -836,12 +859,16 @@ class KlipperPlugin(
             path = data["path"]
             filename = data["filename"]
 
-            sanitized_path, _, sanitized = sanitize(storage, path, filename)
+            sanitized_path, sanitized_name, sanitized = sanitize(
+                storage, path, filename
+            )
 
             exists = self._file_manager.file_exists(storage, sanitized)
             if exists:
-                suggestion = filename
-                name, ext = os.path.splitext(filename)
+                # Base the suggestion on the sanitized name so it never
+                # contains "/" or "\\" (sanitize_name raises ValueError).
+                suggestion = sanitized_name
+                name, ext = os.path.splitext(sanitized_name)
                 counter = 0
                 while self._file_manager.file_exists(
                     storage,
@@ -1500,12 +1527,17 @@ class KlipperPlugin(
             return None
 
     def _validate(self, target, filename):
-        return filename == "/".join(
-            map(
-                lambda x: self._file_manager.sanitize_name(target, x),
-                filename.split("/"),
+        try:
+            return filename == "/".join(
+                map(
+                    lambda x: self._file_manager.sanitize_name(target, x),
+                    filename.split("/"),
+                )
             )
-        )
+        except ValueError:
+            # sanitize_name rejects names containing "/" or "\\"; such a
+            # filename is not a valid storage path.
+            return False
 
     def _verifyFileExists(self, origin, filename):
         return self._file_manager.file_exists(origin, filename)
