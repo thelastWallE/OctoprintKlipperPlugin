@@ -3,7 +3,6 @@
     <li><a href="#basic" data-toggle="tab" data-profile-type="klipper-basic">{{ _('Basic') }}</a></li>
     <li><a href="#macros" data-toggle="tab" data-profile-type="klipper-macros">{{ _('Macros') }}</a></li>
     <li><a href="#level" data-toggle="tab" data-profile-type="klipper-bed">{{ _('Bed Leveling') }}</a></li>
-    <li><a href="#conf" data-toggle="tab" data-profile-type="klipper-config">{{ _('Klipper Configuration') }}</a></li>
     <li><a href="#update" data-toggle="tab" data-profile-type="klipper-update">{{ _('Klipper Update') }}</a></li>
   </ul>
   <div class="tab-content">
@@ -64,15 +63,6 @@
         <div class="controls">
           <input class="controls-checkbox" title="{{ _('Hide Error PopUps') }}" type="checkbox"
             data-bind="checked: settings.settings.plugins.klipper.configuration.hide_error_popups" />
-        </div>
-      </div>
-      <div class="control-group border">
-        <label class="control-label">{{ _('Config Editor') }}</label>
-        <div class="controls">
-          <label class="checkbox" title="{{ _('Check parsing on save') }}"><input type="checkbox"
-              data-bind="checked: settings.settings.plugins.klipper.configuration.parse_check" />
-            {{ _('Check parsing on save') }}
-          </label>
         </div>
       </div>
       <div class="control-group">
@@ -139,11 +129,6 @@
               <option value="SYSTEMCOMMAND">Restart klipper service with system command</option>
             </select>
           </label><br>
-          <label class="checkbox" title="{{ _('Restart klipper on editor save?') }}">
-            <input type="checkbox"
-              data-bind="checked: settings.settings.plugins.klipper.configuration.restart_onsave" />
-            {{ _('Restart Klipper on editor save?') }}
-          </label>
           <label class="checkbox" title="{{ _('Show Confirmation before restarting Klipper?') }}">
             <input type="checkbox"
               data-bind="checked: settings.settings.plugins.klipper.configuration.confirm_reload" />
@@ -416,7 +401,7 @@
       <div class="control-group">
         <label class="control-label">{{ _('Available OctoKlipper Version:') }}</label>
         <div class="controls">
-          <p data-bind="text:klipperViewModel.octoklipperReleasedVersion"
+          <p data-bind="text:klipperViewModel.octoklipperReleasedVersionForOctoprint"
             title="{{ _('Version of the available OctoKlipper Plugin')}}">
           </p>
         </div>

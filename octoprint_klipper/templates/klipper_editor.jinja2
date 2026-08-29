@@ -19,9 +19,28 @@
     </div>
   </div>
   <div class="modal-body">
-    <script src="plugin/klipper/static/js/lib/ace/ace.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="plugin/klipper/static/js/lib/ace/theme-monokai.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="plugin/klipper/static/js/lib/ace/mode-klipper_config.js" type="text/javascript"></script>
+    <script src="plugin/klipper/static/js/lib/monaco/vs/loader.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" charset="utf-8">
+      require.config({
+        paths: {
+          vs: "plugin/klipper/static/js/lib/monaco/vs",
+        },
+      });
+      // Load Monaco, then the Klipper language definition as a plain script so
+      // the monaco global is guaranteed to exist when it runs. Expose a shared
+      // promise so the view model can wait for it without loading Monaco twice.
+      window.__klipperMonacoPromise = new Promise(function (resolve) {
+        require(["vs/editor/editor.main"], function () {
+          var s = document.createElement("script");
+          s.src = "plugin/klipper/static/js/lib/monaco/klipper-config.js";
+          s.onload = function () {
+            window.__klipperMonacoReady = true;
+            resolve();
+          };
+          document.head.appendChild(s);
+        });
+      });
+    </script>
     <div class="full-sized-box klipper-row-fluid">
       <div class="config-files" id="config_files">
         <div class="klipper-config-files" data-test-id="files-list"
@@ -136,7 +155,8 @@
   <div class="modal-footer">
     <div class="editor-controls">
       <span class="control-label">{{ _('Filename') }}:</span>
-      <input class="OctoKlipper-input-mb0" type="text" data-bind="value: $root.klipperViewModel.currentCfgFilename">
+      <input class="OctoKlipper-input-mb0 klipper-flex-grow" type="text"
+        data-bind="value: $root.klipperViewModel.currentCfgFilename" />
       <div class="klipper-btn-group klipper-fluid-item-2">
         <button class="btn btn-small" data-bind="click: reloadFromFile" title="{{ _('Reload from file') }}">
           <i class="fas fa-upload"></i> {{ _('Reload from file') }}
@@ -152,6 +172,16 @@
           <i class="fas fa-save"></i> {{ _('Save') }}
         </button>
       </div>
+    </div>
+    <div class="editor-settings">
+      <label class="checkbox" title="{{ _('Check parsing on save') }}">
+        <input type="checkbox" data-bind="checked: settings.settings.plugins.klipper.configuration.parse_check" />
+        {{ _('Check parsing on save') }}
+      </label>
+      <label class="checkbox" title="{{ _('Restart klipper on editor save?') }}">
+        <input type="checkbox" data-bind="checked: settings.settings.plugins.klipper.configuration.restart_onsave" />
+        {{ _('Restart Klipper on save') }}
+      </label>
     </div>
   </div>
 </div>

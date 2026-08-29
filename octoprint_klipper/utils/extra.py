@@ -151,6 +151,28 @@ def is_float(value):
         return False
 
 
+def split_filename_path(filename):
+    """Split a filename that may contain path separators into ``(path, name)``.
+
+    The filename is treated as a storage-relative path. If it contains ``/`` or
+    ``\\``, the last element is the file name and everything before it is the
+    path. Otherwise the path is ``""`` and the whole string is the file name.
+
+    Args:
+        filename (str): The filename to split.
+
+    Returns:
+        tuple: ``(path, name)``
+    """
+    if "/" in filename or "\\" in filename:
+        filename = filename.replace("\\", "/")
+        parts = filename.split("/")
+        name = parts.pop()
+        path = "/".join(parts)
+        return path, name
+    return "", filename
+
+
 def copy_file(self, file, dst):
     """Copy the file to the destination.
 

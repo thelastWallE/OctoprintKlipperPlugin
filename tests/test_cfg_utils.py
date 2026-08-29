@@ -15,10 +15,54 @@ class TestCheckConfig:
         result = CfgUtils.check_config(plugin_self, config)
         assert result["status"] == "error"
 
+    def test_invalid_syntax_returns_line(self, plugin_self):
+        config = "[probe\nx_offset = 0.0\n"
+        result = CfgUtils.check_config(plugin_self, config)
+        assert result["status"] == "error"
+        assert result["line"] == 1
+
     def test_invalid_float_returns_error(self, plugin_self):
         config = "[probe]\nx_offset = not_a_number\n"
         result = CfgUtils.check_config(plugin_self, config)
         assert result["status"] == "error"
+
+    def test_invalid_float_returns_line(self, plugin_self):
+        config = "[probe]\nx_offset = not_a_number\n"
+        result = CfgUtils.check_config(plugin_self, config)
+        assert result["status"] == "error"
+        assert result["line"] == 2
+
+
+class TestErrorLine:
+    def test_missing_section_header(self):
+        import configparser
+
+        try:
+            configparser.RawConfigParser().read_string("[probe\n")
+            assert False, "expected configparser error"
+        except configparser.Error as e:
+            assert CfgUtils._error_line(e) == 1
+
+    def test_no_line_info(self):
+        assert CfgUtils._error_line(ValueError("boom")) is None
+
+
+class TestFindKeyLine:
+    def test_finds_key_in_section(self):
+        content = "[probe]\nx_offset = 0.0\n"
+        assert CfgUtils._find_key_line(content, "probe", "x_offset") == 2
+
+    def test_ignores_key_outside_section(self):
+        content = "x_offset = 0.0\n[probe]\ny_offset = 0.0\n"
+        assert CfgUtils._find_key_line(content, "probe", "x_offset") is None
+
+    def test_missing_section(self):
+        content = "[probe]\nx_offset = 0.0\n"
+        assert CfgUtils._find_key_line(content, "bltouch", "x_offset") is None
+
+    def test_missing_key(self):
+        content = "[probe]\nx_offset = 0.0\n"
+        assert CfgUtils._find_key_line(content, "probe", "z_offset") is None
 
 
 class TestGetCfg:
