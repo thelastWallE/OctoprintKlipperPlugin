@@ -121,9 +121,7 @@ def restore_config_version(self, file, version):
         with io.open(backup_path, "r", encoding="utf-8") as f:
             content = f.read()
     except IOError as e:
-        return extra.return_error(
-            self, "Could not read backup version", "restore", e
-        )
+        return extra.return_error(self, "Could not read backup version", "restore", e)
     target = _resolve_config_path(self, file)
     try:
         with io.open(target, "w", encoding="utf-8") as f:
@@ -371,24 +369,25 @@ def check_float(self, dataToValidated):
 
 def _config_relative_path(self, file):
     """Return the config path relative to the config storage (no leading sep)."""
-    cfg_path = os.path.normpath(
-        os.path.expanduser(self._settings.get(["configuration", "config_path"]))
-    ) + os.sep
+    cfg_path = (
+        os.path.normpath(
+            os.path.expanduser(self._settings.get(["configuration", "config_path"]))
+        )
+        + os.sep
+    )
     if file == "baseconfig":
         file = os.path.expanduser(self._settings.get(["configuration", "baseconfig"]))
     file_norm = os.path.normpath(os.path.expanduser(file))
     if os.path.isabs(file_norm):
         if file_norm.startswith(cfg_path):
-            return file_norm[len(cfg_path):]
+            return file_norm[len(cfg_path) :]
         return os.path.basename(file_norm)
     return file_norm.replace(os.sep, "/")
 
 
 def _resolve_config_path(self, file):
     """Resolve a config identifier to its absolute filesystem path."""
-    cfg_path = os.path.expanduser(
-        self._settings.get(["configuration", "config_path"])
-    )
+    cfg_path = os.path.expanduser(self._settings.get(["configuration", "config_path"]))
     if file == "baseconfig":
         file = os.path.expanduser(self._settings.get(["configuration", "baseconfig"]))
     file_norm = os.path.normpath(os.path.expanduser(file))
@@ -403,7 +402,7 @@ def _backup_versions(configs_dir, rel):
     versions = []
     for f in glob.glob(pattern):
         base = os.path.basename(f)
-        suffix = base[len(os.path.basename(rel)):]
+        suffix = base[len(os.path.basename(rel)) :]
         if suffix.startswith(".") and suffix[1:].isdigit():
             versions.append((int(suffix[1:]), f))
     versions.sort(key=lambda x: x[0])
@@ -492,8 +491,6 @@ def copy_cfg_to_backup(self, src):
         return {
             "status": "success",
             "data": {
-                "body": gettext(
-                    "Klipper config file copied to {}".format(backup_path)
-                )
+                "body": gettext("Klipper config file copied to {}".format(backup_path))
             },
         }
