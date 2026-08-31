@@ -52,7 +52,7 @@
     <div class="control-group">
       <div class="control-group">
         <div class="controls">
-          <label class="control-label"></label>
+          <div class="control-label"></div>
           <button class="btn btn-block btn-small" data-bind="click: onGetStatus, enable: isActive()"
             title="{{ _('Query Klipper for its current status') }}">
             <i class="fa icon-black fa-info-circle"></i> {{ _("Get Status") }}
@@ -89,7 +89,7 @@
       </div>
       <div class="control-group">
         <div class="controls">
-          <label class="control-label"><i class="icon-wrench"></i> {{ _("Tools") }}</label>
+          <div class="control-label"><i class="icon-wrench"></i> {{ _("Tools") }}</div>
           <button class="btn btn-block btn-small" data-bind="click: showLevelingDialog, enable: isActive()"
             title="{{ _('Assists in manually leveling your printbed by moving the head to a configurable set of positions in sequence.') }}">
             {{ _("Assisted Bed Leveling") }}
@@ -109,7 +109,7 @@
         </div>
       </div>
       <div class="controls" data-bind="visible: hasPermKo('MACRO')">
-        <label class="control-label"><i class="icon-list-alt"></i> {{ _("Macros") }}</label>
+        <div class="control-label"><i class="icon-list-alt"></i> {{ _("Macros") }}</div>
         <div data-bind="foreach: settings.settings.plugins.klipper.macros">
           <!-- ko if: tab -->
           <button class="btn btn-block btn-small"

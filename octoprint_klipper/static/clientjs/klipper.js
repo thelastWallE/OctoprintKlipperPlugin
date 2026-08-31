@@ -36,8 +36,12 @@
     return this.base.post(this.url + "restart", opts);
   };
 
-  OctoKlipperClient.prototype.checkKlipperUpdate = function (opts) {
-    return this.base.get(this.url + "checkKlipperUpdate", opts);
+  OctoKlipperClient.prototype.checkKlipperUpdate = function (remote, opts) {
+    var query = {};
+    if (remote) {
+      query.remote = remote;
+    }
+    return this.base.getWithQuery(this.url + "checkKlipperUpdate", query, opts);
   };
 
   OctoKlipperClient.prototype.checkOctoKlipperUpdate = function (opts) {
@@ -51,6 +55,22 @@
       forced: force,
     };
     return this.base.postJson(this.url + "update", data, opts);
+  };
+
+  OctoKlipperClient.prototype.installKlipper = function (password, opts) {
+    var data = {};
+    if (password) {
+      data.password = password;
+    }
+    return this.base.postJson(this.url + "install", data, opts);
+  };
+
+  OctoKlipperClient.prototype.resetSettings = function (opts) {
+    return this.base.post(this.url + "resetSettings", opts);
+  };
+
+  OctoKlipperClient.prototype.settingsDefaults = function (opts) {
+    return this.base.get(this.url + "settingsDefaults", opts);
   };
 
   OctoKlipperClient.prototype.getCfg = function (location, config, opts) {

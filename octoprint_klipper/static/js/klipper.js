@@ -42,6 +42,17 @@ $(function () {
 
     self.host_version = ko.observable();
     self.host_remote_version = ko.observable();
+    self.host_remote_version_date = ko.observable();
+    self.klipperInstalled = ko.observable(true);
+    self.checkingUpdate = ko.observable(false);
+    self.checkingOctoKlipperUpdate = ko.observable(false);
+
+    self.installWorking = ko.observable(false);
+    self.installTitle = ko.observable();
+    self.installLoglines = ko.observableArray([]);
+    self.installPassword = ko.observable("");
+    self.installDialog = undefined;
+    self.installOutput = undefined;
 
     self.log = ko.observableArray([]);
     self.plainLogLines = ko.observableArray([]);
@@ -156,42 +167,59 @@ $(function () {
       $("#klipper-restart-host").attr(
         "title",
         gettext("This will cause the host software to reload its config and perform an internal reset") +
-          "\n" +
-          gettext("You can set this command in the settings.") +
-          "\n" +
-          gettext("Actual command: ") +
-          self.settings.settings.plugins.klipper.configuration.restart_host_command(),
+        "\n" +
+        gettext("You can set this command in the settings.") +
+        "\n" +
+        gettext("Actual command: ") +
+        self.settings.settings.plugins.klipper.configuration.restart_host_command(),
       );
 
       $("#klipper-restart-firmware").attr(
         "title",
         gettext("Similar to a host restart, but also clears any error state from the micro-controller") +
-          "\n" +
-          gettext("You can set this command in the settings.") +
-          "\n" +
-          gettext("Actual command: ") +
-          self.settings.settings.plugins.klipper.configuration.restart_firmware_command(),
+        "\n" +
+        gettext("You can set this command in the settings.") +
+        "\n" +
+        gettext("Actual command: ") +
+        self.settings.settings.plugins.klipper.configuration.restart_firmware_command(),
       );
 
       $("#klipper-restart-service").attr(
         "title",
         gettext("This will cause the host klipper service to immediately stop and restart!") +
-          "\n" +
-          gettext("You can set this command in the settings.") +
-          "\n" +
-          gettext("Actual command: ") +
-          self.settings.settings.plugins.klipper.configuration.restart_service_system_command(),
+        "\n" +
+        gettext("You can set this command in the settings.") +
+        "\n" +
+        gettext("Actual command: ") +
+        self.settings.settings.plugins.klipper.configuration.restart_service_system_command(),
       );
     };
 
     self.checkForKlipperUpdate = function () {
+      if (self.checkingUpdate()) return;
+      if (self.printerState.isPrinting()) {
+        self._showPopUp("Check Update", {
+          title: gettext("Can't check for updates while printing"),
+          text: gettext("A print job is currently in progress. Checking for updates will be prevented until it is done."),
+          type: "error",
+        });
+        return;
+      }
+      self.checkingUpdate(true);
+      // use the current value from the input field, no need to save first
+      var remote = self.settings.settings.plugins.klipper.configuration.remote_host_git();
       self.logMessage(null, null, "<b>" + gettext("Checking for Update...") + "</b>");
       OctoPrint.plugins.klipper
-        .checkKlipperUpdate()
+        .checkKlipperUpdate(remote)
         .done(function (response) {
+          // Always update the installed state so the install button shows correctly
+          if (response.data && response.data.klipper_installed !== undefined) {
+            self.klipperInstalled(response.data.klipper_installed);
+          }
           if (response.status == "success") {
             self.host_version(response.data.klipper_version);
             self.host_remote_version(response.data.latest_klipper_remote_tag);
+            self.host_remote_version_date(response.data.latest_klipper_remote_tag_date);
             self.logMessage(null, null, `<b>${gettext("Installed Klipper Host Version:")}</b> ${self.host_version()}`);
             self.logMessage(
               null,
@@ -199,23 +227,36 @@ $(function () {
               `<b>${gettext("Available Klipper Version:")}</b> ${self.host_remote_version()}`,
             );
           } else {
-            self.showPopUp("error", "Error", response.error.message);
+            // logMessage with type "error" already shows a popup, so we don't
+            // call showPopUp here as well (would duplicate the message)
             self.logMessage(null, "error", "<b>" + gettext("Error:") + "</b> " + _.escape(response.error.message));
           }
         })
         .fail(function (response) {
-          self.showPopUp("error", "Error", response.responseText);
           self.logMessage(null, "error", "<b>" + gettext("Error:") + "</b> " + _.escape(response.responseText));
+        })
+        .always(function () {
+          self.checkingUpdate(false);
         });
     };
 
     self.checkOctoKlipperUpdate = function () {
+      if (self.printerState.isPrinting()) {
+        self._showPopUp("Check Update", {
+          title: gettext("Can't check for updates while printing"),
+          text: gettext("A print job is currently in progress. Checking for updates will be prevented until it is done."),
+          type: "error",
+        });
+        return;
+      }
+      self.checkingOctoKlipperUpdate(true);
       OctoPrint.plugins.softwareupdate
         .check({ entries: ["klipper"], force: false })
         .done(self.fromUpdaterCheck)
         .fail(function (response) {
           self.showPopUp("error", "Error", response.responseText);
         });
+      self.checkingOctoKlipperUpdate(false);
     };
 
     self.fromUpdaterCheck = function (response) {
@@ -353,6 +394,39 @@ $(function () {
       self.requestRestart("SYSTEMCOMMAND");
     };
 
+    self.onStartup = function () {
+      self.installDialog = $("#klipper_install_dialog");
+      self.installOutput = $("#klipper_install_dialog_output");
+    };
+
+    self._markInstallWorking = function (title, line) {
+      self.installWorking(true);
+      self.installTitle(title);
+      self.installLoglines.removeAll();
+      self.installLoglines.push({ line: line, stream: "message" });
+      self._scrollInstallOutputToEnd();
+      self.installDialog.modal({ keyboard: false, backdrop: "static", show: true });
+    };
+
+    self._markInstallDone = function (error) {
+      self.installWorking(false);
+      if (error) {
+        self.installLoglines.push({ line: gettext("Error!"), stream: "error" });
+        self.installLoglines.push({ line: error, stream: "error" });
+      } else {
+        self.installLoglines.push({ line: gettext("Done!"), stream: "message" });
+      }
+      self._scrollInstallOutputToEnd();
+    };
+
+    self._scrollInstallOutputToEnd = function () {
+      if (self.installOutput && self.installOutput.length) {
+        self.installOutput.scrollTop(
+          self.installOutput[0].scrollHeight - self.installOutput.height(),
+        );
+      }
+    };
+
     self.onAfterBinding = function () {
       self.connectionState.selectedPort(self.settings.settings.plugins.klipper.connection.port());
       self.shortStatus(gettext("No Messages"), "");
@@ -361,6 +435,7 @@ $(function () {
       self.fancyFunctionality(self.settings.settings.plugins.klipper.log.fancy_functionality());
       self.checkForKlipperUpdate();
       self.checkOctoKlipperUpdate();
+      self._loadSettingsDefaults();
     };
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
@@ -381,6 +456,26 @@ $(function () {
           case "debug":
             self.consoleMessage(data.subtype, data.payload);
             self.logMessage(data.time, data.subtype, data.payload);
+            break;
+          case "loglines":
+            if (self.installWorking()) {
+              _.each(data.loglines, function (line) {
+                self.installLoglines.push(line);
+                // also write the install output into the OctoKlipper log
+                self.logMessage(null, "info", gettext("Install: ") + line.line);
+              });
+              self._scrollInstallOutputToEnd();
+            }
+            break;
+          case "result":
+            if (data.result) {
+              self._markInstallDone();
+              self.logMessage(null, null, gettext("Klipper installed successfully."));
+            } else {
+              self._markInstallDone(data.reason);
+              self.logMessage(null, "error", gettext("Klipper install failed: ") + data.reason);
+            }
+            self.checkForKlipperUpdate();
             break;
           default:
             self.logMessage(data.time, data.subtype, data.payload);
@@ -632,6 +727,39 @@ $(function () {
       }
     };
 
+    self.resetAllSettings = function () {
+      if (!self.hasPerm("CONFIG")) return;
+      OctoPrint.plugins.klipper
+        .resetSettings()
+        .done(function () {
+          self.settings.requestData();
+          self.checkForKlipperUpdate();
+          self.showPopUp("success", gettext("Settings reset"), gettext("All OctoKlipper settings have been reset to their defaults."));
+        })
+        .fail(function (response) {
+          self.showPopUp("error", gettext("Reset failed"), response.responseText);
+        });
+    };
+
+    self.pluginDefaults = ko.observable();
+
+    self.resetSetting = function (section, key) {
+      var defaults = self.pluginDefaults();
+      if (!defaults || !defaults[section] || !(key in defaults[section])) return;
+      self.settings.settings.plugins.klipper[section][key](defaults[section][key]);
+    };
+
+    self._loadSettingsDefaults = function () {
+      OctoPrint.plugins.klipper
+        .settingsDefaults()
+        .done(function (data) {
+          self.pluginDefaults(data);
+        })
+        .fail(function () {
+          // ignore, reset buttons just won't work until defaults are loaded
+        });
+    };
+
     self.requestRestart = function (restartType = self.settings.settings.plugins.klipper.configuration.reload_used()) {
       if (!self.hasPerm("CONFIG")) return;
       // if (restartType == None) {
@@ -685,6 +813,63 @@ $(function () {
       } else {
         request(0);
       }
+    };
+
+    /**
+     * Show the install dialog. The install itself is started via
+     * ``startInstall`` so the user can optionally provide a sudo password.
+     */
+    self.requestInstall = function () {
+      if (!self.hasPerm("CONFIG")) return;
+
+      if (self.printerState.isPrinting()) {
+        self._showPopUp("Installer", {
+          title: gettext("Can't install while printing"),
+          text: gettext("A print job is currently in progress. Installing will be prevented until it is done."),
+          type: "error",
+        });
+        return;
+      }
+
+      self.installPassword("");
+      self.installLoglines.removeAll();
+      self.installTitle(gettext("Install Klipper"));
+      self.installWorking(false);
+      self.installDialog.modal({ keyboard: false, backdrop: "static", show: true });
+    };
+
+    /**
+     * Start the Klipper install. Clones the Klipper repository and runs the
+     * platform install script. The install runs in the background and streams
+     * its output into the install working dialog.
+     */
+    self.startInstall = function () {
+      if (!self.hasPerm("CONFIG")) return;
+      if (self._updateClicked) return;
+      self._updateClicked = true;
+
+      self._markInstallWorking(
+        gettext("Installing Klipper..."),
+        gettext("Now installing Klipper, please wait. This can take several minutes."),
+      );
+
+      var password = self.installPassword();
+      self.installPassword(""); // clear the password field immediately
+
+      OctoPrint.plugins.klipper
+        .installKlipper(password)
+        .done(function (response) {
+          self._updateClicked = false;
+          if (response.status == "error") {
+            self._markInstallDone(response.error.message);
+          }
+          // on success the install runs in the background; log lines and the
+          // final result arrive via onDataUpdaterPluginMessage
+        })
+        .fail(function (response) {
+          self._updateClicked = false;
+          self._markInstallDone(response.responseText);
+        });
     };
 
     /**

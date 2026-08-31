@@ -50,10 +50,10 @@ except ImportError:
     from urllib import quote as urlquote  # noqa: F401
 
 import octoprint_klipper.utils.logger as logger
-import octoprint_klipper.migration.migrate as migration
+from octoprint_klipper.migration import migrate as migrate_module
 import octoprint_klipper.utils.extra as extra
 import octoprint_klipper.utils.repo_handler as repo_handler
-import octoprint_klipper.config_tools.CfgUtils as config_tools
+from octoprint_klipper.config_tools import CfgUtils as cfg_utils
 
 from .modules import KlipperLogAnalyzer
 
@@ -88,6 +88,7 @@ class KlipperPlugin(
         self._logger = logging.getLogger("octoprint.plugins.klipper")
         self._octoklipper_logger = logging.getLogger("octoprint.plugins.klipper.debug")
         self._get_throttled = lambda: False
+        self._install_task = None
 
     # -- Startup Plugin
     def on_startup(self, host, port):
@@ -232,7 +233,7 @@ class KlipperPlugin(
                 parse_check=False,
                 fontsize=12,
                 hide_error_popups=False,
-                remote_host_git="https://github.com/Klipper3D/klipper.git",
+                remote_host_git="https://github.com/Klipper3d/klipper.git",
                 remote_octoklipper_git="https://github.com/thelastWallE/OctoprintKlipperPlugin.git",
             ),
         )
@@ -293,7 +294,7 @@ class KlipperPlugin(
         settings = self._settings
         if current is None:
             try:
-                migration.migrate_old_settings(self, settings)
+                migrate_module.migrate_old_settings(self, settings)
             except Exception as err:
                 logger.log_error(self, err, only_logging=False)
                 raise
@@ -303,7 +304,7 @@ class KlipperPlugin(
             # step versions one step at a time higher
             try:
                 while current < target:
-                    current = migration.migrater(self, current, settings)
+                    current = migrate_module.migrater(self, current, settings)
                     logger.log_info(
                         self, "Migration Step: " + str(current), only_logging=True
                     )
@@ -391,9 +392,14 @@ class KlipperPlugin(
         ]
 
     def get_template_vars(self):
+        defaults = self.get_settings_defaults()
         return {
             "max_upload_size": MAX_UPLOAD_SIZE,
             "max_upload_size_str": get_formatted_size(MAX_UPLOAD_SIZE),
+            "default_remote_host_git": defaults["configuration"]["remote_host_git"],
+            "default_remote_octoklipper_git": defaults["configuration"][
+                "remote_octoklipper_git"
+            ],
         }
 
     # -- Asset Plugin
@@ -401,6 +407,7 @@ class KlipperPlugin(
     def get_assets(self):
         return dict(
             js=[
+                "js/lib/Chart.bundle.min.js",
                 "js/klipper.js",
                 "js/klipper_settings.js",
                 "js/klipper_leveling.js",
@@ -651,7 +658,7 @@ class KlipperPlugin(
         data_folder = self.get_plugin_data_folder()
         full_path = os.path.realpath(os.path.join(data_folder, "configs", filename))
 
-        return flask.jsonify(config_tools.get_cfg(self, full_path))
+        return flask.jsonify(cfg_utils.get_cfg(self, full_path))
 
     # Delete a backed up config
     @octoprint.plugin.BlueprintPlugin.route(
@@ -682,7 +689,7 @@ class KlipperPlugin(
     @octoprint.plugin.BlueprintPlugin.route("/backup/list", methods=["GET"])
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def list_backups(self):
-        return flask.jsonify(config_tools.list_config_files(self, "backup"))
+        return flask.jsonify(cfg_utils.list_config_files(self, "backup"))
 
     # restore a backed up configfile
     @octoprint.plugin.BlueprintPlugin.route(
@@ -745,7 +752,7 @@ class KlipperPlugin(
                 os.path.join(cfg_path, file_path, filename)
             )
         logger.log_debug(self, "read_config_file " + full_path, only_logging=False)
-        return flask.jsonify(config_tools.get_cfg(self, full_path))
+        return flask.jsonify(cfg_utils.get_cfg(self, full_path))
 
     # Delete a Configfile
     @octoprint.plugin.BlueprintPlugin.route(
@@ -1199,7 +1206,7 @@ class KlipperPlugin(
         data = flask.request.json
         data_to_check = data.get("DataToCheck", [])
 
-        return flask.jsonify(config_tools.check_config(self, data_to_check))
+        return flask.jsonify(cfg_utils.check_config(self, data_to_check))
 
     # save a configfile
     @octoprint.plugin.BlueprintPlugin.route("/config/save", methods=["POST"])
@@ -1231,7 +1238,7 @@ class KlipperPlugin(
         filecontent = data.get("DataToSave", [])
         is_new_file = True if not file_exist else False
 
-        results = config_tools.save_cfg(self, filecontent, file, is_new_file)
+        results = cfg_utils.save_cfg(self, filecontent, file, is_new_file)
         if results["status"] == "success":
             extra.send_message(self, type="reload", subtype="configlist")
         return flask.jsonify(results)
@@ -1364,28 +1371,112 @@ class KlipperPlugin(
 
         return flask.jsonify(response)
 
+    # install klipper
+    @octoprint.plugin.BlueprintPlugin.route("/install", methods=["POST"])
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def install_klipper(self):
+        if self._install_task is not None and self._install_task.is_alive():
+            return flask.jsonify(
+                dict(
+                    status="error",
+                    error=dict(message="An install is already in progress"),
+                )
+            )
+
+        data = flask.request.json or {}
+        sudo_password = data.get("password", "")
+
+        def on_line(line, stream):
+            self._plugin_manager.send_plugin_message(
+                self._identifier,
+                {
+                    "type": "loglines",
+                    "loglines": [{"line": line, "stream": stream}],
+                },
+            )
+
+        def perform_install():
+            try:
+                [output, success] = repo_handler.install_klipper_host(
+                    self, on_line=on_line, sudo_password=sudo_password
+                )
+                self._plugin_manager.send_plugin_message(
+                    self._identifier,
+                    {
+                        "type": "result",
+                        "result": success,
+                        "reason": output if not success else None,
+                    },
+                )
+            except Exception:
+                self._logger.exception("Error while installing Klipper")
+                self._plugin_manager.send_plugin_message(
+                    self._identifier,
+                    {
+                        "type": "result",
+                        "result": False,
+                        "reason": "Unknown error, please consult octoprint.log",
+                    },
+                )
+            finally:
+                self._install_task = None
+
+        self._install_task = threading.Thread(target=perform_install)
+        self._install_task.daemon = True
+        self._install_task.start()
+
+        # clear the password reference as soon as the thread has captured it
+        sudo_password = None
+
+        return flask.jsonify(dict(status="success", in_progress=True))
+
+    # reset all plugin settings to defaults
+    @octoprint.plugin.BlueprintPlugin.route("/resetSettings", methods=["POST"])
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def reset_settings(self):
+        defaults = self.get_settings_defaults()
+        for key, value in defaults.items():
+            self._settings.set([key], value)
+        self._settings.save()
+        return flask.jsonify(dict(status="success"))
+
+    # return the plugin's default settings (used for per-setting reset buttons)
+    @octoprint.plugin.BlueprintPlugin.route("/settingsDefaults", methods=["GET"])
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def settings_defaults(self):
+        return flask.jsonify(self.get_settings_defaults())
+
     # get klipper version
     @octoprint.plugin.BlueprintPlugin.route("/checkKlipperUpdate", methods=["GET"])
     def check_Klipper_Update(self):
         response = extra.basedict()
         response["status"] = "success"
+        installed = repo_handler.is_klipper_installed(self)
+        response["data"]["klipper_installed"] = installed
 
-        (
-            output_klipper_version,
-            success_klipper_version,
-        ) = repo_handler.get_software_version(self)
-        if not success_klipper_version:
-            response["error"]["message"] = output_klipper_version
-            response["status"] = "error"
+        if installed:
+            (
+                output_klipper_version,
+                success_klipper_version,
+            ) = repo_handler.get_software_version(self)
+            if not success_klipper_version:
+                response["error"]["message"] = output_klipper_version
+                response["status"] = "error"
+            else:
+                response["data"]["klipper_version"] = output_klipper_version
         else:
-            response["data"]["klipper_version"] = output_klipper_version
+            response["data"]["klipper_version"] = "?"
+
+        # Use the remote passed from the frontend (current input field value)
+        # so the check works without saving the settings first.
+        remote = flask.request.args.get("remote") or self._settings.get(
+            ["configuration", "remote_host_git"]
+        )
 
         (
             self._latest_klipper_remote_tag,
             success_remote_tag,
-        ) = repo_handler.retrieve_remote_git_tag(
-            self, self._settings.get(["configuration", "remote_host_git"])
-        )
+        ) = repo_handler.retrieve_remote_git_tag(self, remote)
         if not success_remote_tag:
             response["error"]["message"] = self._latest_klipper_remote_tag
             response["status"] = "error"
@@ -1393,6 +1484,16 @@ class KlipperPlugin(
             response["data"][
                 "latest_klipper_remote_tag"
             ] = self._latest_klipper_remote_tag
+            (
+                latest_klipper_remote_tag_date,
+                success_remote_tag_date,
+            ) = repo_handler.retrieve_remote_git_tag_date(
+                self, remote, self._latest_klipper_remote_tag
+            )
+            if success_remote_tag_date:
+                response["data"][
+                    "latest_klipper_remote_tag_date"
+                ] = latest_klipper_remote_tag_date
 
         return flask.jsonify(response)
 

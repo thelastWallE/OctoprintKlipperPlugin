@@ -9,49 +9,71 @@
     <!-- Basics -->
     <div class="tab-pane active" id="basic">
       <div class="control-group">
-        <label class="control-label">{{ _('Serial Port') }}</label>
+        <div class="control-label">{{ _('Serial Port') }}</div>
         <div class="controls">
-          <input type="text" class="input-block-level"
-            data-bind="value: settings.settings.plugins.klipper.connection.port" />
+          <div class="klipper-reset-row">
+            <input type="text" class="input-block-level"
+              data-bind="value: settings.settings.plugins.klipper.connection.port" />
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('connection', 'port') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
-      <div class="control-group">
-        <label class="control-label">{{ _('Replace Connection Panel') }}</label>
-        <div class="controls">
-          <input class="controls-checkbox" title="{{ _('Replace Connection Panel') }}" type="checkbox"
+      <div class="control-group klipper-items-center">
+        <div class="control-label">{{ _('Replace Connection Panel') }}</div>
+        <div class="controls klipper-flex klipper-items-center">
+          <div class="klipper-reset-row">
+          <input class="controls-checkbox klipper-flex-shrink" title="{{ _('Replace Connection Panel') }}" type="checkbox"
             data-bind="checked: settings.settings.plugins.klipper.connection.replace_connection_panel">
+            <span class="klipper-help-inline klipper-flex-grow">{{ _('Requires octoprint restart to take effect') }}</span>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('connection', 'replace_connection_panel') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Hide \'Open Editor\' Button\nin the Connection Panel') }}</label>
+        <div class="control-label">{{ _('Hide \'Open Editor\' Button\nin the Connection Panel') }}</div>
         <div class="controls">
-          <input class="controls-checkbox" title="{{ _('Hide \'Open Editor\' Button\nin the Connection Panel') }}"
-            type="checkbox" data-bind="checked: settings.settings.plugins.klipper.connection.hide_editor_button">
+          <div class="klipper-reset-row">
+            <input class="controls-checkbox" title="{{ _('Hide \'Open Editor\' Button\nin the Connection Panel') }}"
+              type="checkbox" data-bind="checked: settings.settings.plugins.klipper.connection.hide_editor_button">
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('connection', 'hide_editor_button') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Hide \'Configs\' Button\nin the Connection Panel') }}</label>
+        <div class="control-label">{{ _('Hide \'Configs\' Button\nin the Connection Panel') }}</div>
         <div class="controls">
-          <input class="controls-checkbox" title="{{ _('Hide \'Configs\' Button\nin the Connection Panel') }}"
-            type="checkbox" data-bind="checked: settings.settings.plugins.klipper.connection.hide_config_button">
+          <div class="klipper-reset-row">
+            <input class="controls-checkbox" title="{{ _('Hide \'Configs\' Button\nin the Connection Panel') }}"
+              type="checkbox" data-bind="checked: settings.settings.plugins.klipper.connection.hide_config_button">
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('connection', 'hide_config_button') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
       <div class="control-group border">
-        <label class="control-label">{{ _('Show Short Messages') }}</label>
+        <div class="control-label">{{ _('Show Short Messages') }}</div>
         <div class="controls">
-          <label class="checkbox" title="{{ _('on NavBar') }}"><input type="checkbox"
-              data-bind="checked: settings.settings.plugins.klipper.configuration.shortStatus_navbar" />
-            {{ _('on NavBar') }}</label>
-          <label class="checkbox" title="{{ _('on SideBar') }}"><input type="checkbox"
-              data-bind="checked: settings.settings.plugins.klipper.configuration.shortStatus_sidebar" />
-            {{ _('on SideBar') }}</label>
+          <div class="klipper-reset-row">
+            <label class="checkbox" title="{{ _('on NavBar') }}"><input type="checkbox"
+                data-bind="checked: settings.settings.plugins.klipper.configuration.shortStatus_navbar" />
+              {{ _('on NavBar') }}</label>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'shortStatus_navbar') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
+          <div class="klipper-reset-row">
+            <label class="checkbox" title="{{ _('on SideBar') }}"><input type="checkbox"
+                data-bind="checked: settings.settings.plugins.klipper.configuration.shortStatus_sidebar" />
+              {{ _('on SideBar') }}</label>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'shortStatus_sidebar') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Enable extended functionality\nfor log messages') }}</label>
+        <div class="control-label">{{ _('Enable extended functionality\nfor log messages') }}</div>
         <div class="controls">
-          <input class="controls-checkbox" title="{{ _('Enable extended functionality for log messages') }}"
-            type="checkbox" data-bind="checked: settings.settings.plugins.klipper.log.fancy_functionality" />
+          <div class="klipper-reset-row">
+            <input class="controls-checkbox" title="{{ _('Enable extended functionality for log messages') }}"
+              type="checkbox" data-bind="checked: settings.settings.plugins.klipper.log.fancy_functionality" />
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('log', 'fancy_functionality') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
           <br>
           <button class="btn btn-small" data-bind="click: showLogfiltersDialog" title="{{ _('Logfilters') }}">
             {{ _('Edit Logfilters') }}
@@ -59,23 +81,32 @@
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Hide Error PopUps') }}</label>
+        <div class="control-label">{{ _('Hide Error PopUps') }}</div>
         <div class="controls">
-          <input class="controls-checkbox" title="{{ _('Hide Error PopUps') }}" type="checkbox"
-            data-bind="checked: settings.settings.plugins.klipper.configuration.hide_error_popups" />
+          <div class="klipper-reset-row">
+            <input class="controls-checkbox" title="{{ _('Hide Error PopUps') }}" type="checkbox"
+              data-bind="checked: settings.settings.plugins.klipper.configuration.hide_error_popups" />
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'hide_error_popups') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Klipper Directory') }}</label>
+        <div class="control-label">{{ _('Klipper Directory') }}</div>
         <div class="controls">
-          <input type="text" class="input-block-level"
-            data-bind="value: settings.settings.plugins.klipper.configuration.klipper_path" />
+          <div class="klipper-reset-row">
+            <input type="text" class="input-block-level"
+              data-bind="value: settings.settings.plugins.klipper.configuration.klipper_path" />
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'klipper_path') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Klipper Config Directory') }}</label>
+        <div class="control-label">{{ _('Klipper Config Directory') }}</div>
         <div class="controls">
-          <input type="text" class="input-block-level" data-bind="value: configPath" />
+          <div class="klipper-reset-row">
+            <input type="text" class="input-block-level" data-bind="value: configPath" />
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'config_path') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
         <!-- ko if: serverOS() == "Linux" -->
         <div class="controls">
@@ -88,34 +119,49 @@
       </div>
 
       <div class="control-group">
-        <label class="control-label"
-          title="{{ _('The filename of the base config that Klipper is loading. (default is printer.cfg)') }}">{{ _('Klipper Base Config Filename') }}</label>
+        <div class="control-label"
+          title="{{ _('The filename of the base config that Klipper is loading. (default is printer.cfg)') }}">{{ _('Klipper Base Config Filename') }}</div>
         <div class="controls">
-          <input type="text" class="input-block-level"
-            data-bind="value: settings.settings.plugins.klipper.configuration.baseconfig" />
+          <div class="klipper-reset-row">
+            <input type="text" class="input-block-level"
+              data-bind="value: settings.settings.plugins.klipper.configuration.baseconfig" />
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'baseconfig') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Klipper Log File') }}</label>
+        <div class="control-label">{{ _('Klipper Log File') }}</div>
         <div class="controls">
-          <input type="text" class="input-block-level"
-            data-bind="value: settings.settings.plugins.klipper.configuration.logpath" />
+          <div class="klipper-reset-row">
+            <input type="text" class="input-block-level"
+              data-bind="value: settings.settings.plugins.klipper.configuration.logpath" />
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'logpath') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
       <div class="control-group border">
-        <label class="control-label">{{ _('Configuration Restart GCode Command') }}</label>
+        <div class="control-label">{{ _('Configuration Restart GCode Command') }}</div>
         <div class="controls">
           <label class="">{{ _('Klipper Restart Host GCODE:') }}
-            <input type="text" class="input-block-level"
-              data-bind="value: settings.settings.plugins.klipper.configuration.restart_host_command" />
+            <div class="klipper-reset-row">
+              <input type="text" class="input-block-level"
+                data-bind="value: settings.settings.plugins.klipper.configuration.restart_host_command" />
+              <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'restart_host_command') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+            </div>
           </label>
           <label class="">{{ _('Klipper Restart Firmware GCODE:') }}
-            <input type="text" class="input-block-level"
-              data-bind="value: settings.settings.plugins.klipper.configuration.restart_firmware_command" />
+            <div class="klipper-reset-row">
+              <input type="text" class="input-block-level"
+                data-bind="value: settings.settings.plugins.klipper.configuration.restart_firmware_command" />
+              <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'restart_firmware_command') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+            </div>
           </label>
           <label class="" title="{{ _('Restart Host system command') }}">{{ _('Restart Host system command:') }}
-            <input type="text" class="input-block-level"
-              data-bind="value: settings.settings.plugins.klipper.configuration.restart_service_system_command" />
+            <div class="klipper-reset-row">
+              <input type="text" class="input-block-level"
+                data-bind="value: settings.settings.plugins.klipper.configuration.restart_service_system_command" />
+              <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'restart_service_system_command') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+            </div>
             <span class="help-block" style="margin-top:5px;">
               {{ _('System command for restarting the klipper service.') }}
             </span>
@@ -123,22 +169,28 @@
           <br>
           <label class=""
             title="{{ _('The type of restart that is used if you want to restart klipper.') }}">{{ _('The type of restart that is used on the dialogs:') }}
-            <select data-bind="value: settings.settings.plugins.klipper.configuration.reload_used">
-              <option value="HOST">Restart Host(klippy)</option>
-              <option value="FIRMWARE">Restart Firmware on printer</option>
-              <option value="SYSTEMCOMMAND">Restart klipper service with system command</option>
-            </select>
+            <div class="klipper-reset-row">
+              <select data-bind="value: settings.settings.plugins.klipper.configuration.reload_used">
+                <option value="HOST">Restart Host(klippy)</option>
+                <option value="FIRMWARE">Restart Firmware on printer</option>
+                <option value="SYSTEMCOMMAND">Restart klipper service with system command</option>
+              </select>
+              <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'reload_used') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+            </div>
           </label><br>
-          <label class="checkbox" title="{{ _('Show Confirmation before restarting Klipper?') }}">
-            <input type="checkbox"
-              data-bind="checked: settings.settings.plugins.klipper.configuration.confirm_reload" />
-            {{ _('Confirmation before restarting Klipper?') }}
-          </label>
+          <div class="klipper-reset-row">
+            <label class="checkbox" title="{{ _('Show Confirmation before restarting Klipper?') }}">
+              <input type="checkbox"
+                data-bind="checked: settings.settings.plugins.klipper.configuration.confirm_reload" />
+              {{ _('Confirmation before restarting Klipper?') }}
+            </label>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'confirm_reload') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
 
       <div class="control-group">
-        <label class="control-label">{{ _('Config Backup') }}</label>
+        <div class="control-label">{{ _('Config Backup') }}</div>
         <div class="controls">
           <button class="btn btn-small" data-bind='click: showBackupsDialog' title="{{ _('Show Backups') }}">
             <i class="fas fa-upload"></i> {{ _('Show Backups') }}
@@ -146,14 +198,20 @@
         </div>
       </div>
       <div class="control-group border">
-        <label class="control-label">{{ _('Development Options') }}</label>
+        <div class="control-label">{{ _('Development Options') }}</div>
         <div class="controls">
-          <label class="checkbox" title="{{ _('Enable debug logging') }}">
-            <input type="checkbox" data-bind="checked: settings.settings.plugins.klipper.configuration.debug_logging" />
-            {{ _('Enable debug logging') }}</label>
-          <label class="checkbox" title="{{ _('Enable debugging') }}">
-            <input type="checkbox" data-bind="checked: settings.settings.plugins.klipper.configuration.debugging" />
-            {{ _('Enable debugging') }}</label>
+          <div class="klipper-reset-row">
+            <label class="checkbox" title="{{ _('Enable debug logging') }}">
+              <input type="checkbox" data-bind="checked: settings.settings.plugins.klipper.configuration.debug_logging" />
+              {{ _('Enable debug logging') }}</label>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'debug_logging') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
+          <div class="klipper-reset-row">
+            <label class="checkbox" title="{{ _('Enable debugging') }}">
+              <input type="checkbox" data-bind="checked: settings.settings.plugins.klipper.configuration.debugging" />
+              {{ _('Enable debugging') }}</label>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'debugging') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
         </div>
       </div>
     </div>
@@ -176,7 +234,7 @@
       </div>
       <div data-bind="foreach: macros">
         <div class="control-group" id="item">
-          <label class="control-label">{{ _('Name') }}</label>
+          <div class="control-label">{{ _('Name') }}</div>
           <div class="controls" style="margin-left: 82px;">
             <div class="row-fluid">
               <div class="span8">
@@ -201,7 +259,7 @@
             </div>
           </div>
           <div class="klipper-wrapper">
-            <label class="klipper-control-label-bordered">Button Style</label>
+            <div class="klipper-control-label-bordered">Button Style</div>
             <div class="klipper-bordered">
               <div class="controls-row klipper-row-fluid">
                 <div class="klipper-fluid-item-1">
@@ -226,7 +284,7 @@
             </div>
           </div>
 
-          <label class="control-label">{{ _('Command') }}</label>
+          <div class="control-label">{{ _('Command') }}</div>
           <div class="controls" style="margin-left: 82px;">
             <div class="row-fluid">
               <div class="span12" style="margin-top:2px;">
@@ -249,7 +307,7 @@
         </span>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Command') }}</label>
+        <div class="control-label">{{ _('Command') }}</div>
         <div class="controls" style="margin-left: 82px;">
           <div class="row-fluid">
             <div class="span12" style="margin-top:2px;">
@@ -274,44 +332,56 @@
         </span>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Probe Height') }}</label>
+        <div class="control-label">{{ _('Probe Height') }}</div>
         <div class="controls">
-          <div class="input-append">
-            <input type="text" class="input-block-level span3"
-              data-bind="value: settings.settings.plugins.klipper.probe.height" />
-            <span class="add-on">mm</span>
+          <div class="klipper-reset-row">
+            <div class="input-append">
+              <input type="text" class="input-block-level span3"
+                data-bind="value: settings.settings.plugins.klipper.probe.height" />
+              <span class="add-on">mm</span>
+            </div>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('probe', 'height') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
           </div>
           <span class="help-inline">{{ _('Z-height to probe at') }}</span>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Probe Lift') }}</label>
+        <div class="control-label">{{ _('Probe Lift') }}</div>
         <div class="controls">
-          <div class="input-append">
-            <input type="text" class="input-block-level span3"
-              data-bind="value: settings.settings.plugins.klipper.probe.lift" />
-            <span class="add-on">mm</span>
+          <div class="klipper-reset-row">
+            <div class="input-append">
+              <input type="text" class="input-block-level span3"
+                data-bind="value: settings.settings.plugins.klipper.probe.lift" />
+              <span class="add-on">mm</span>
+            </div>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('probe', 'lift') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
           </div>
           <span class="help-inline">{{ _('Lift Head by this amount before moving.') }}</span>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Probe Feedrate Z') }}</label>
+        <div class="control-label">{{ _('Probe Feedrate Z') }}</div>
         <div class="controls">
-          <div class="input-append">
-            <input type="text" class="input-block-level span3"
-              data-bind="value: settings.settings.plugins.klipper.probe.speed_z" />
-            <span class="add-on">mm/min</span>
+          <div class="klipper-reset-row">
+            <div class="input-append">
+              <input type="text" class="input-block-level span3"
+                data-bind="value: settings.settings.plugins.klipper.probe.speed_z" />
+              <span class="add-on">mm/min</span>
+            </div>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('probe', 'speed_z') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
           </div>
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">{{ _('Feedrate X/Y') }}</label>
+        <div class="control-label">{{ _('Feedrate X/Y') }}</div>
         <div class="controls">
-          <div class="input-append">
-            <input type="text" class="input-block-level span3"
-              data-bind="value: settings.settings.plugins.klipper.probe.speed_xy" />
-            <span class="add-on">mm/min</span>
+          <div class="klipper-reset-row">
+            <div class="input-append">
+              <input type="text" class="input-block-level span3"
+                data-bind="value: settings.settings.plugins.klipper.probe.speed_xy" />
+              <span class="add-on">mm/min</span>
+            </div>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('probe', 'speed_xy') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
           </div>
         </div>
       </div>
@@ -327,7 +397,7 @@
         </div>
       </div>
       <div data-bind="foreach: settings.settings.plugins.klipper.probe.points" class="control-group">
-        <label class="control-label" data-bind="text: $index"></label>
+        <div class="control-label" data-bind="text: $index"></div>
         <div class="controls">
           <div class="row-fluid">
             <div class="span3"><input type="text" class="input-block-level" data-bind="value: name" /></div>
@@ -354,29 +424,47 @@
     <div class="tab-pane" id="update">
       <h3 class="text-center m-0">{{ _('Updates') }}</h3>
       <div class="control-group">
-        <label class="control-label">{{ _('Installed Host Version:') }}</label>
+        <div class="control-label">{{ _('Installed Host Version:') }}</div>
         <div class="controls">
           <p data-bind="text:klipperViewModel.host_version" title="{{ _('Version of the Klipper host')}}"></p>
         </div>
       </div>
 
       <div class="control-group">
-        <label class="control-label">{{ _('Available Host Version:') }}</label>
+        <div class="control-label">{{ _('Available Host Version:') }}</div>
         <div class="controls">
           <p data-bind="text:klipperViewModel.host_remote_version"
             title="{{ _('Version of the available Klipper host')}}">
+          </p>
+          <p data-bind="text:klipperViewModel.host_remote_version_date"
+            title="{{ _('Release date of the available Klipper host')}}">
           </p>
         </div>
       </div>
 
       <div class="control-group">
-        <label class="control-label">{{ _('Url to Repository of Klipper:') }}</label>
+        <div class="control-label">{{ _('Url to Repository of Klipper:') }}</div>
         <div class="controls">
-          <input type="text" class="span8"
-            data-bind="value: settings.settings.plugins.klipper.configuration.remote_host_git" />
-          <button class="btn btn-small" data-bind="click: function() { klipperViewModel.checkForKlipperUpdate() }"
-            title="{{ _('Check for Update') }}">
-            <i class="icon-refresh"></i>
+          <div class="klipper-reset-row">
+            <input type="text" class="span8"
+              data-bind="value: settings.settings.plugins.klipper.configuration.remote_host_git" />
+            <button class="btn btn-small" data-bind="click: function() { klipperViewModel.checkForKlipperUpdate() }, enable: !klipperViewModel.checkingUpdate()"
+              title="{{ _('Check for Update') }}">
+              <i class="icon-refresh" data-bind="css: { 'klipper-spin': klipperViewModel.checkingUpdate() }"></i>
+            </button>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'remote_host_git') }"
+              title="{{ _('Reset to default') }}">
+              <i class="icon-undo"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group" data-bind="visible: !klipperViewModel.klipperInstalled()">
+        <div class="controls">
+          <button class="btn btn-block btn-small btn-primary" data-bind="click: function() { klipperViewModel.requestInstall() }"
+            title="{{ _('This will clone and install the Klipper host software') }}">
+            {{ _("Install Klipper") }}
           </button>
         </div>
       </div>
@@ -391,7 +479,7 @@
       </div>
 
       <div class="control-group">
-        <label class="control-label">{{ _('Installed OctoKlipper Version:') }}</label>
+        <div class="control-label">{{ _('Installed OctoKlipper Version:') }}</div>
         <div class="controls">
           <p data-bind="text:klipperViewModel.octoklipperInstalledVersion"
             title="{{ _('Version of the OctoKlipper Plugin')}}"></p>
@@ -399,7 +487,7 @@
       </div>
 
       <div class="control-group">
-        <label class="control-label">{{ _('Available OctoKlipper Version:') }}</label>
+        <div class="control-label">{{ _('Available OctoKlipper Version:') }}</div>
         <div class="controls">
           <p data-bind="text:klipperViewModel.octoklipperReleasedVersionForOctoprint"
             title="{{ _('Version of the available OctoKlipper Plugin')}}">
@@ -408,26 +496,58 @@
       </div>
 
       <div class="control-group">
-        <label class="control-label">{{ _('Url to Repository of OctoKlipper:') }}</label>
+        <div class="control-label">{{ _('Url to Repository of OctoKlipper:') }}</div>
         <div class="controls">
-          <input type="text" class="span8"
-            data-bind="value: settings.settings.plugins.klipper.configuration.remote_octoklipper_git" />
-          <button class="btn btn-small" data-bind="click: function() {klipperViewModel.checkOctoKlipperUpdate() }"
-            title="{{ _('Check for Update') }}">
-            <i class="icon-refresh"></i>
-          </button>
+          <div class="klipper-reset-row">
+            <input type="text" class="span8"
+              data-bind="value: settings.settings.plugins.klipper.configuration.remote_octoklipper_git" />
+            <button class="btn btn-small" data-bind="click: function() {klipperViewModel.checkOctoKlipperUpdate() }"
+              title="{{ _('Check for Update') }}">
+              <i class="icon-refresh" data-bind="css: { 'klipper-spin': klipperViewModel.checkingOctoKlipperUpdate() }"></i>
+            </button>
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'remote_octoklipper_git') }"
+              title="{{ _('Reset to default') }}">
+              <i class="icon-undo"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="tab-footer">
+    <button type="button" class="btn btn-mini" data-bind="click: klipperViewModel.resetAllSettings"
+      title="{{ _('Reset all OctoKlipper settings to their defaults') }}">
+      <i class="icon-undo"></i> {{ _('Reset all settings') }}
+    </button>
     <a href="https://www.paypal.com/donate/?business=7P63W664NF8LA&item_name=OctoKlipper"
       class="btn btn-mini octoklipper-donate" target="_blank">
       <i class="fab fa-paypal"> {{ _('Donate') }}</i>
     </a>
   </div>
 </form>
+
+<!-- Klipper install working dialog -->
+<div id="klipper_install_dialog" class="modal hide fade-in">
+  <div class="modal-header">
+    <h3 data-bind="text: klipperViewModel.installTitle"></h3>
+  </div>
+  <div class="modal-body">
+    <div class="control-group" data-bind="visible: !klipperViewModel.installWorking()">
+      <div class="control-label">{{ _('Sudo password (optional):') }}</div>
+      <div class="controls">
+        <input type="password" class="span8" data-bind="value: klipperViewModel.installPassword, valueUpdate: 'afterkeydown'"
+          placeholder="{{ _('Only needed if passwordless sudo is not configured') }}" />
+      </div>
+    </div>
+    <pre id="klipper_install_dialog_output" class="pre-scrollable pre-output" style="height: 170px"
+      data-bind="foreach: klipperViewModel.installLoglines"><span data-bind="text: line + '\n', css: {stdout: stream == 'stdout', stderr: stream == 'stderr', call: stream == 'call', message: stream == 'message', error: stream == 'error'}"></span></pre>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" data-bind="click: klipperViewModel.startInstall, enable: !klipperViewModel.installWorking()">{{ _('Start Install') }}</button>
+    <button class="btn" data-dismiss="modal" data-bind="enable: !klipperViewModel.installWorking()" aria-hidden="true">{{ _('Close') }}</button>
+  </div>
+</div>
 
 <div id="klipper_logfilters_dialog" class="modal hide fade span8" tabindex="-1" role="dialog"
   aria-labelledby="klipper_logfilters_label" aria-hidden="true">

@@ -5,6 +5,7 @@ import glob
 import io
 import re
 import sarge
+import subprocess
 from os import path
 
 
@@ -120,11 +121,20 @@ def execute_command(self, command):
     # we run this with shell=True since we have to trust whatever
     # our admin configured as command and since we want to allow
     # shell-alike handling here...
-    output_text2, output_error2 = sarge.get_both(
+    env = os.environ.copy()
+    # Never let git prompt for credentials (would hang the request)
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    p = sarge.run(
         command,
         close_fds=CLOSE_FDS,
         shell=True,
+        stdout=sarge.Capture(),
+        stderr=sarge.Capture(),
+        env=env,
     )
+
+    output_text2 = p.stdout.text
+    output_error2 = p.stderr.text
 
     logger.log_info(
         self,
@@ -132,15 +142,68 @@ def execute_command(self, command):
         only_logging=True,
     )
 
-    if output_error2 != "":
+    # Determine success by the exit code, not by whether something was
+    # written to stderr (e.g. git clone writes its progress to stderr).
+    if p.returncode != 0:
         logger.log_debug(
             self,
-            "Error: {}".format(output_error2),
+            "Error: {}".format(output_error2 or output_text2),
             only_logging=False,
         )
-        return str(output_error2), False
+        return str(output_error2 or output_text2), False
 
     return str(output_text2), True
+
+
+def execute_command_stream(self, command, on_line, stdin_data=None):
+    """Runs a cmd on the shell and streams the output line by line.
+
+    The command runs in the foreground and each output line (stdout and
+    stderr merged) is passed to the ``on_line`` callback as it is produced.
+
+    :param command: command to run
+    :type command: string
+    :param on_line: callback called with ``(line, stream)`` for each line
+    :type on_line: callable
+    :param stdin_data: optional data to write to the command's stdin before
+        reading its output (e.g. a sudo password for ``sudo -S``)
+    :type stdin_data: str or None
+    :return: True if the command exited successfully, False otherwise
+    :rtype: bool
+    """
+    logger.log_info(
+        self,
+        "Command: {}".format(command),
+        only_logging=True,
+    )
+
+    env = os.environ.copy()
+    # Never let git prompt for credentials (would hang the request)
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    p = subprocess.Popen(
+        command,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        stdin=subprocess.PIPE if stdin_data is not None else None,
+        universal_newlines=True,
+        bufsize=1,
+        close_fds=CLOSE_FDS,
+        env=env,
+    )
+    if stdin_data is not None:
+        p.stdin.write(stdin_data)
+        p.stdin.close()
+    for line in p.stdout:
+        on_line(line.rstrip("\n"), "stdout")
+    p.wait()
+
+    logger.log_info(
+        self,
+        "Command exit code: {}".format(p.returncode),
+        only_logging=True,
+    )
+    return p.returncode == 0
 
 
 def is_float(value):

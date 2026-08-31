@@ -5,7 +5,7 @@
     </div>
     <div class="modal-body">
        <div class="control-group">
-         <label class="control-label">{{ _('Heater / Extruder Name (from config file)') }}</label>
+         <div class="control-label">{{ _('Heater / Extruder Name (from config file)') }}</div>
          <div class="controls">
            <div class="input-append">
               <input type="text" class="input-block-level span2" data-bind="value: heaterName">
@@ -14,7 +14,7 @@
          </div>
        </div>
        <div class="control-group">
-         <label class="control-label">{{ _('Target Temperature') }}</label>
+         <div class="control-label">{{ _('Target Temperature') }}</div>
          <div class="controls">
             <div class="input-append">
                <input type="text" class="input-block-level span2" data-bind="value: targetTemperature">
@@ -22,7 +22,7 @@
             </div>
          </div>
        </div>
-       <label class="control-label">{{ _('The result of the tuning cycle is reported in the message log.') }}</label>
+       <div class="control-label">{{ _('The result of the tuning cycle is reported in the message log.') }}</div>
        <div class="control-group">
          <div class="controls">
              <button class="btn btn-block" data-bind="click: startTuning" data-dismiss="modal"><i class="icon-fire"></i> {{ _('Start Tuning') }}</button>

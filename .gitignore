@@ -20,5 +20,8 @@ vscode.env
 OctoKlipper.egg-info
 
 .ai-plans
+.opencode
 AGENTS.md
 scripts
+docs/install.md
+build_zip.py

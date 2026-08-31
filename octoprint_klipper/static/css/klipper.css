@@ -428,6 +428,15 @@ div#settings_plugin_klipper.tab-pane.active form.form-horizontal div.tab-content
   display: inline;
 }
 
+.klipper-help-inline {
+  display: inline-block;
+  position: relative;
+  text-align: left;
+  font-size: 0.9em;
+  color: #999;
+  margin-left: 5px;
+}
+
 div#settings_plugin_klipper.tab-pane.active form.form-horizontal div.tab-content div.tab-pane.active div.controls input.controls-checkbox {
   margin-top: 8px;
 }
@@ -531,12 +540,20 @@ div#settings_plugin_klipper div#macros label.control-label {
   flex-wrap: wrap;
 }
 
+.klipper-flex-grow-0 {
+  flex-grow: 0;
+}
+
 .klipper-flex-grow {
   flex-grow: 1;
 }
 
 .klipper-flex-shrink-0 {
   flex-shrink: 0;
+}
+
+.klipper-flex-shrink {
+  flex-shrink: 1;
 }
 
 .klipper-items-center {
@@ -561,6 +578,14 @@ div#settings_plugin_klipper div#macros label.control-label {
 
 .klipper-justify-end {
   justify-content: flex-end;
+}
+
+.klipper-justify-self-start {
+  justify-self: start;
+}
+
+.klipper-justify-self-end {
+  justify-self: end;
 }
 
 .klipper-gap-0 {
@@ -783,4 +808,68 @@ div#settings_plugin_klipper div#macros label.control-label {
 
 .klipper-border-top {
   border-top: 1px solid #ddd;
+}
+
+/* Prevent the horizontal line that appears in the middle of buttons on hover.
+   OctoPrint's Bootstrap 3 .btn:hover shifts the background gradient
+   (background-position: 0 -15px), which exposes the background color below the
+   gradient and creates a visible line. Keep the gradient in place instead and
+   give a subtle darkening for hover feedback. */
+#tab_plugin_klipper_main .btn:hover,
+#sidebar_plugin_klipper .btn:hover,
+#navbar_plugin_klipper .btn:hover,
+#settings_plugin_klipper .btn:hover,
+#klipper_editor .btn:hover,
+#klipper_graph_dialog .btn:hover,
+#klipper_leveling_dialog .btn:hover,
+#klipper_pid_tuning_dialog .btn:hover,
+#klipper_offset_dialog .btn:hover,
+#klipper_param_macro_dialog .btn:hover,
+#klipper_backups_dialog .btn:hover,
+#klipper_install_dialog .btn:hover {
+  background-position: 0 0;
+  background-image: none;
+  background-color: #e6e6e6;
+}
+
+/* Spinner for the "Check for Update" refresh icon */
+.klipper-spin {
+  display: inline-block;
+  animation: klipper-spin 1s linear infinite;
+}
+
+@keyframes klipper-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Per-setting reset buttons: inline next to each value, pushed to the right */
+#settings_plugin_klipper .klipper-reset-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+#settings_plugin_klipper .klipper-reset-row input[type="text"],
+#settings_plugin_klipper .klipper-reset-row input[type="password"],
+#settings_plugin_klipper .klipper-reset-row select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#settings_plugin_klipper .klipper-reset-row .klipper-reset-btn {
+  flex-shrink: 0;
+}
+
+/* Normalize the label cursor in the settings dialog (plugin + OctoPrint's
+   builtin settings) so labels don't show a pointer cursor */
+#settings_plugin_klipper label,
+#settings_dialog label {
+  cursor: default;
 }

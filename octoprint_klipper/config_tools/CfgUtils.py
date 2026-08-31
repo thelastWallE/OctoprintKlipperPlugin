@@ -108,7 +108,10 @@ def get_cfg(self, file):
                 "decode",
             )
     else:
-        return extra.return_error(self, gettext("File not found!"))
+        return extra.return_error(
+            self,
+            gettext("File not found: ") + "{}".format(file),
+        )
 
     return dict(status="success", data=dict(body=dict(content=file_content, file=file)))
 
