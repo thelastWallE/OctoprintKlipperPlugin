@@ -40,12 +40,12 @@
         </div>
       </div>
       <div class="control-group">
-        <div class="control-label">{{ _('Hide \'Configs\' Button\nin the Connection Panel') }}</div>
+        <div class="control-label">{{ _('Open the last config in the editor') }}</div>
         <div class="controls">
           <div class="klipper-reset-row">
-            <input class="controls-checkbox" title="{{ _('Hide \'Configs\' Button\nin the Connection Panel') }}"
-              type="checkbox" data-bind="checked: settings.settings.plugins.klipper.connection.hide_config_button">
-            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('connection', 'hide_config_button') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+            <input class="controls-checkbox" title="{{ _('Open the last config in the editor') }}"
+              type="checkbox" data-bind="checked: settings.settings.plugins.klipper.configuration.openLastConfig">
+            <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'openLastConfig') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
           </div>
         </div>
       </div>
@@ -107,6 +107,8 @@
             <input type="text" class="input-block-level" data-bind="value: configPath" />
             <button type="button" class="btn btn-mini klipper-reset-btn" data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'config_path') }" title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
           </div>
+          <span class="klipper-help-inline klipper-danger klipper-flex-grow">{{ _('Only point this to a path containing config files!') }}</span>
+          <span class="klipper-help-inline klipper-danger klipper-flex-grow">{{ _('OctoPrint will sanitize the path and filenames') }}</span>
         </div>
         <!-- ko if: serverOS() == "Linux" -->
         <div class="controls">

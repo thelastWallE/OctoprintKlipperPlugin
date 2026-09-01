@@ -335,7 +335,7 @@ table.plugin-octoklipper {
   margin-top: 0px !important;
 }
 
-div#klipper_editor .modal-header div button.btn + button.btn {
+div#klipper_editor .modal-header div button.btn+button.btn {
   margin-right: 12px;
 }
 
@@ -720,6 +720,10 @@ div#settings_plugin_klipper div#macros label.control-label {
   color: #999;
 }
 
+.klipper-danger {
+  color: #d9534f;
+}
+
 .klipper-text-ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -842,6 +846,7 @@ div#settings_plugin_klipper div#macros label.control-label {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

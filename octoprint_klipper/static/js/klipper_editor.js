@@ -93,6 +93,9 @@ $(function () {
         // be part of the registered storage. Unload it to avoid errors on reload.
         self.unloadFile();
       }
+      if (self.settings.settings.plugins.klipper.configuration.openLastConfig() === false) {
+        self.loadBaseConfig();
+      }
       self.checkExternChange();
       // Run the linter on open so squiggles are visible immediately for the
       // loaded config (the content may not change when the dialog is shown).
@@ -450,8 +453,12 @@ $(function () {
     };
 
     self.loadBaseConfig = function () {
-      var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
+      let baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
+      let baseconfigFilename = baseconfig.split("/").pop();
       self.klipperViewModel.consoleMessage("debug", "loadBaseConfig:" + baseconfig);
+      self.klipperViewModel.currentCfgFilename(baseconfigFilename);
+      self.loadedConfigFilename = baseconfigFilename;
+      self.klipperFilesViewModel.highlightCurrentFilename();
       self.openConfig("baseconfig");
     };
 
@@ -513,7 +520,7 @@ $(function () {
               // Use the storage-relative path passed in so reload/save work.
               // The baseconfig is a special virtual file resolved by the
               // backend, keep its resolved path for saving.
-              file: file === "baseconfig" ? response.data.body.file : file,
+              file: file === "baseconfig" ? response.data.body.file.split("/").pop() : file,
             };
             self.process(config);
             self.loadedConfigFilename = config.file;
@@ -728,9 +735,9 @@ $(function () {
         self.klipperViewModel.consoleMessage(
           "debug",
           "SaveCfg filename changed to " +
-            self.klipperViewModel.currentCfgFilename() +
-            " from " +
-            self.loadedConfigFilename,
+          self.klipperViewModel.currentCfgFilename() +
+          " from " +
+          self.loadedConfigFilename,
         );
         hasNewName = true;
       }
@@ -747,7 +754,7 @@ $(function () {
             if (self.settings.settings.plugins.klipper.configuration.restart_onsave() == true) {
               self.klipperViewModel.requestRestart();
             }
-          } else if (response.status == "error" && response.message == "File already exists") {
+          } else if (response.status == "error" && response.error.message == "File already exists") {
             // show confirmation dialog
             let opts = {
               title: gettext("Overwrite file"),

@@ -383,9 +383,9 @@ $(function () {
       if (nonrecursive) {
         log.error(
           "At least one folder doesn't have a 'children' element defined. That means the file list request " +
-            "wasn't actually made with 'recursive=true' in the query.\n\n" +
-            "This can happen on wrong reverse proxy configs that " +
-            "swallow up query parameters, see https://github.com/OctoPrint/OctoPrint/issues/2572",
+          "wasn't actually made with 'recursive=true' in the query.\n\n" +
+          "This can happen on wrong reverse proxy configs that " +
+          "swallow up query parameters, see https://github.com/OctoPrint/OctoPrint/issues/2572",
         );
       }
 
@@ -614,14 +614,14 @@ $(function () {
         .fail(function (response) {
           self.moveError(
             gettext("Unable to move file or folder") +
-              " " +
-              self.moveEntry().display +
-              " " +
-              gettext("to") +
-              " " +
-              self.moveDestination() +
-              ": \n" +
-              gettext(response.responseJSON.error),
+            " " +
+            self.moveEntry().display +
+            " " +
+            gettext("to") +
+            " " +
+            self.moveDestination() +
+            ": \n" +
+            gettext(response.responseJSON.error),
           );
           self.movingFileOrFolder(false);
         });
@@ -637,8 +637,8 @@ $(function () {
         );
       };
 
-      var activateSpinner = function () {};
-      var finishSpinner = function () {};
+      var activateSpinner = function () { };
+      var finishSpinner = function () { };
 
       if (event) {
         var element = $(event.currentTarget);
@@ -783,10 +783,10 @@ $(function () {
     self.onUserPermissionsChanged =
       self.onUserLoggedIn =
       self.onUserLoggedOut =
-        function () {
-          self.updateButtons();
-          self.requestData();
-        };
+      function () {
+        self.updateButtons();
+        self.requestData();
+      };
 
     self.onStartup = function () {
       $(".accordion-toggle[data-target='#klipper_files']").click(function () {

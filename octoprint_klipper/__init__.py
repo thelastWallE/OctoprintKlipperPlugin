@@ -221,6 +221,7 @@ class KlipperPlugin(
                 klipper_path="~/klipper/",
                 config_path="~/klipper_configs",
                 baseconfig="~/printer.cfg",
+                openLastConfig=True,
                 logpath="/tmp/",
                 restart_service_system_command="sudo service klipper restart",
                 restart_host_command="RESTART",
