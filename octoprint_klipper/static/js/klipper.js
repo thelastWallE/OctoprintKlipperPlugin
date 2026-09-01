@@ -250,6 +250,7 @@ $(function () {
         return;
       }
       self.checkingOctoKlipperUpdate(true);
+      self.logMessage(null, null, "<b>" + gettext("Checking for OctoKlipper Update...") + "</b>");
       OctoPrint.plugins.softwareupdate
         .check({ entries: ["klipper"], force: false })
         .done(self.fromUpdaterCheck)
@@ -257,6 +258,7 @@ $(function () {
           self.showPopUp("error", "Error", response.responseText);
         });
       self.checkingOctoKlipperUpdate(false);
+      self.logMessage(null, null, "<b>" + gettext("OctoKlipper Update Check Finished") + "</b>");
     };
 
     self.fromUpdaterCheck = function (response) {

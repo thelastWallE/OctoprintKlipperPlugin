@@ -501,7 +501,7 @@
           <div class="klipper-reset-row">
             <input type="text" class="span8"
               data-bind="value: settings.settings.plugins.klipper.configuration.remote_octoklipper_git" />
-            <button class="btn btn-small" data-bind="click: function() {klipperViewModel.checkOctoKlipperUpdate() }"
+            <button class="btn btn-small" data-bind="click: function() {klipperViewModel.checkOctoKlipperUpdate() }, enable: !klipperViewModel.checkingOctoKlipperUpdate()"
               title="{{ _('Check for Update') }}">
               <i class="icon-refresh" data-bind="css: { 'klipper-spin': klipperViewModel.checkingOctoKlipperUpdate() }"></i>
             </button>
