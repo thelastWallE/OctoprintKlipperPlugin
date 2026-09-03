@@ -167,6 +167,12 @@ ul#klipper-settings {
   cursor: pointer;
 }
 
+/* Reserve space on the right of the example command textarea so the text
+   wraps before the copy-to-clipboard icon instead of running underneath it */
+.klipper-copy-textarea {
+  padding-right: 4em;
+}
+
 .klipper-animate {
   animation-name: klipper-pulse;
   animation-duration: 0.2s;
@@ -279,6 +285,18 @@ div#settings_plugin_klipper div.tab-content div#conf.tab-pane {
   width: 100%;
 }
 
+div#settings_plugin_klipper div.tab-content div#macros.tab-pane.active {
+  height: 100%;
+  min-height: 200px;
+  /* Bootstrap's .tab-pane.active sets display:block; re-assert flex here with
+     higher specificity so justify-between can push the example box to the
+     bottom. Scoped to .active so the pane is still hidden (display:none) when
+     another tab is selected. */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 div#settings_plugin_klipper div.tab-content div#conf.tab-pane div.control-group {
   height: 100%;
   margin: 0;
@@ -335,7 +353,7 @@ table.plugin-octoklipper {
   margin-top: 0px !important;
 }
 
-div#klipper_editor .modal-header div button.btn+button.btn {
+div#klipper_editor .modal-header div button.btn + button.btn {
   margin-right: 12px;
 }
 
@@ -446,14 +464,57 @@ div#settings_plugin_klipper div#macros label.control-label {
   width: 80px;
 }
 
-#macros #item.control-group {
-  margin-bottom: 2px;
-  border: 2px solid #ccc;
-  border-radius: 3px;
-  background-color: #eeeeee;
-  color: #333;
-  padding-bottom: 2px;
-  padding-top: 2px;
+#settings_plugin_klipper .klipper-macros-table {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+#settings_plugin_klipper .klipper-macros-table th,
+#settings_plugin_klipper .klipper-macros-table td {
+  vertical-align: middle;
+}
+
+/* Align the Klipper Tab / Sidebar checkboxes with their labels: Bootstrap
+   gives checkboxes a margin-top that shifts them down inside the flex row */
+#settings_plugin_klipper .klipper-macros-table input[type="checkbox"] {
+  margin-top: 0;
+}
+
+/* Visually separate each macro (3 rows) with a stronger top border */
+#settings_plugin_klipper .klipper-macros-table tbody tr td {
+  border-top: 0px solid #ccc;
+}
+
+/* Visually separate each macro (3 rows) with a stronger top border */
+#settings_plugin_klipper .klipper-macros-table tbody tr.klipper-macro-item td {
+  border-top: 2px solid #ccc;
+}
+
+/* The command label inside the macro table is a plain block label, not a
+   floated form-horizontal control-label */
+#settings_plugin_klipper .klipper-macros-table .control-label {
+  float: none;
+  width: auto;
+  padding-top: 0;
+  text-align: left;
+}
+
+/* Tighten the gap between the button-style box and the command label so the
+   command row reads as part of the same macro item */
+#settings_plugin_klipper .klipper-macros-table .klipper-bordered {
+  margin: 4px;
+}
+
+#settings_plugin_klipper .klipper-macros-table tr.klipper-border-bottom td {
+  padding-top: 0;
+}
+
+/* Remove the border between the two header rows so they read as one group.
+   The border lives on the th/td (Bootstrap .table th has border-top), so
+   target the cells, not the tr. */
+.klipper-border-t-0 th,
+.klipper-border-t-0 td {
+  border-top: 0 !important;
 }
 
 #klipper_graph_dialog .full-sized-box {
@@ -834,6 +895,44 @@ div#settings_plugin_klipper div#macros label.control-label {
   background-position: 0 0;
   background-image: none;
   background-color: #e6e6e6;
+}
+
+/* Assisted bed leveling dialog: flexbox layout so point names/coordinates
+   never clip over the button borders (the old row-fluid/span grid forced the
+   buttons into narrow columns). */
+#klipper_leveling_dialog .klipper-leveling-indicator {
+  flex: 0 0 20px;
+  text-align: right;
+}
+
+#klipper_leveling_dialog .klipper-leveling-index {
+  flex: 0 0 20px;
+  text-align: center;
+}
+
+#klipper_leveling_dialog .klipper-leveling-btn {
+  min-width: 0;
+  white-space: normal;
+  text-align: left;
+}
+
+/* Small dialogs: make input-append groups flex so the input/select grows and
+   the unit add-on never clips over the input border. */
+#klipper_offset_dialog .input-append,
+#klipper_param_macro_dialog .input-append,
+#klipper_pid_tuning_dialog .input-append {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+#klipper_offset_dialog .input-append input,
+#klipper_param_macro_dialog .input-append input,
+#klipper_param_macro_dialog .input-append select,
+#klipper_pid_tuning_dialog .input-append input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
 }
 
 /* Spinner for the "Check for Update" refresh icon */

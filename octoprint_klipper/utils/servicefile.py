@@ -287,3 +287,32 @@ def deploy_servicefile(self, source, dest, sudo_password=None):
     if not success:
         return False, output or "Could not deploy servicefile"
     return True, None
+
+
+def restore_servicefile(self, source, sudo_password=None):
+    """Restore a backed up servicefile to the real path (/etc/default/klipper).
+
+    Reads the backup content, writes it to the current data folder and
+    deploys it to the real servicefile path via sudo. Cached sudo
+    credentials are tried first; if they are not cached and no password is
+    given, ``password_required`` is returned so the frontend can prompt for
+    one.
+
+    Args:
+        source (str): Path to the backed up servicefile.
+        sudo_password (str, optional): Sudo password if credentials are not cached.
+
+    Returns:
+        dict: The result as a dict.
+    """
+    servicefile_path = os.path.realpath(os.path.join("/etc", "default", "klipper"))
+    try:
+        with io.open(source, "r", encoding="utf-8") as f:
+            content = f.read()
+    except IOError as error:
+        return extra.return_error(
+            self,
+            "Error: Couldn't open Klipper servicefile: {}".format(source),
+            error,
+        )
+    return save_servicefile(self, content, servicefile_path, sudo_password)

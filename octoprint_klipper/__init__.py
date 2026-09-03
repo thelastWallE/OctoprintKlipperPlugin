@@ -622,7 +622,9 @@ class KlipperPlugin(
         configpath = os.path.expanduser(
             self._settings.get(["configuration", "config_path"])
         )
-        bak_path = cfg_utils.get_archive_path(self)
+        # Backup download URLs are relative to the plugin data folder (e.g.
+        # "archive/printer.cfg"), so serve the whole data folder here.
+        bak_path = self.get_plugin_data_folder()
         config_download_access = access_validation_factory(
             app,
             permission_validator,
@@ -658,12 +660,25 @@ class KlipperPlugin(
 
     ##~~ BlueprintPlugin
 
+    def _resolve_backup_path(self, filename):
+        """Resolve a data-folder-relative backup filename to an absolute path.
+
+        The backup list reports names relative to the plugin data folder
+        (e.g. ``archive/printer.cfg`` or
+        ``archive/servicefile/Servicefile_x.bak``). Resolve against the data
+        folder and reject paths that would escape it.
+        """
+        data_folder = os.path.realpath(self.get_plugin_data_folder())
+        full_path = os.path.realpath(os.path.join(data_folder, filename))
+        if os.path.commonpath([data_folder, full_path]) != data_folder:
+            flask.abort(404)
+        return full_path
+
     # MARK: get a backed up configfile
     @octoprint.plugin.BlueprintPlugin.route("/backup/<path:filename>", methods=["GET"])
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def get_backup(self, filename):
-        data_folder = cfg_utils.get_archive_path(self)
-        full_path = os.path.realpath(os.path.join(data_folder, filename))
+        full_path = self._resolve_backup_path(filename)
 
         return flask.jsonify(cfg_utils.get_cfg(self, full_path))
 
@@ -673,13 +688,8 @@ class KlipperPlugin(
     )
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def delete_backup(self, filename):
-        data_folder = cfg_utils.get_archive_path(self)
-        full_path = os.path.realpath(os.path.join(data_folder, filename))
-        if (
-            full_path.startswith(data_folder)
-            and os.path.exists(full_path)
-            and not is_hidden_path(full_path)
-        ):
+        full_path = self._resolve_backup_path(filename)
+        if os.path.exists(full_path) and not is_hidden_path(full_path):
             try:
                 os.remove(full_path)
             except Exception:
@@ -704,12 +714,21 @@ class KlipperPlugin(
     )
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def restore_backup(self, filename):
+        data = flask.request.json or {}
+        sudo_password = data.get("password", "")
+
+        backupfile = self._resolve_backup_path(filename)
+
+        # Servicefiles are deployed to the real path (/etc/default/klipper)
+        # via sudo instead of being copied to the config folder.
+        if cfg_utils.get_backup_type(filename) == "servicefile":
+            return flask.jsonify(
+                servicefile.restore_servicefile(self, backupfile, sudo_password)
+            )
+
         config_path = os.path.expanduser(
             self._settings.get(["configuration", "config_path"])
         )
-        data_folder = cfg_utils.get_archive_path(self)
-        backupfile = os.path.realpath(os.path.join(data_folder, filename))
-
         return flask.jsonify(extra.copy_file(self, backupfile, config_path))
 
     # ------------------ API for Configs ---------------------------------------------

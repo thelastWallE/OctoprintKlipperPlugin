@@ -167,31 +167,31 @@ $(function () {
       $("#klipper-restart-host").attr(
         "title",
         gettext("This will cause the host software to reload its config and perform an internal reset") +
-        "\n" +
-        gettext("You can set this command in the settings.") +
-        "\n" +
-        gettext("Actual command: ") +
-        self.settings.settings.plugins.klipper.configuration.restart_host_command(),
+          "\n" +
+          gettext("You can set this command in the settings.") +
+          "\n" +
+          gettext("Actual command: ") +
+          self.settings.settings.plugins.klipper.configuration.restart_host_command(),
       );
 
       $("#klipper-restart-firmware").attr(
         "title",
         gettext("Similar to a host restart, but also clears any error state from the micro-controller") +
-        "\n" +
-        gettext("You can set this command in the settings.") +
-        "\n" +
-        gettext("Actual command: ") +
-        self.settings.settings.plugins.klipper.configuration.restart_firmware_command(),
+          "\n" +
+          gettext("You can set this command in the settings.") +
+          "\n" +
+          gettext("Actual command: ") +
+          self.settings.settings.plugins.klipper.configuration.restart_firmware_command(),
       );
 
       $("#klipper-restart-service").attr(
         "title",
         gettext("This will cause the host klipper service to immediately stop and restart!") +
-        "\n" +
-        gettext("You can set this command in the settings.") +
-        "\n" +
-        gettext("Actual command: ") +
-        self.settings.settings.plugins.klipper.configuration.restart_service_system_command(),
+          "\n" +
+          gettext("You can set this command in the settings.") +
+          "\n" +
+          gettext("Actual command: ") +
+          self.settings.settings.plugins.klipper.configuration.restart_service_system_command(),
       );
     };
 
@@ -200,7 +200,9 @@ $(function () {
       if (self.printerState.isPrinting()) {
         self._showPopUp("Check Update", {
           title: gettext("Can't check for updates while printing"),
-          text: gettext("A print job is currently in progress. Checking for updates will be prevented until it is done."),
+          text: gettext(
+            "A print job is currently in progress. Checking for updates will be prevented until it is done.",
+          ),
           type: "error",
         });
         return;
@@ -244,7 +246,9 @@ $(function () {
       if (self.printerState.isPrinting()) {
         self._showPopUp("Check Update", {
           title: gettext("Can't check for updates while printing"),
-          text: gettext("A print job is currently in progress. Checking for updates will be prevented until it is done."),
+          text: gettext(
+            "A print job is currently in progress. Checking for updates will be prevented until it is done.",
+          ),
           type: "error",
         });
         return;
@@ -423,9 +427,7 @@ $(function () {
 
     self._scrollInstallOutputToEnd = function () {
       if (self.installOutput && self.installOutput.length) {
-        self.installOutput.scrollTop(
-          self.installOutput[0].scrollHeight - self.installOutput.height(),
-        );
+        self.installOutput.scrollTop(self.installOutput[0].scrollHeight - self.installOutput.height());
       }
     };
 
@@ -736,7 +738,11 @@ $(function () {
         .done(function () {
           self.settings.requestData();
           self.checkForKlipperUpdate();
-          self.showPopUp("success", gettext("Settings reset"), gettext("All OctoKlipper settings have been reset to their defaults."));
+          self.showPopUp(
+            "success",
+            gettext("Settings reset"),
+            gettext("All OctoKlipper settings have been reset to their defaults."),
+          );
         })
         .fail(function (response) {
           self.showPopUp("error", gettext("Reset failed"), response.responseText);
@@ -818,6 +824,46 @@ $(function () {
     };
 
     /**
+     * Check whether it is safe to transmit the sudo password to the backend.
+     *
+     * Transmitting over HTTPS or to localhost is fine. On any other (plain
+     * HTTP) connection the password would travel unencrypted, so the user is
+     * asked to confirm before it is sent.
+     *
+     * @returns {jQuery.Deferred} Resolves with true when the password may be
+     *   sent, false when the user declined.
+     */
+    self.confirmPasswordTransmission = function () {
+      var protocol = window.location.protocol;
+      var hostname = window.location.hostname;
+      var secure = protocol === "https:" || hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+
+      if (secure) {
+        return $.Deferred().resolve(true).promise();
+      }
+
+      var deferred = $.Deferred();
+      showConfirmationDialog({
+        title: gettext("Unsecured connection"),
+        html:
+          "<p>" +
+          gettext(
+            "Your connection to OctoPrint is not encrypted (no HTTPS) and not localhost. The sudo password would be transmitted in plain text.",
+          ) +
+          "</p>",
+        proceed: gettext("Send password anyway"),
+        proceedClass: "danger",
+        onproceed: function () {
+          deferred.resolve(true);
+        },
+        onclose: function () {
+          deferred.resolve(false);
+        },
+      });
+      return deferred.promise();
+    };
+
+    /**
      * Show the install dialog. The install itself is started via
      * ``startInstall`` so the user can optionally provide a sudo password.
      */
@@ -850,28 +896,35 @@ $(function () {
       if (self._updateClicked) return;
       self._updateClicked = true;
 
-      self._markInstallWorking(
-        gettext("Installing Klipper..."),
-        gettext("Now installing Klipper, please wait. This can take several minutes."),
-      );
-
       var password = self.installPassword();
       self.installPassword(""); // clear the password field immediately
 
-      OctoPrint.plugins.klipper
-        .installKlipper(password)
-        .done(function (response) {
+      self.confirmPasswordTransmission().done(function (ok) {
+        if (!ok) {
           self._updateClicked = false;
-          if (response.status == "error") {
-            self._markInstallDone(response.error.message);
-          }
-          // on success the install runs in the background; log lines and the
-          // final result arrive via onDataUpdaterPluginMessage
-        })
-        .fail(function (response) {
-          self._updateClicked = false;
-          self._markInstallDone(response.responseText);
-        });
+          return;
+        }
+
+        self._markInstallWorking(
+          gettext("Installing Klipper..."),
+          gettext("Now installing Klipper, please wait. This can take several minutes."),
+        );
+
+        OctoPrint.plugins.klipper
+          .installKlipper(password)
+          .done(function (response) {
+            self._updateClicked = false;
+            if (response.status == "error") {
+              self._markInstallDone(response.error.message);
+            }
+            // on success the install runs in the background; log lines and the
+            // final result arrive via onDataUpdaterPluginMessage
+          })
+          .fail(function (response) {
+            self._updateClicked = false;
+            self._markInstallDone(response.responseText);
+          });
+      });
     };
 
     /**

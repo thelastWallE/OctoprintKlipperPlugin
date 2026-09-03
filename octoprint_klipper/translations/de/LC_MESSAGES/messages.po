@@ -195,6 +195,30 @@ msgstr "Kopiert"
 msgid "Copy to Clipboard"
 msgstr "Kopiere in Zwischenablage"
 
+#: octoprint_klipper/static/js/klipper.js:845
+msgid "Unsecured connection"
+msgstr "Unsichere Verbindung"
+
+#: octoprint_klipper/static/js/klipper.js:848
+msgid ""
+"Your connection to OctoPrint is not encrypted (no HTTPS) and not "
+"localhost. The sudo password would be transmitted in plain text."
+msgstr ""
+"Ihre Verbindung zu OctoPrint ist nicht verschlüsselt (kein HTTPS) und "
+"nicht localhost. Das Sudo-Passwort würde im Klartext übertragen."
+
+#: octoprint_klipper/static/js/klipper.js:852
+msgid "Send password anyway"
+msgstr "Passwort trotzdem senden"
+
+#: octoprint_klipper/static/js/klipper_backup.js:112
+msgid "Config"
+msgstr "Konfiguration"
+
+#: octoprint_klipper/static/js/klipper_backup.js:112
+msgid "Servicefile"
+msgstr "Servicedatei"
+
 #: octoprint_klipper/static/js/klipper_backup.js:117
 #: octoprint_klipper/static/js/klipper_backup.js:137
 #, python-format
@@ -249,6 +273,12 @@ msgstr ""
 msgid "Could not restore config"
 msgstr "Konnte Konfiguration nicht wiederherstellen"
 
+#: octoprint_klipper/static/js/klipper_backup.js:225
+msgid "This will overwrite the Klipper servicefile (/etc/default/klipper) and restart Klipper."
+msgstr ""
+"Dies wird die Klipper-Servicedatei (/etc/default/klipper) überschreiben "
+"und Klipper neu starten."
+
 #: octoprint_klipper/static/js/klipper_backup.js:250
 msgid "This will overwrite any file with the same name on the configpath."
 msgstr ""
@@ -263,6 +293,14 @@ msgstr "Sind sie sicher jetzt wiederherzustellen?"
 #: octoprint_klipper/static/js/klipper_editor.js:208
 msgid "Proceed"
 msgstr "Weiter"
+
+#: octoprint_klipper/static/js/klipper_backup.js:285
+msgid "Restore Servicefile"
+msgstr "Servicedatei wiederherstellen"
+
+#: octoprint_klipper/static/js/klipper_backup.js:286
+msgid "Servicefile restored."
+msgstr "Servicedatei wiederhergestellt."
 
 #: octoprint_klipper/static/js/klipper_backup.js:286
 #, python-format
@@ -295,6 +333,11 @@ msgstr "Wiederherstellung von Datei %(filename)s gescheitert, setze fort..."
 #, python-format
 msgid "Restored %(filename)s..."
 msgstr "%(filename)s wiederhergestellt..."
+
+#: octoprint_klipper/static/js/klipper_backup.js:389
+#, python-format
+msgid "Password required for %(filename)s, continuing..."
+msgstr "Passwort für %(filename)s erforderlich, setze fort..."
 
 #: octoprint_klipper/static/js/klipper_backup.js:382
 msgid "Deleting backup files"
@@ -987,6 +1030,10 @@ msgstr "Seitenleiste"
 #: octoprint_klipper/templates/klipper_settings.jinja2:232
 msgid "Command"
 msgstr "Befehl"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:262
+msgid "Button Style"
+msgstr "Schaltflächenstil"
 
 #: octoprint_klipper/templates/klipper_settings.jinja2:222
 #: octoprint_klipper/templates/klipper_settings.jinja2:223

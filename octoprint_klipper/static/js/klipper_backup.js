@@ -25,6 +25,11 @@ $(function () {
 
     self.cfgContent = ko.observable();
 
+    // Sudo password prompt for restoring servicefile backups
+    self.servicefilePassword = ko.observable("");
+    self.servicefilePasswordDialog = undefined;
+    self._pendingRestore = null;
+
     //uploads
     self.maxUploadSize = ko.observable(0);
     self.backupUploadData = undefined;
@@ -35,6 +40,7 @@ $(function () {
 
     self.onStartupComplete = function () {
       $("#klipper_backups_dialog").css("display", "none");
+      self.servicefilePasswordDialog = $("#klipper_servicefile_restore_password_dialog");
       if (self.loginState.loggedIn()) {
         self.listBakFiles();
       }
@@ -93,6 +99,17 @@ $(function () {
           self.klipperViewModel.consoleMessage("error", "listBakFiles failed");
           self.klipperViewModel.consoleMessage("error", response.responseText);
         });
+    };
+
+    self._getBackupType = function (name) {
+      var item = _.find(self.backups.allItems, function (f) {
+        return f.name == name;
+      });
+      return item ? item.type : "config";
+    };
+
+    self.backupTypeLabel = function (type) {
+      return type == "servicefile" ? gettext("Servicefile") : gettext("Config");
     };
 
     self.showCfg = function (backup) {
@@ -195,74 +212,126 @@ $(function () {
     self.restoreBak = function (backup) {
       if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_KLIPPER_CONFIG)) return;
 
-      var restore = function () {
-        OctoPrint.plugins.klipper
-          .restoreBackup(backup)
-          .done(function (response) {
-            if (response.status == "error") {
-              self.klipperViewModel.consoleMessage("error", response.error.message);
-              var html =
-                "<p>" +
-                _.sprintf(
-                  gettext("Failed to restore config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
-                  { name: _.escape(backup) },
-                );
-              html += pnotifyAdditionalInfo(
-                '<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>",
-              );
-              new PNotify({
-                title: gettext("Could not restore config"),
-                text: html,
-                type: "error",
-                hide: false,
-              });
-              return;
-            } else if (response.status == "success") {
-              self.klipperViewModel.showPopUp("success", gettext("Restore Config"), gettext("Config restored."));
-            }
-            self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + backup + " / " + response.status);
-          })
-          .fail(function (response) {
+      var isServicefile = self._getBackupType(backup) == "servicefile";
+
+      var restore = function (password) {
+        self._restoreBackup(backup, password, isServicefile);
+      };
+
+      var html;
+      if (isServicefile) {
+        html =
+          "<p>" +
+          gettext("This will overwrite the Klipper servicefile (/etc/default/klipper) and restart Klipper.") +
+          "</p>" +
+          "<p>" +
+          backup +
+          "</p>";
+      } else {
+        html =
+          "<p>" +
+          gettext("This will overwrite any file with the same name on the configpath.") +
+          "</p>" +
+          "<p>" +
+          backup +
+          "</p>";
+      }
+
+      showConfirmationDialog({
+        title: gettext("Are you sure you want to restore now?"),
+        html: html,
+        proceed: gettext("Proceed"),
+        onproceed: function () {
+          restore("");
+        },
+      });
+    };
+
+    self._restoreBackup = function (backup, password, isServicefile) {
+      OctoPrint.plugins.klipper
+        .restoreBackup(backup, password)
+        .done(function (response) {
+          if (response.status == "password_required") {
+            // A servicefile needs sudo credentials; prompt for the password
+            // and retry with it.
+            self._pendingRestore = backup;
+            self.servicefilePassword("");
+            self.servicefilePasswordDialog.modal("show");
+            return;
+          }
+          if (response.status == "error") {
+            self.klipperViewModel.consoleMessage("error", response.error.message);
             var html =
               "<p>" +
               _.sprintf(
                 gettext("Failed to restore config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
                 { name: _.escape(backup) },
               );
-            html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
+            html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.error.message) + "</pre>");
             new PNotify({
               title: gettext("Could not restore config"),
               text: html,
               type: "error",
               hide: false,
             });
+            return;
+          }
+          if (response.status == "success") {
+            if (isServicefile) {
+              self.klipperViewModel.showPopUp(
+                "success",
+                gettext("Restore Servicefile"),
+                gettext("Servicefile restored."),
+              );
+              // The restored servicefile needs a restart to take effect
+              self.klipperViewModel.requestRestart();
+            } else {
+              self.klipperViewModel.showPopUp("success", gettext("Restore Config"), gettext("Config restored."));
+            }
+          }
+          self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + backup + " / " + response.status);
+          self.listBakFiles();
+        })
+        .fail(function (response) {
+          var html =
+            "<p>" +
+            _.sprintf(
+              gettext("Failed to restore config %(name)s.</p><p>Please consult octoprint.log for details.</p>"),
+              { name: _.escape(backup) },
+            );
+          html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + _.escape(response.responseText) + "</pre>");
+          new PNotify({
+            title: gettext("Could not restore config"),
+            text: html,
+            type: "error",
+            hide: false,
           });
-      };
+        });
+    };
 
-      var html =
-        "<p>" +
-        gettext("This will overwrite any file with the same name on the configpath.") +
-        "</p>" +
-        "<p>" +
-        backup +
-        "</p>";
-
-      showConfirmationDialog({
-        title: gettext("Are you sure you want to restore now?"),
-        html: html,
-        proceed: gettext("Proceed"),
-        onproceed: restore,
-      });
+    self.restoreServicefileWithPassword = function () {
+      var password = self.servicefilePassword();
+      self.servicefilePassword("");
+      self.servicefilePasswordDialog.modal("hide");
+      var backup = self._pendingRestore;
+      self._pendingRestore = null;
+      if (backup) {
+        self.klipperViewModel.confirmPasswordTransmission().done(function (ok) {
+          if (ok) {
+            self._restoreBackup(backup, password, true);
+          }
+        });
+      }
     };
 
     self.markFilesOnPage = function () {
       self.markedForFileRestore(
-        _.uniq(self.markedForFileRestore().concat(_.map(self.backups.paginatedItems(), "file"))),
+        _.uniq(self.markedForFileRestore().concat(_.map(self.backups.paginatedItems(), "name"))),
       );
     };
 
     self.markAllFiles = function () {
-      self.markedForFileRestore(_.map(self.backups.allItems, "file"));
+      self.markedForFileRestore(_.map(self.backups.allItems, "name"));
     };
 
     self.clearMarkedFiles = function () {
@@ -312,6 +381,20 @@ $(function () {
         return OctoPrint.plugins.klipper
           .restoreBackup(filename)
           .done(function (response) {
+            if (response.status == "password_required") {
+              // A servicefile needs sudo credentials; prompt for the password
+              // and retry it individually after the bulk operation finishes.
+              self._pendingRestore = filename;
+              self.servicefilePassword("");
+              self.servicefilePasswordDialog.modal("show");
+              deferred.notify(
+                _.sprintf(gettext("Password required for %(filename)s, continuing..."), {
+                  filename: _.escape(filename),
+                }),
+                false,
+              );
+              return;
+            }
             if (response.status == "error") {
               self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + filename + " / " + response.error.message);
               deferred.notify(
@@ -329,7 +412,7 @@ $(function () {
             );
             self.klipperViewModel.consoleMessage("debug", "restoreCfg: " + filename + " / " + response.restored);
             self.markedForFileRestore.remove(function (item) {
-              return item.name == filename;
+              return item == filename;
             });
           })
           .fail(function (response) {
@@ -365,6 +448,7 @@ $(function () {
 
       $.when.apply($, _.map(requests, wrapPromiseWithAlways)).done(function () {
         deferred.resolve();
+        self.listBakFiles();
       });
 
       return promise;
@@ -391,7 +475,7 @@ $(function () {
             }
             deferred.notify(_.sprintf(gettext("Deleted %(filename)s..."), { filename: _.escape(filename) }), true);
             self.markedForFileRestore.remove(function (item) {
-              return item.name == filename;
+              return item == filename;
             });
           })
           .fail(function () {
@@ -430,6 +514,6 @@ $(function () {
   OCTOPRINT_VIEWMODELS.push({
     construct: KlipperBackupViewModel,
     dependencies: ["loginStateViewModel", "klipperViewModel", "accessViewModel"],
-    elements: ["#klipper_backups_dialog"],
+    elements: ["#klipper_backups_dialog", "#klipper_servicefile_restore_password_dialog"],
   });
 });

@@ -221,9 +221,10 @@
     return this.base.delete(this.url + "backup/" + backup, opts);
   };
 
-  OctoKlipperClient.prototype.restoreBackup = function (backup, opts) {
+  OctoKlipperClient.prototype.restoreBackup = function (backup, password, opts) {
     var data = {
       BackupToRestore: backup,
+      password: password || "",
     };
     return this.base.postJson(this.url + "backup/restore/" + backup, data, opts);
   };

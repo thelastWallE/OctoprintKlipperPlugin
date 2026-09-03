@@ -121,7 +121,11 @@ $(function () {
       var password = self.servicefilePassword();
       self.servicefilePassword("");
       self.servicefilePasswordDialog.modal("hide");
-      self._modifyServicefile(password);
+      self.klipperViewModel.confirmPasswordTransmission().done(function (ok) {
+        if (ok) {
+          self._modifyServicefile(password);
+        }
+      });
     };
 
     self.showBackupsDialog = function () {

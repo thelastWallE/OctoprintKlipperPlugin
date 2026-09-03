@@ -193,6 +193,25 @@ class TestSaveCfg:
         ) == new_content
 
 
+class TestGetBackupType:
+    def test_config_paths(self):
+        assert CfgUtils.get_backup_type("archive/printer.cfg") == "config"
+        assert CfgUtils.get_backup_type("archive/sub/macro.cfg") == "config"
+        assert CfgUtils.get_backup_type("current/printer.cfg") == "config"
+
+    def test_servicefile_paths(self):
+        assert (
+            CfgUtils.get_backup_type(
+                "archive/servicefile/Servicefile_2026-01-01_00-00-00.bak"
+            )
+            == "servicefile"
+        )
+        assert (
+            CfgUtils.get_backup_type("current/servicefile/klipper.service")
+            == "servicefile"
+        )
+
+
 class TestListConfigFiles:
     def test_backup_name_has_no_leading_separator(self, plugin_self, tmp_path):
         from unittest import mock
@@ -204,6 +223,11 @@ class TestListConfigFiles:
         (archive_dir / "sub").mkdir()
         (archive_dir / "sub" / "macro.cfg").write_text(
             "[gcode_macro]\n", encoding="utf-8"
+        )
+        servicefile_dir = archive_dir / "servicefile"
+        servicefile_dir.mkdir()
+        (servicefile_dir / "Servicefile_2026-01-01_00-00-00.bak").write_text(
+            "[Service]\n", encoding="utf-8"
         )
         current_dir = data_dir / "current"
         current_dir.mkdir()
@@ -218,7 +242,37 @@ class TestListConfigFiles:
         # both backups and current configs are listed
         assert "archive/printer.cfg" in names
         assert "archive/sub/macro.cfg" in names
+        assert "archive/servicefile/Servicefile_2026-01-01_00-00-00.bak" in names
         assert "current/printer.cfg" in names
         # No leading separator that would break <path:filename> route matching
         for name in names:
             assert not name.startswith(("/", "\\"))
+
+    def test_files_are_tagged_with_type(self, plugin_self, tmp_path):
+        from unittest import mock
+
+        data_dir = tmp_path / "data"
+        archive_dir = data_dir / "archive"
+        archive_dir.mkdir(parents=True)
+        (archive_dir / "printer.cfg").write_text("[probe]\n", encoding="utf-8")
+        servicefile_dir = archive_dir / "servicefile"
+        servicefile_dir.mkdir()
+        (servicefile_dir / "Servicefile_2026-01-01_00-00-00.bak").write_text(
+            "[Service]\n", encoding="utf-8"
+        )
+        current_dir = data_dir / "current"
+        current_dir.mkdir()
+        (current_dir / "printer.cfg").write_text("[probe]\n", encoding="utf-8")
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        with mock.patch("flask.url_for", return_value="/"):
+            result = CfgUtils.list_config_files(plugin_self, "backup")
+
+        assert result["status"] == "success"
+        types = {f["name"]: f["type"] for f in result["data"]["files"]}
+        assert types["archive/printer.cfg"] == "config"
+        assert types["current/printer.cfg"] == "config"
+        assert (
+            types["archive/servicefile/Servicefile_2026-01-01_00-00-00.bak"]
+            == "servicefile"
+        )

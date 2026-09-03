@@ -60,6 +60,7 @@ def list_config_files(self, path_type):
                 bytes=filesize,
                 mdate=time.strftime("%d.%m.%Y %H:%M", filemdate),
                 url=download_url,
+                type=get_backup_type(url),
             )
         )
         logger.log_debug(
@@ -330,6 +331,23 @@ def get_archive_path(self):
 def get_current_path(self):
     """Return the plugin data folder path for current config duplicates."""
     return os.path.join(self.get_plugin_data_folder(), "current")
+
+
+def get_backup_type(url):
+    """Return the type of a backed up file ("config" or "servicefile").
+
+    Servicefiles live in a ``servicefile`` subfolder of the plugin data
+    folder; everything else is treated as a config file.
+
+    Args:
+        url (str): Data-folder-relative path of the backed up file.
+
+    Returns:
+        str: "servicefile" or "config".
+    """
+    if "servicefile" in url.split("/"):
+        return "servicefile"
+    return "config"
 
 
 def _get_file_data_path(self, src, path):

@@ -77,9 +77,13 @@
       <tbody data-bind="foreach: backups.paginatedItems">
         <tr data-bind="attr: {title: name}">
           <td class="klipper_baks_checkbox"><input type="checkbox"
-              data-bind="value: file, checked: $root.markedForFileRestore, invisible: !$root.klipperViewModel.hasPermKo('CONFIG')" />
+              data-bind="value: name, checked: $root.markedForFileRestore, invisible: !$root.klipperViewModel.hasPermKo('CONFIG')" />
           </td>
-          <td class="klipper_baks_name" data-bind="text: name"></td>
+          <td class="klipper_baks_name">
+            <span class="label"
+              data-bind="css: type == 'servicefile' ? 'label-warning' : 'label-info', text: $root.backupTypeLabel(type)"></span>
+            <span data-bind="text: name"></span>
+          </td>
           <td class="klipper_baks_size" data-bind="text: size"></td>
           <td class="klipper_baks_action">
             <a href="javascript:void(0)" class="far fa-trash-alt" title="{{ _('Delete') }}"
@@ -121,5 +125,25 @@
       class="btn btn-mini octoklipper-donate" target="_blank">
       <i class="fab fa-paypal"> {{ _('Donate') }}</i>
     </a>
+  </div>
+</div>
+
+<!-- Klipper servicefile restore password dialog -->
+<div id="klipper_servicefile_restore_password_dialog" class="modal hide fade-in">
+  <div class="modal-header">
+    <h3>{{ _('Sudo password required') }}</h3>
+  </div>
+  <div class="modal-body">
+    <div class="control-group">
+      <div class="control-label">{{ _('Sudo password:') }}</div>
+      <div class="controls">
+        <input type="password" class="span8" data-bind="value: servicefilePassword, valueUpdate: 'afterkeydown'"
+          placeholder="{{ _('Only needed if passwordless sudo is not configured') }}" />
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" data-bind="click: restoreServicefileWithPassword">{{ _('Apply') }}</button>
+    <button class="btn" data-dismiss="modal" aria-hidden="true">{{ _('Cancel') }}</button>
   </div>
 </div>
