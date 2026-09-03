@@ -77,11 +77,12 @@
     return this.base.get(this.resourceForEntry(location, config), opts);
   };
 
-  OctoKlipperClient.prototype.modifyServicefile = function (path, opts) {
+  OctoKlipperClient.prototype.modifyServicefile = function (path, password, opts) {
     path = path || [];
 
     var data = {
       PathToConfigs: path,
+      password: password || "",
     };
 
     return this.base.postJson(this.url + "servicefile/modify", data, opts);

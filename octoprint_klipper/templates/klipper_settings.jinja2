@@ -551,6 +551,26 @@
   </div>
 </div>
 
+<!-- Klipper servicefile password dialog -->
+<div id="klipper_servicefile_password_dialog" class="modal hide fade-in">
+  <div class="modal-header">
+    <h3>{{ _('Sudo password required') }}</h3>
+  </div>
+  <div class="modal-body">
+    <div class="control-group">
+      <div class="control-label">{{ _('Sudo password:') }}</div>
+      <div class="controls">
+        <input type="password" class="span8" data-bind="value: klipperViewModel.servicefilePassword, valueUpdate: 'afterkeydown'"
+          placeholder="{{ _('Only needed if passwordless sudo is not configured') }}" />
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" data-bind="click: klipperViewModel.modifyServicefileWithPassword">{{ _('Apply') }}</button>
+    <button class="btn" data-dismiss="modal" aria-hidden="true">{{ _('Cancel') }}</button>
+  </div>
+</div>
+
 <div id="klipper_logfilters_dialog" class="modal hide fade span8" tabindex="-1" role="dialog"
   aria-labelledby="klipper_logfilters_label" aria-hidden="true">
   <div class="modal-header">

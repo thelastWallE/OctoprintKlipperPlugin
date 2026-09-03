@@ -86,7 +86,7 @@
           </script>
 
           <script type="text/html" id="files_template_config">
-            <div class="title clickable" data-bind="click: function() { if ($root.enableSelect($data)) {OCTOPRINT_VIEWMODELS.klipperEditorViewModel.loadFile($data); } else { return; } }, style: { 'font-weight':$root.listHelper.isSelected($data) ? 'bold' : 'normal' }, text: display"></div>
+            <div class="title clickable" data-bind="click: function() { if ($root.enableSelect($data)) {OctoPrint.coreui.viewmodels.klipperEditorViewModel.loadFile($data); } else { return; } }, style: { 'font-weight':$root.listHelper.isSelected($data) ? 'bold' : 'normal' }, text: display"></div>
             <div class="internal" data-bind="visible: display && name != display && $root.showInternalFilename">
             {{ _('Internal') }}: <span data-bind="text: name"></span></div>
           <div class="uploaded">{{ _('Uploaded') }}: <span
@@ -103,7 +103,7 @@
               data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.FILES_DELETE), click: function(data, event) { if ($root.enableRemove($data)) { $root.removeFile($data, event); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"
               title="{{ _('Remove')|edq }}"><i class="far fa-trash-alt"></i></div>
             <div class="btn btn-mini"
-              data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.FILES_SELECT), click: function() { if (!$root.enableSelect($data)) {OCTOPRINT_VIEWMODELS.klipperEditorViewModel.loadFile($data); } else { return; } }, css: {disabled: !$root.enableSelect($data)}"
+              data-bind="visible: $root.loginState.hasPermissionKo($root.access.permissions.FILES_SELECT), click: function() { if ($root.enableSelect($data)) {OctoPrint.coreui.viewmodels.klipperEditorViewModel.loadFile($data); } else { return; } }, css: {disabled: !$root.enableSelect($data)}"
               title="{{ _('Load')|edq }}"><i class="fas fa-file-code"></i></div>
 
           </div>

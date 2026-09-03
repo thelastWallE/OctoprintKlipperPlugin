@@ -27,6 +27,8 @@ $(function () {
     self.PathToConfigs = ko.observable("");
     self.serverOS = ko.observable("");
     self.macros = ko.observableArray([]);
+    self.servicefilePassword = ko.observable("");
+    self.servicefilePasswordDialog = undefined;
 
     var changeConfigPath = function () {
       self.settings.settings.plugins.klipper.configuration.config_path(self.configPath());
@@ -61,6 +63,7 @@ $(function () {
       self.getConfigPath();
       self.getServerInfo();
       self.updateMacroList();
+      self.servicefilePasswordDialog = $("#klipper_servicefile_password_dialog");
     };
 
     self.getServerInfo = function () {
@@ -88,23 +91,21 @@ $(function () {
       if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
       self.klipperViewModel.consoleMessage("debug", "modifyServiceFile");
+      self._modifyServicefile("");
+    };
+
+    self._modifyServicefile = function (password) {
       OctoPrint.plugins.klipper
-        .modifyServicefile(self.configPath())
+        .modifyServicefile(self.configPath(), password)
         .done(function (response) {
-          if (response.data) {
+          if (response.status == "password_required") {
+            self.servicefilePassword("");
+            self.servicefilePasswordDialog.modal("show");
+          } else if (response.data) {
             self.klipperViewModel.consoleMessage("debug", "modifyServiceFile done");
             self.klipperViewModel.showPopUp("success", gettext("Modify Servicefile"), gettext("Servicefile modified."));
-            showMessageDialog(
-              gettext("Copy and run these commands in your linux shell to copy the new servicefile for Klipper.") +
-                "<br><b>Warning: This will stop ongoing prints!</b>" +
-                "<br><br>" +
-                "    sudo cp -T -v " +
-                response.data.path +
-                " /etc/default/klipper<br>    sudo systemctl restart klipper<br><br>",
-              {
-                title: gettext("Manually action needed"),
-              },
-            );
+            // The new servicefile needs a restart to take effect
+            self.klipperViewModel.requestRestart();
           } else if (response.error) {
             self.klipperViewModel.consoleMessage("error", "modifyServiceFile failed: " + response.error.message);
             self.klipperViewModel.showPopUp("error", gettext("Modify Servicefile"), response.error.message);
@@ -114,6 +115,13 @@ $(function () {
           self.klipperViewModel.consoleMessage("error", "modifyServiceFile failed: " + response.responseText);
           self.klipperViewModel.showPopUp("error", gettext("Modify Servicefile"), response.responseText);
         });
+    };
+
+    self.modifyServicefileWithPassword = function () {
+      var password = self.servicefilePassword();
+      self.servicefilePassword("");
+      self.servicefilePasswordDialog.modal("hide");
+      self._modifyServicefile(password);
     };
 
     self.showBackupsDialog = function () {

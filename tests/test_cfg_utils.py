@@ -1,7 +1,6 @@
 """Tests for octoprint_klipper.config_tools.CfgUtils."""
-import os
 
-import pytest
+import os
 
 from octoprint_klipper.config_tools import CfgUtils
 
@@ -97,7 +96,7 @@ class TestCopyCfgToBackup:
 
         result = CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
         assert result["status"] == "success"
-        assert (data_dir / "configs" / "printer.cfg").exists()
+        assert (data_dir / "archive" / "printer.cfg").exists()
 
     def test_backup_file_outside_storage(self, plugin_self, tmp_path):
         config_dir = tmp_path / "klipper_configs"
@@ -113,7 +112,85 @@ class TestCopyCfgToBackup:
 
         result = CfgUtils.copy_cfg_to_backup(plugin_self, str(src))
         assert result["status"] == "success"
-        assert (data_dir / "configs" / "printer.cfg").exists()
+        assert (data_dir / "archive" / "printer.cfg").exists()
+
+
+class TestCopyCfgToOctoprintBackup:
+    def test_backup_goes_to_current_folder(self, plugin_self, tmp_path):
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.return_value = str(config_dir) + os.sep
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        src = config_dir / "printer.cfg"
+        src.write_text("[probe]\n", encoding="utf-8")
+
+        result = CfgUtils.copy_cfg_to_current(plugin_self, str(src))
+        assert result["status"] == "success"
+        assert (data_dir / "current" / "printer.cfg").exists()
+
+    def test_backup_file_outside_storage(self, plugin_self, tmp_path):
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.return_value = str(config_dir) + os.sep
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        # File outside the config storage (e.g. the baseconfig)
+        src = tmp_path / "printer.cfg"
+        src.write_text("[probe]\n", encoding="utf-8")
+
+        result = CfgUtils.copy_cfg_to_current(plugin_self, str(src))
+        assert result["status"] == "success"
+        assert (data_dir / "current" / "printer.cfg").exists()
+
+
+class TestSaveCfg:
+    def test_save_creates_both_backups(self, plugin_self, tmp_path):
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.return_value = str(config_dir) + os.sep
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        src = config_dir / "printer.cfg"
+        src.write_text("[probe]\n", encoding="utf-8")
+
+        new_content = "[probe]\nx_offset = 0.0\n"
+        result = CfgUtils.save_cfg(plugin_self, new_content, "printer.cfg")
+        assert result["status"] == "success"
+        # archive holds the PREVIOUS content
+        assert (data_dir / "archive" / "printer.cfg").read_text(
+            encoding="utf-8"
+        ) == "[probe]\n"
+        # current holds the CURRENT content
+        assert (data_dir / "current" / "printer.cfg").read_text(
+            encoding="utf-8"
+        ) == new_content
+
+    def test_save_new_file_creates_current_duplicate(self, plugin_self, tmp_path):
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.return_value = str(config_dir) + os.sep
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        new_content = "[probe]\nx_offset = 0.0\n"
+        result = CfgUtils.save_cfg(
+            plugin_self, new_content, "new.cfg", is_new_file=True
+        )
+        assert result["status"] == "success"
+        # no archive backup for a brand-new file
+        assert not (data_dir / "archive" / "new.cfg").exists()
+        # current duplicate holds the current content
+        assert (data_dir / "current" / "new.cfg").read_text(
+            encoding="utf-8"
+        ) == new_content
 
 
 class TestListConfigFiles:
@@ -121,11 +198,16 @@ class TestListConfigFiles:
         from unittest import mock
 
         data_dir = tmp_path / "data"
-        configs_dir = data_dir / "configs"
-        configs_dir.mkdir(parents=True)
-        (configs_dir / "printer.cfg").write_text("[probe]\n", encoding="utf-8")
-        (configs_dir / "sub").mkdir()
-        (configs_dir / "sub" / "macro.cfg").write_text("[gcode_macro]\n", encoding="utf-8")
+        archive_dir = data_dir / "archive"
+        archive_dir.mkdir(parents=True)
+        (archive_dir / "printer.cfg").write_text("[probe]\n", encoding="utf-8")
+        (archive_dir / "sub").mkdir()
+        (archive_dir / "sub" / "macro.cfg").write_text(
+            "[gcode_macro]\n", encoding="utf-8"
+        )
+        current_dir = data_dir / "current"
+        current_dir.mkdir()
+        (current_dir / "printer.cfg").write_text("[probe]\n", encoding="utf-8")
         plugin_self.get_plugin_data_folder.return_value = str(data_dir)
 
         with mock.patch("flask.url_for", return_value="/"):
@@ -133,8 +215,10 @@ class TestListConfigFiles:
 
         assert result["status"] == "success"
         names = {f["name"] for f in result["data"]["files"]}
-        assert "printer.cfg" in names
-        assert "sub/macro.cfg" in names
+        # both backups and current configs are listed
+        assert "archive/printer.cfg" in names
+        assert "archive/sub/macro.cfg" in names
+        assert "current/printer.cfg" in names
         # No leading separator that would break <path:filename> route matching
         for name in names:
             assert not name.startswith(("/", "\\"))

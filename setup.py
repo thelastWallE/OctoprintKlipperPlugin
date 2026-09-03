@@ -20,7 +20,62 @@ plugin_package = "octoprint_klipper"
 
 plugin_name = "OctoKlipper"
 
-plugin_version = "0.4rc2"
+import subprocess
+
+
+def _git_version_suffix():
+    """Return a PEP 440 local version suffix from the current git state.
+
+    Appends the short commit SHA (e.g. "+g1a2b3c4"). When the working tree
+    has uncommitted changes, also appends ".dirty.g<sha>" where <sha> is the
+    short SHA of the stash commit created by `git stash create` — a
+    deterministic identifier of the dirty working-tree state.
+    Returns "" when git is unavailable or the directory is not a git repo.
+    """
+    try:
+        sha = (
+            subprocess.check_output(
+                ["git", "rev-parse", "--short", "HEAD"],
+                stderr=subprocess.DEVNULL,
+            )
+            .decode("utf-8")
+            .strip()
+        )
+    except (subprocess.CalledProcessError, OSError):
+        return ""
+
+    suffix = "+g" + sha
+
+    try:
+        stash_sha = (
+            subprocess.check_output(
+                ["git", "stash", "create"],
+                stderr=subprocess.DEVNULL,
+            )
+            .decode("utf-8")
+            .strip()
+        )
+    except (subprocess.CalledProcessError, OSError):
+        stash_sha = ""
+
+    if stash_sha:
+        try:
+            short_stash = (
+                subprocess.check_output(
+                    ["git", "rev-parse", "--short", stash_sha],
+                    stderr=subprocess.DEVNULL,
+                )
+                .decode("utf-8")
+                .strip()
+            )
+        except (subprocess.CalledProcessError, OSError):
+            short_stash = stash_sha[:7]
+        suffix += "-dirty.g" + short_stash
+
+    return suffix
+
+
+plugin_version = "0.4rc2" + _git_version_suffix()
 
 plugin_description = """A plugin for OctoPrint to configure,control and monitor the Klipper 3D printer software."""
 

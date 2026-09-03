@@ -33,7 +33,7 @@ def list_config_files(self, path_type):
 
     files = []
     data_folder = self.get_plugin_data_folder()
-    cfg_path = os.path.join(data_folder, "configs", "**")
+    cfg_path = os.path.join(data_folder, "**")
     try:
         cfg_files = glob.glob(cfg_path, recursive=True)
     except IOError as e:
@@ -49,9 +49,7 @@ def list_config_files(self, path_type):
     for f in cfg_files:
         # Relative path without a leading separator so it can be used in
         # URLs/routes (a leading "/" or "\\" breaks <path:filename> matching).
-        url = os.path.relpath(f, os.path.join(data_folder, "configs")).replace(
-            os.sep, "/"
-        )
+        url = os.path.relpath(f, data_folder).replace(os.sep, "/")
         filesize = os.path.getsize(f)
         filemdate = time.localtime(os.path.getmtime(f))
         download_url = flask.url_for("index") + "plugin/klipper/download/backup/" + url
@@ -178,6 +176,21 @@ def save_cfg(self, content, file, is_new_file=False):
             only_logging=False,
         )
 
+    # Duplicate the just-saved (current) content to the OctoPrint data folder
+    # so OctoPrint's own backup holds the latest version.
+    try:
+        results = copy_cfg_to_current(self, complete_filepath)
+    except IOError:
+        return extra.return_error(
+            self,
+            "Error: Couldn't open Klipper config file: {}".format(complete_filepath),
+            "backup",
+        )
+    else:
+        if results["status"] == "error":
+            results["step"] = "backup"
+            return results
+
     return {
         "status": "success",
         "data": {"body": gettext("Klipper config file saved!")},
@@ -196,9 +209,7 @@ def _find_key_line(content, section, key):
     """Find the 1-based line of ``key`` inside ``section`` in ``content``."""
     if not section or not key:
         return None
-    pattern = re.compile(
-        r"^\s*" + re.escape(key) + r"\s*[:=]", re.IGNORECASE
-    )
+    pattern = re.compile(r"^\s*" + re.escape(key) + r"\s*[:=]", re.IGNORECASE)
     in_section = False
     for i, line in enumerate(content.splitlines(), 1):
         stripped = line.strip()
@@ -289,7 +300,11 @@ def check_float(self, dataToValidated):
         last_key = x
         complete_error = (
             "\n"
-            + "Invalid Value for <b>" + x + "</b> in Section: <b>" + y + "</b>\n"
+            + "Invalid Value for <b>"
+            + x
+            + "</b> in Section: <b>"
+            + y
+            + "</b>\n"
             + "{}".format(str(error))
         )
         error_list.append(complete_error)
@@ -307,11 +322,50 @@ def check_float(self, dataToValidated):
         }
 
 
-def copy_cfg_to_backup(self, src):
-    """Copy the config file to backup directory of OctoKlipper.
+def get_archive_path(self):
+    """Return the plugin data folder path for archived (previous) configs."""
+    return os.path.join(self.get_plugin_data_folder(), "archive")
+
+
+def get_current_path(self):
+    """Return the plugin data folder path for current config duplicates."""
+    return os.path.join(self.get_plugin_data_folder(), "current")
+
+
+def _get_file_data_path(self, src, path):
+    """Compute the destination path for a config file inside a data dir.
 
     Args:
         src (str): Path to the config file to copy.
+        path (str): Root directory the config is copied into.
+
+    Returns:
+        str: The full destination path.
+    """
+    # Normalize the config path so it has exactly one trailing separator,
+    # regardless of whether the setting already ends with one.
+    cfg_path = (
+        os.path.normpath(
+            os.path.expanduser(self._settings.get(["configuration", "config_path"]))
+        )
+        + os.sep
+    )
+    src_norm = os.path.normpath(src)
+    if src_norm.startswith(cfg_path):
+        file = src_norm[len(cfg_path) :]
+    else:
+        # The file lives outside the config storage (e.g. the baseconfig);
+        # back it up under its basename.
+        file = os.path.basename(src_norm)
+    return os.path.join(os.path.join(path, ""), file)
+
+
+def _copy_cfg_to_data(self, src, path):
+    """Copy the config file to the given data directory.
+
+    Args:
+        src (str): Path to the config file to copy.
+        path (str): Root directory to copy the config into.
 
     Returns:
         dict: Status of the operation.
@@ -322,46 +376,67 @@ def copy_cfg_to_backup(self, src):
             "Error: Config file not found: {}".format(src),
             "backup",
         )
-    # Normalize the config path so it has exactly one trailing separator,
-    # regardless of whether the setting already ends with one.
-    cfg_path = os.path.normpath(
-        os.path.expanduser(self._settings.get(["configuration", "config_path"]))
-    ) + os.sep
-    src_norm = os.path.normpath(src)
-    if src_norm.startswith(cfg_path):
-        file = src_norm[len(cfg_path):]
-    else:
-        # The file lives outside the config storage (e.g. the baseconfig);
-        # back it up under its basename.
-        file = os.path.basename(src_norm)
-    cfg_bak_path = os.path.join(self.get_plugin_data_folder(), "configs", "")
-    file_bak_path = os.path.join(cfg_bak_path, file)
+    file_data_path = _get_file_data_path(self, src, path)
+    cfg_data_path = os.path.join(path, "")
 
-    results = extra.create_directory(self, cfg_bak_path)
+    results = extra.create_directory(self, cfg_data_path)
     if results["status"] == "error":
         return results
 
     logger.log_debug(
-        self, "copy_cfg_to_backup:" + src + " to " + file_bak_path, only_logging=False
+        self, "copy_cfg_to_data:" + src + " to " + file_data_path, only_logging=False
     )
-    if os.path.normpath(src) == os.path.normpath(file_bak_path):
+    if os.path.normpath(src) == os.path.normpath(file_data_path):
         return extra.return_error(self, "Source and destination are the same", "backup")
     try:
-        copyfile(src, file_bak_path)
+        copyfile(src, file_data_path)
     except IOError:
         return extra.return_error(
-            "Error: Couldn't copy Klipper config file to {}".format(file_bak_path),
+            "Error: Couldn't copy Klipper config file to {}".format(file_data_path),
             "backup",
         )
     else:
         logger.log_debug(
-            self, "CfgBackup " + file_bak_path + " written", only_logging=False
+            self, "CfgVersioning " + file_data_path + " written", only_logging=False
         )
         return {
             "status": "success",
             "data": {
                 "body": gettext(
-                    "Klipper config file copied to {}".format(file_bak_path)
+                    "Klipper config file copied to {}".format(file_data_path)
                 )
             },
         }
+
+
+def copy_cfg_to_backup(self, src):
+    """Copy the config file to the plugin data folder (internal backup).
+
+    Args:
+        src (str): Path to the config file to copy.
+
+    Returns:
+        dict: Status of the operation.
+    """
+    file_data_path = _get_file_data_path(self, src, get_archive_path(self))
+    logger.log_debug(
+        self, "copy_cfg_to_backup: " + src + " to " + file_data_path, only_logging=False
+    )
+    return _copy_cfg_to_data(self, src, get_archive_path(self))
+
+
+def copy_cfg_to_current(self, src):
+    """Copy the config file to the OctoPrint data folder so it is included
+    in OctoPrint's own backup.
+
+    Args:
+        src (str): Path to the config file to copy.
+
+    Returns:
+        dict: Status of the operation.
+    """
+    file_data_path = _get_file_data_path(self, src, get_current_path(self))
+    logger.log_debug(
+        self, "copy_cfg_to_current:" + src + " to " + file_data_path, only_logging=False
+    )
+    return _copy_cfg_to_data(self, src, get_current_path(self))

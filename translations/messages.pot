@@ -447,14 +447,21 @@ msgstr ""
 msgid "Servicefile modified."
 msgstr ""
 
-#: octoprint_klipper/static/js/klipper_settings.js:165
-msgid ""
-"Copy and run these commands in your linux shell to copy the new "
-"servicefile for Klipper."
+#: octoprint_klipper/templates/klipper_settings.jinja2:537
+#: octoprint_klipper/templates/klipper_settings.jinja2:562
+msgid "Only needed if passwordless sudo is not configured"
 msgstr ""
 
-#: octoprint_klipper/static/js/klipper_settings.js:172
-msgid "Manually action needed"
+#: octoprint_klipper/templates/klipper_settings.jinja2:556
+msgid "Sudo password required"
+msgstr ""
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:560
+msgid "Sudo password:"
+msgstr ""
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:567
+msgid "Apply"
 msgstr ""
 
 #: octoprint_klipper/static/js/klipper_settings.js:423

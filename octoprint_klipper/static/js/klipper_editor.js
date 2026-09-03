@@ -469,11 +469,20 @@ $(function () {
         return;
       }
 
+      // When opened from the sidebar file manager the editor modal is not
+      // visible yet, so show it after loading the config.
+      var showEditor = function () {
+        if (!editordialog.is(":visible")) {
+          self.klipperViewModel.showEditorDialog();
+        }
+      };
+
       if (self.isEditorDirty() === true) {
         var selection = function (index) {
           switch (index) {
             case 0:
               self.openConfig(data.path);
+              showEditor();
               break;
             case 1:
               self.editorFocusDelay(1000);
@@ -482,6 +491,7 @@ $(function () {
               self.saveCfg({ closing: false });
               if (!self.isEditorDirty()) {
                 self.openConfig(data.path);
+                showEditor();
               }
               break;
           }
@@ -505,6 +515,7 @@ $(function () {
         showSelectionDialog(opts);
       } else {
         self.openConfig(data.path);
+        showEditor();
       }
     };
 
