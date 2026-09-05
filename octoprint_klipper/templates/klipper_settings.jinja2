@@ -239,6 +239,10 @@
             title="{{ _('Show Backups') }}">
             <i class="fas fa-upload"></i> {{ _('Show Backups') }}
           </button>
+          <button type="button" class="btn btn-small" data-bind='click: backupAllConfigs'
+            title="{{ _('Copy all config files to the OctoPrint backup') }}">
+            <i class="fas fa-copy"></i> {{ _('Backup all configs') }}
+          </button>
         </div>
       </div>
       <div class="control-group border">

@@ -212,6 +212,45 @@ class TestGetBackupType:
         )
 
 
+class TestCopyAllConfigsToCurrent:
+    def test_copies_all_files_and_refreshes_duplicates(self, plugin_self, tmp_path):
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.return_value = str(config_dir) + os.sep
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        # two config files, one in a subfolder
+        (config_dir / "printer.cfg").write_text("[probe]\n", encoding="utf-8")
+        sub = config_dir / "sub"
+        sub.mkdir()
+        (sub / "macro.cfg").write_text("[gcode_macro X]\n", encoding="utf-8")
+
+        # printer.cfg already exists in current/ (a duplicate to refresh)
+        current = data_dir / "current"
+        current.mkdir()
+        (current / "printer.cfg").write_text("old", encoding="utf-8")
+
+        result = CfgUtils.copy_all_configs_to_current(plugin_self)
+        assert result["status"] == "success"
+        # both files were copied, including the existing duplicate
+        assert len(result["data"]["copied"]) == 2
+        assert result["data"]["errors"] == []
+        assert (current / "sub" / "macro.cfg").exists()
+        # the duplicate was refreshed from the config path
+        assert (current / "printer.cfg").read_text(encoding="utf-8") == "[probe]\n"
+
+    def test_missing_config_path_returns_error(self, plugin_self, tmp_path):
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+        plugin_self._settings.get.return_value = str(tmp_path / "missing") + os.sep
+
+        result = CfgUtils.copy_all_configs_to_current(plugin_self)
+        assert result["status"] == "error"
+
+
 class TestListConfigFiles:
     def test_backup_name_has_no_leading_separator(self, plugin_self, tmp_path):
         from unittest import mock

@@ -458,3 +458,48 @@ def copy_cfg_to_current(self, src):
         self, "copy_cfg_to_current:" + src + " to " + file_data_path, only_logging=False
     )
     return _copy_cfg_to_data(self, src, get_current_path(self))
+
+
+def copy_all_configs_to_current(self):
+    """Copy every config file from the config path to the plugin data
+    "current" folder so OctoPrint's own backup holds all config files, not
+    only the ones saved through the plugin.
+
+    Returns:
+        dict: Status and a summary of copied files.
+    """
+    config_path = os.path.expanduser(
+        self._settings.get(["configuration", "config_path"])
+    )
+    current_path = get_current_path(self)
+
+    copied = []
+    errors = []
+
+    if not os.path.isdir(config_path):
+        return extra.return_error(
+            self, "Config path not found: {}".format(config_path), "backup"
+        )
+
+    for root, dirs, files in os.walk(config_path):
+        for filename in files:
+            src = os.path.join(root, filename)
+            dest = _get_file_data_path(self, src, current_path)
+            # _copy_cfg_to_data only creates the top-level current folder, so
+            # ensure any subdirectory of the destination exists first.
+            dest_dir = os.path.dirname(dest)
+            if dest_dir and not os.path.exists(dest_dir):
+                os.makedirs(dest_dir, exist_ok=True)
+            results = _copy_cfg_to_data(self, src, current_path)
+            if results["status"] == "success":
+                copied.append(dest)
+            else:
+                errors.append(dest)
+
+    return {
+        "status": "success",
+        "data": {
+            "copied": copied,
+            "errors": errors,
+        },
+    }

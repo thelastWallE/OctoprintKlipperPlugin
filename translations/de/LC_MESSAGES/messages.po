@@ -195,6 +195,20 @@ msgstr "Kopiert"
 msgid "Copy to Clipboard"
 msgstr "Kopiere in Zwischenablage"
 
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:152
+msgid "Copy all config files to the OctoPrint backup"
+msgstr "Alle Konfigurationsdateien in die OctoPrint-Sicherung kopieren"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:153
+#: octoprint_klipper/static/js/klipper_settings.js:140
+msgid "Backup all configs"
+msgstr "Alle Konfigurationen sichern"
+
+#: octoprint_klipper/static/js/klipper_settings.js:141
+#, python-format
+msgid "%(copied)d configs copied."
+msgstr "%(copied)d Konfigurationen kopiert."
 #: octoprint_klipper/static/js/klipper.js:845
 msgid "Unsecured connection"
 msgstr "Unsichere Verbindung"

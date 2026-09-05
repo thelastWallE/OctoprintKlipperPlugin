@@ -958,6 +958,20 @@ msgstr ""
 msgid "Show Backups"
 msgstr ""
 
+#: octoprint_klipper/templates/klipper_settings.jinja2:152
+msgid "Copy all config files to the OctoPrint backup"
+msgstr ""
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:153
+#: octoprint_klipper/static/js/klipper_settings.js:140
+msgid "Backup all configs"
+msgstr ""
+
+#: octoprint_klipper/static/js/klipper_settings.js:141
+#, python-format
+msgid "%(copied)d configs copied."
+msgstr ""
+
 #: octoprint_klipper/templates/klipper_settings.jinja2:155
 msgid "Development Options"
 msgstr ""

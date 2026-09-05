@@ -179,6 +179,15 @@
   };
 
   /**
+   * Copies all config files from the config path to the plugin data "current"
+   * folder so OctoPrint's own backup holds every config file.
+   * @param {object} opts Additional options
+   */
+  OctoKlipperClient.prototype.backupAllConfigs = function (opts) {
+    return this.base.post(this.url + "config/backupAll", opts);
+  };
+
+  /**
    * Saves a file to the server
    * @param {string} content The content of the file to save
    * @param {string} filename The name of the file to save

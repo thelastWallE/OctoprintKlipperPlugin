@@ -1228,6 +1228,13 @@ class KlipperPlugin(
 
         return flask.jsonify(cfg_utils.check_config(self, data_to_check))
 
+    # copy all config files to the plugin data "current" folder so OctoPrint's
+    # own backup holds every config, not only the ones saved through the plugin
+    @octoprint.plugin.BlueprintPlugin.route("/config/backupAll", methods=["POST"])
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def backup_all_configs(self):
+        return flask.jsonify(cfg_utils.copy_all_configs_to_current(self))
+
     # save a configfile
     @octoprint.plugin.BlueprintPlugin.route("/config/save", methods=["POST"])
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
@@ -1684,6 +1691,34 @@ class KlipperPlugin(
             }
         ]
 
+    def before_backup_hook(self, *args, **kwargs):
+        """Copy all config files to the plugin data "current" folder so every
+        OctoPrint backup includes all configs, not only the ones saved through
+        the plugin. Runs automatically right before a backup is created."""
+        try:
+            result = cfg_utils.copy_all_configs_to_current(self)
+            if result["status"] == "success":
+                logger.log_info(
+                    self,
+                    "Backup: copied {} configs, skipped {} duplicates".format(
+                        len(result["data"]["copied"]),
+                        len(result["data"]["skipped"]),
+                    ),
+                    only_logging=True,
+                )
+            else:
+                logger.log_error(
+                    self,
+                    "Backup: could not copy configs to current folder: {}".format(
+                        result.get("error", {}).get("message", result)
+                    ),
+                    only_logging=True,
+                )
+        except Exception:
+            self._octoklipper_logger.exception(
+                "Error copying configs to current folder before backup"
+            )
+
     def support_cfg_klipperfiles(self, *args, **kwargs):
         return dict(config=dict(cfg=["cfg", "config"]))
 
@@ -1728,4 +1763,5 @@ def __plugin_load__():
         "octoprint.comm.protocol.gcode.sent": __plugin_implementation__.process_sent_gcode,
         "octoprint.comm.protocol.gcode.received": __plugin_implementation__.on_parse_gcode,
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
+        "octoprint.plugin.backup.before_backup": __plugin_implementation__.before_backup_hook,
     }

@@ -128,6 +128,27 @@ $(function () {
       });
     };
 
+    self.backupAllConfigs = function () {
+      self.klipperViewModel.consoleMessage("debug", "backupAllConfigs");
+      OctoPrint.plugins.klipper
+        .backupAllConfigs()
+        .done(function (response) {
+          if (response.status == "success") {
+            var copied = response.data.copied.length;
+            self.klipperViewModel.showPopUp(
+              "success",
+              gettext("Backup all configs"),
+              _.sprintf(gettext("%(copied)d configs copied."), { copied: copied }),
+            );
+          } else {
+            self.klipperViewModel.showPopUp("error", gettext("Backup all configs"), response.error.message);
+          }
+        })
+        .fail(function (response) {
+          self.klipperViewModel.showPopUp("error", gettext("Backup all configs"), response.responseText);
+        });
+    };
+
     self.showBackupsDialog = function () {
       self.klipperViewModel.consoleMessage("debug", "showBackupsDialog");
       self.klipperBackupViewModel.listBakFiles();
