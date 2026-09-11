@@ -13,8 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import flask
-import optparse, datetime
 from octoprint_klipper.util import log_error
 
 class KlipperLogAnalyzer():
@@ -136,7 +134,6 @@ class KlipperLogAnalyzer():
          load = float(d['mcu_task_avg']) + 3*float(d['mcu_task_stddev'])
          if st - basetime < 15.:
             load = 0.
-         pt = float(d['print_time'])
          hb = float(d['buffer_time'])
          if hb >= self.MAXBUFFER or st in sample_resets:
             hb = 0.
@@ -158,22 +155,3 @@ class KlipperLogAnalyzer():
          buffers= hostbuffers
       )
       return result
-
-   def plot_frequency(self, data, mcu):
-      all_keys = {}
-      for d in data:
-         all_keys.update(d)
-      one_mcu = mcu is not None
-      graph_keys = { key: ([], []) for key in all_keys
-                   if (key in ("freq", "adj") or (not one_mcu and (
-                           key.endswith(":freq") or key.endswith(":adj")))) }
-      basetime = lasttime = data[0]['#sampletime']
-      for d in data:
-         st = d['#sampletime']
-         for key, (times, values) in list(graph_keys.items()):
-            val = d.get(key)
-            if val not in (None, '0', '1'):
-               times.append(st)
-               values.append(float(val)/1000000.0)
-
-      return values

@@ -17,14 +17,6 @@ $(function () {
   function KlipperViewModel(parameters) {
     var self = this;
 
-    self.header = OctoPrint.getRequestHeaders({
-      "content-type": "application/json",
-      "cache-control": "no-cache",
-    });
-
-    self.apiUrl = OctoPrint.getSimpleApiUrl("klipper");
-    self.Url = OctoPrint.getBlueprintUrl("klipper");
-
     self.settings = parameters[0];
     self.loginState = parameters[1];
     self.connectionState = parameters[2];

@@ -82,9 +82,6 @@ def migrate_settings_configuration(self, settings, new, old):
         settings.set(["configuration", new], settings.get(["configuration", old]))
         settings.remove(["configuration", old])
 
-def poll_status(self):
-    self._printer.commands("STATUS")
-
 def update_status(self, subtype, status):
     send_message(
         self,

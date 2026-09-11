@@ -27,11 +27,6 @@ $(function () {
     self.loadedConfig = "";
     self.CfgChangedExtern = false;
 
-    self.header = OctoPrint.getRequestHeaders({
-      "content-type": "application/json",
-      "cache-control": "no-cache",
-    });
-
     $(window).on('resize', function() {
       self.klipperViewModel.sleep(200).then(
         function () {
