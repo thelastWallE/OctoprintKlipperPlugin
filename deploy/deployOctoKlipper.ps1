@@ -166,8 +166,13 @@ function Invoke-RemoteCommand {
 
 function Copy-ToRemote {
     param([string]$LocalPath, [string]$RemotePath, [string]$Step)
+    # Directories need the recursive flag on both pscp and scp.
+    $isDir = Test-Path -Path $LocalPath -PathType Container
     if ($usePutty) {
-        & $pscpPath -batch -pw $password $LocalPath "${remoteTarget}:${RemotePath}"
+        $pscpArgs = @("-batch", "-pw", $password)
+        if ($isDir) { $pscpArgs += "-r" }
+        $pscpArgs += @($LocalPath, "${remoteTarget}:${RemotePath}")
+        & $pscpPath @pscpArgs
         Assert-LastExitCode -Step $Step
     }
     else {
@@ -182,7 +187,9 @@ function Copy-ToRemote {
         }
         catch { }
         $localForTransfer = $localForTransfer -replace '\\', '/'
-        $scpArgs = $openSshArgs + @($localForTransfer, "${remoteTarget}:${RemotePath}")
+        $scpArgs = $openSshArgs
+        if ($isDir) { $scpArgs += "-r" }
+        $scpArgs += @($localForTransfer, "${remoteTarget}:${RemotePath}")
         & $scpPath @scpArgs
         Assert-LastExitCode -Step $Step
     }
@@ -219,6 +226,10 @@ if ($Editable) {
     foreach ($item in $items) {
         $localItem = Join-Path $localRoot $item
         if (Test-Path $localItem) {
+            # pscp -r needs the remote target directory to already exist.
+            if (Test-Path -Path $localItem -PathType Container) {
+                Invoke-RemoteCommand -Command "mkdir -p '$remoteSrc/$item'" -Step "Create remote dir $item"
+            }
             Copy-ToRemote -LocalPath $localItem -RemotePath "$remoteSrc/$item" -Step "Upload $item"
         }
     }
