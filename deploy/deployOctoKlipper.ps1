@@ -217,23 +217,15 @@ Copy-ToRemote -LocalPath $localZip -RemotePath $remoteZip -Step "Upload zip"
 # --- 3. pip install ----------------------------------------------------------
 Write-Log -Message "==> Installing plugin on the Pi..." -Level "Step"
 if ($Editable) {
-    # Dev workflow: upload the source tree and editable-install it.
-    Write-Log -Message "==> Editable mode: uploading source tree..." -Level "Info"
-    $remoteSrc = "$remoteDir/OctoprintKlipperPlugin"
-    Invoke-RemoteCommand -Command "rm -rf '$remoteSrc' && mkdir -p '$remoteSrc'" -Step "Prepare remote source dir"
-    # Upload the plugin package + setup files (exclude dev-only folders).
-    $items = @("octoprint_klipper", "setup.py", "setup.cfg", "MANIFEST.in", "requirements.txt", "babel.cfg")
-    foreach ($item in $items) {
-        $localItem = Join-Path $localRoot $item
-        if (Test-Path $localItem) {
-            # pscp -r needs the remote target directory to already exist.
-            if (Test-Path -Path $localItem -PathType Container) {
-                Invoke-RemoteCommand -Command "mkdir -p '$remoteSrc/$item'" -Step "Create remote dir $item"
-            }
-            Copy-ToRemote -LocalPath $localItem -RemotePath "$remoteSrc/$item" -Step "Upload $item"
-        }
-    }
-    Invoke-RemoteCommand -Command "$remoteVenvPython -m pip install -e '$remoteSrc' --no-build-isolation" -Step "Editable install"
+    # Editable installs are NOT usable on OctoPrint 1.11.x with modern
+    # setuptools/pip: the legacy `setup.py develop` egg-link mode is deprecated
+    # (setuptools#917) and now delegates to `pip install -e . --use-pep517`,
+    # which produces a PEP 660 install. PEP 660 loads the module via a
+    # meta-path finder, leaving __file__ as None, which OctoPrint 1.11.x's
+    # plugin loader cannot handle (TypeError in os.path.basename). Fall back to
+    # the zip install, which copies the package into site-packages.
+    Write-Log -Message "==> Editable mode is not supported on OctoPrint 1.11.x; falling back to zip install." -Level "Warning"
+    Invoke-RemoteCommand -Command "$remoteVenvPython -m pip install '$remoteZip' --no-build-isolation --no-cache-dir" -Step "pip install"
 }
 else {
     Invoke-RemoteCommand -Command "$remoteVenvPython -m pip install '$remoteZip' --no-build-isolation --no-cache-dir" -Step "pip install"
