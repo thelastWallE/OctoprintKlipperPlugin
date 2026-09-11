@@ -1,0 +1,6 @@
+{
+  "remoteUser": "pi",
+  "remoteHost": "127.0.0.1",
+  "remoteVenvPython": "/home/pi/OctoPrint/venv/bin/python3",
+  "remoteDir": "/home/pi/octoklipper-deploy"
+}

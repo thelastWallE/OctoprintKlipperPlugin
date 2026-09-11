@@ -25,3 +25,7 @@ AGENTS.md
 scripts
 docs/install.md
 build_zip.py
+
+# Deploy config (machine-specific) and logs
+deploy/deploy.config.json
+deploy/deploylogs/

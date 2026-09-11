@@ -1291,9 +1291,13 @@ class KlipperPlugin(
                 description="Invalid request, the path to servicefiles is not set",
             )
 
-        config_path = os.path.expanduser(path_to_configs)
-        baseconfig = self._settings.get(["configuration", "baseconfig"])
-        replace_path = os.path.join(config_path, baseconfig)
+        # The baseconfig setting is a full path (e.g. "~/printer.cfg"), not a
+        # filename. Expand it so the servicefile points to the actual config
+        # file Klipper loads instead of a literal "~" path.
+        baseconfig = os.path.expanduser(
+            self._settings.get(["configuration", "baseconfig"])
+        )
+        replace_path = baseconfig
         sudo_password = data.get("password", "")
 
         results = servicefile.modify_servicefile(

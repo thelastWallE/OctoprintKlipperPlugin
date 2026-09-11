@@ -75,7 +75,7 @@ def _git_version_suffix():
     return suffix
 
 
-plugin_version = "0.4rc2" + _git_version_suffix()
+plugin_version = "0.4rc4" + _git_version_suffix()
 
 plugin_description = """A plugin for OctoPrint to configure,control and monitor the Klipper 3D printer software."""
 
