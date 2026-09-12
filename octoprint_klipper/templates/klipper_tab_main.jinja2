@@ -1,50 +1,104 @@
 <div class="klipper-row-fluid">
   <div id="left-side">
-    <label class="klipper-inline"> <i class="icon-tasks"></i> {{ _("Messages") }} </label>
-    <button class="btn btn-small pull-right"
-      data-bind="visible: hasPermKo('CONFIG'), click: openOctoKlipperSettings('klipper-basic')"
-      title="{{ _('Open the OctoKlipper Settings') }}">
-      <i class="fa icon-black fa-wrench"></i>
-    </button>
-    <div id="octoklipper-log" class="plugin-klipper-log"
-      data-bind="foreach: displayedLines, event: { scroll: logScrollEvent }">
-      <div class="log-item" data-bind="css: type">
-        <div data-bind="text: time" class="ts"></div>
-        <div data-bind="html: msg" class="msg"></div>
+    <!-- Pills to switch between the OctoKlipper messages log and the live
+         klippy.log tail -->
+    <ul class="nav nav-pills" id="klipper-log-pills">
+      <li class="active"><a href="#klipper-messages-pane" data-toggle="tab">{{ _("Messages") }}</a></li>
+      <li><a href="#klipper-klippylog-pane" data-toggle="tab">{{ _("Klippy Log") }}</a></li>
+    </ul>
+    <div class="tab-content">
+      <div id="klipper-messages-pane" class="tab-pane active">
+        <label class="klipper-inline"> <i class="icon-tasks"></i> {{ _("Messages") }} </label>
+        <button class="btn btn-small pull-right"
+          data-bind="visible: hasPermKo('CONFIG'), click: openOctoKlipperSettings('klipper-basic')"
+          title="{{ _('Open the OctoKlipper Settings') }}">
+          <i class="fa icon-black fa-wrench"></i>
+        </button>
+        <div id="octoklipper-log" class="plugin-klipper-log"
+          data-bind="foreach: displayedLines, event: { scroll: logScrollEvent }">
+          <div class="log-item" data-bind="css: type">
+            <div data-bind="text: time" class="ts"></div>
+            <div data-bind="html: msg" class="msg"></div>
+          </div>
+        </div>
+        <!-- <pre id="octoklipper-log" class="plugin-klipper-log"
+          data-bind="text: plainLogOutput, visible: !fancyFunctionality()">
+        </pre> -->
+        <div class="row-fluid">
+          <div class="pull-left">
+            <button class="btn btn-mini terminal-autoscroll"
+              data-bind="visible: settings.settings.plugins.klipper.configuration.debugging, click: testLog">{{ _('Test Log') }}</button>
+            <small id="octoklipper-log-autoscroll-panel" data-bind="visible: fancyFunctionality()">
+              <button class="btn btn-mini terminal-autoscroll"
+                data-bind="click: toggleAutoscroll, css: {active: autoscrollEnabled}">{{ _('Autoscroll') }}</button>
+              <span data-bind="text: lineCount, visible: fancyFunctionality()"></span>
+              <span data-bind="visible: !autoscrollEnabled && fancyFunctionality" style="display: none">(<a
+                  href="javascript:void(0)" data-bind="click: scrollToEnd">{{ _("Scroll to end") }}</a>)</span>
+            </small>
+          </div>
+          <div class="pull-right">
+            <a href="javascript:void(0)" data-bind="click: copyLog"><i class="fas fa-copy terminal-copy-all"
+                title="{{ _('Copy all')|edq }}"></i> {{ _('Copy all') }}</a><br>
+            <a href="javascript:void(0)" data-bind="click: onClearLog"><i class="far fa-trash-alt terminal-clear-logs"
+                title="{{ _('Clear log window')|edq }}"></i> {{ _('Clear all') }}</a>
+            <!--  <button class="btn btn-mini clear-btn" data-bind="click: onClearLog" title="{{ _('Clear Log') }}">
+              <i class="fa fa-trash"></i> {{ _('Clear Log') }}
+            </button> -->
+          </div>
+        </div>
+        <label class="klipper-inline" data-bind="visible: fancyFunctionality()"> {{ _("Log Filters") }} </label>
+        <div class="klipper-logfilters"
+          data-bind="foreach: settings.settings.plugins.klipper.log.logFilters, visible: fancyFunctionality()">
+          <label class="checkbox">
+            <input type="checkbox" data-bind="attr: { value: regex }, checked: $parent.activeFilters" />
+            <span data-bind="text: name"></span>
+          </label>
+        </div>
       </div>
-    </div>
-    <!-- <pre id="octoklipper-log" class="plugin-klipper-log"
-      data-bind="text: plainLogOutput, visible: !fancyFunctionality()">
-    </pre> -->
-    <div class="row-fluid">
-      <div class="pull-left">
-        <button class="btn btn-mini terminal-autoscroll"
-          data-bind="visible: settings.settings.plugins.klipper.configuration.debugging, click: testLog">{{ _('Test Log') }}</button>
-        <small id="octoklipper-log-autoscroll-panel" data-bind="visible: fancyFunctionality()">
-          <button class="btn btn-mini terminal-autoscroll"
-            data-bind="click: toggleAutoscroll, css: {active: autoscrollEnabled}">{{ _('Autoscroll') }}</button>
-          <span data-bind="text: lineCount, visible: fancyFunctionality()"></span>
-          <span data-bind="visible: !autoscrollEnabled && fancyFunctionality" style="display: none">(<a
-              href="javascript:void(0)" data-bind="click: scrollToEnd">{{ _("Scroll to end") }}</a>)</span>
-        </small>
+      <div id="klipper-klippylog-pane" class="tab-pane">
+        <label class="klipper-inline"> <i class="icon-file-text-alt"></i> {{ _("Klippy Log") }} </label>
+        <div class="pull-right">
+          <button class="btn btn-mini klipper-flex-shrink"
+            data-bind="visible: hasPermKo('CONFIG'), click: openOctoKlipperSettings('klipper-basic')"
+            title="{{ _('Open the OctoKlipper Settings') }}">
+            <i class="fa icon-black fa-wrench"></i>
+          </button>
+          <button class="btn btn-mini klipper-flex-shrink" data-bind="click: toggleKlippyLog"
+            title="{{ _('Start or stop the live tail of klippy.log') }}">
+            <span data-bind="text: klippyLogToggleText"></span>
+          </button>
+        </div>
+        <!-- Show which file the backend loads, so a wrong log path is obvious -->
+        <div class="klippy-log-path" data-bind="css: { 'klippy-log-path-missing': !klippyLogExists() }">
+          <i class="icon-file" data-bind="css: klippyLogExists() ? 'icon-ok' : 'icon-warning-sign'"></i>
+          <span data-bind="text: klippyLogPath"></span>
+          <span data-bind="visible: !klippyLogExists()">
+            &mdash; {{ _('File not found!') }}</span>
+        </div>
+        <div id="klippy-log" class="plugin-klipper-log"
+          data-bind="foreach: klippyLogDisplayed, event: { scroll: klippyLogScrolledToEnd }">
+          <div class="log-item">
+            <div data-bind="html: msg" class="msg" style="width: 100%;"></div>
+          </div>
+        </div>
+        <div class="row-fluid">
+          <div class="pull-left">
+            <small>
+              <button class="btn btn-mini terminal-autoscroll" data-bind="click: klippyLogScrollToEnd"
+                title="{{ _('Scroll to the end of the klippy.log tail') }}">
+                {{ _('Scroll to end') }}
+              </button>
+            </small>
+          </div>
+          <div class="pull-right">
+            <span>{{ _('Number of displayed lines') }}: </span>
+            <span data-bind="text: klippyLogLines().length" title="{{ _('Number of displayed lines') }}"></span>
+          </div>
+        </div>
+        <!-- ko if: klippyLogError() -->
+        <div class="klippy-log-error" data-bind="text: klippyLogError"></div>
+        <!-- /ko -->
       </div>
-      <div class="pull-right">
-        <a href="javascript:void(0)" data-bind="click: copyLog"><i class="fas fa-copy terminal-copy-all"
-            title="{{ _('Copy all')|edq }}"></i> {{ _('Copy all') }}</a><br>
-        <a href="javascript:void(0)" data-bind="click: onClearLog"><i class="far fa-trash-alt terminal-clear-logs"
-            title="{{ _('Clear log window')|edq }}"></i> {{ _('Clear all') }}</a>
-        <!--  <button class="btn btn-mini clear-btn" data-bind="click: onClearLog" title="{{ _('Clear Log') }}">
-          <i class="fa fa-trash"></i> {{ _('Clear Log') }}
-        </button> -->
-      </div>
-    </div>
-    <label class="klipper-inline" data-bind="visible: fancyFunctionality()"> {{ _("Log Filters") }} </label>
-    <div class="klipper-logfilters"
-      data-bind="foreach: settings.settings.plugins.klipper.log.logFilters, visible: fancyFunctionality()">
-      <label class="checkbox">
-        <input type="checkbox" data-bind="attr: { value: regex }, checked: $parent.activeFilters" />
-        <span data-bind="text: name"></span>
-      </label>
     </div>
   </div>
 

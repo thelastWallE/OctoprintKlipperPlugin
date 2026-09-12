@@ -1203,6 +1203,18 @@ msgstr "Öffne Editor"
 msgid "Messages"
 msgstr "Nachricht"
 
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:4
+msgid "Klippy Log"
+msgstr "Klippy Logbuch"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:172
+msgid "Will load:"
+msgstr "Ist vorhanden:"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:171
+msgid "Check path"
+msgstr "Pfad prüfen"
+
 #: octoprint_klipper/templates/klipper_tab_main.jinja2:6
 msgid "Open the OctoKlipper Settings"
 msgstr "Öffne die OctoKlipper Einstellungen"
@@ -1218,6 +1230,26 @@ msgstr "Autoscroll"
 #: octoprint_klipper/templates/klipper_tab_main.jinja2:28
 msgid "Scroll to end"
 msgstr "Zum Ende"
+
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:85
+msgid "Start or stop the live tail of klippy.log"
+msgstr "Starte oder stoppe die Live-Ausgabe von klippy.log"
+
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:94
+msgid "Scroll to the end of the klippy.log tail"
+msgstr "Zum Ende der klippy.log-Ausgabe scrollen"
+
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:100
+msgid "Number of displayed lines"
+msgstr "Anzahl der angezeigten Zeilen"
+
+#: octoprint_klipper/static/js/klipper.js
+msgid "Pause"
+msgstr "Pause"
+
+#: octoprint_klipper/static/js/klipper.js
+msgid "Could not read klippy.log"
+msgstr "klippy.log konnte nicht gelesen werden"
 
 #: octoprint_klipper/templates/klipper_tab_main.jinja2:33
 msgid "Copy all"

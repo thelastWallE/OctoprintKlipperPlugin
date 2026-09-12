@@ -170,6 +170,21 @@
               data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'logpath') }"
               title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
           </div>
+          <div class="klipper-reset-row">
+            <button type="button" class="btn btn-small" data-bind="click: checkLogPath, enable: !logPathChecking()"
+              title="{{ _('Check the log path on the server') }}">
+              <i class="icon-ok" data-bind="css: logPathChecking() ? 'klipper-spin' : ''"></i>
+              {{ _('Check path') }}
+            </button>
+          </div>
+          <span class="klippy-log-path-resolved"
+            data-bind="css: { 'klippy-log-path-resolved-missing': !logPathExists() }">
+            <i class="icon-{{ 'ok' if resolved_klippy_log_exists else 'warning-sign' }}"
+              data-bind="attr: { 'class': logPathExists() ? 'icon-ok' : 'icon-warning-sign' }"></i>
+            {{ _('Will load:') }}
+            <code data-bind="text: logPathResolved"></code>
+            <span data-bind="visible: !logPathExists()">&mdash; {{ _('File not found!') }}</span>
+          </span>
         </div>
       </div>
       <div class="control-group border">
@@ -629,15 +644,13 @@
     <div class="control-group">
       <div class="control-label">{{ _('Sudo password:') }}</div>
       <div class="controls">
-        <input type="password" class="span8"
-          data-bind="value: servicefilePassword, valueUpdate: 'afterkeydown'"
+        <input type="password" class="span8" data-bind="value: servicefilePassword, valueUpdate: 'afterkeydown'"
           placeholder="{{ _('Only needed if passwordless sudo is not configured') }}" />
       </div>
     </div>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-primary"
-      data-bind="click: modifyServicefileWithPassword">{{ _('Apply') }}</button>
+    <button class="btn btn-primary" data-bind="click: modifyServicefileWithPassword">{{ _('Apply') }}</button>
     <button class="btn" data-dismiss="modal" aria-hidden="true">{{ _('Cancel') }}</button>
   </div>
 </div>
