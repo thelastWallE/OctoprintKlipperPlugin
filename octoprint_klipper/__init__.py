@@ -21,6 +21,7 @@ import os
 import threading
 import re
 import platform
+import tempfile
 import psutil
 import time
 
@@ -401,6 +402,7 @@ class KlipperPlugin(
 
     def get_template_vars(self):
         defaults = self.get_settings_defaults()
+        resolved_logpath = os.path.join(self._resolve_logpath(), "klippy.log")
         return {
             "max_upload_size": MAX_UPLOAD_SIZE,
             "max_upload_size_str": get_formatted_size(MAX_UPLOAD_SIZE),
@@ -408,6 +410,8 @@ class KlipperPlugin(
             "default_remote_octoklipper_git": defaults["configuration"][
                 "remote_octoklipper_git"
             ],
+            "resolved_klippy_log_path": resolved_logpath,
+            "resolved_klippy_log_exists": os.path.isfile(resolved_logpath),
         }
 
     # -- Asset Plugin
@@ -576,14 +580,35 @@ class KlipperPlugin(
         return True
 
     def get_api_commands(self):
-        return dict(listLogFiles=[], getStats=["logFile"])
+        return dict(
+            listLogFiles=[],
+            getStats=["logFile"],
+            getKlipperLogTail=["numLines"],
+            checkKlipperLogPath=["logPath"],
+        )
+
+    def _resolve_logpath(self, logpath=None):
+        """Resolve a Klipper log directory to an absolute path.
+
+        Args:
+            logpath (str, optional): path to resolve; defaults to the configured
+                ``configuration/logpath`` setting.
+
+        The setting defaults to the Linux path ``/tmp/`` (Klipper's default log
+        location). On Windows that path doesn't exist, so map it to the user's
+        temp folder. Also expand ``~``, environment variables, and normalize.
+        """
+        if logpath is None:
+            logpath = self._settings.get(["configuration", "logpath"]) or "/tmp/"
+        logpath = os.path.expandvars(os.path.expanduser(logpath))
+        if os.name == "nt" and logpath in ("/tmp/", "/tmp"):
+            logpath = tempfile.gettempdir()
+        return os.path.normpath(logpath)
 
     def on_api_command(self, command, data):
         if command == "listLogFiles":
             files = []
-            logpath = os.path.dirname(
-                os.path.expanduser(self._settings.get(["configuration", "logpath"]))
-            )
+            logpath = self._resolve_logpath()
             if extra.folder_exists(self, logpath):
                 for f in glob.glob(os.path.join(logpath, "klippy*.log")):
                     filesize = os.path.getsize(f)
@@ -602,6 +627,23 @@ class KlipperPlugin(
             if "logFile" in data:
                 log_analyzer = KlipperLogAnalyzer.KlipperLogAnalyzer(data["logFile"])
                 return flask.jsonify(log_analyzer.analyze())
+        elif command == "getKlipperLogTail":
+            klippy_log = os.path.join(self._resolve_logpath(), "klippy.log")
+            num_lines = data.get("numLines") or 20
+            return flask.jsonify(
+                lines=KlipperLogAnalyzer.tail_file(klippy_log, num_lines),
+                path=klippy_log,
+                exists=os.path.isfile(klippy_log),
+            )
+        elif command == "checkKlipperLogPath":
+            # An empty/absent value means "use the saved setting", so the
+            # settings hint matches what the main-tab log viewer loads.
+            log_path = data.get("logPath") or None
+            klippy_log = os.path.join(self._resolve_logpath(log_path), "klippy.log")
+            return flask.jsonify(
+                path=klippy_log,
+                exists=os.path.isfile(klippy_log),
+            )
 
     def is_blueprint_protected(self):
         return True

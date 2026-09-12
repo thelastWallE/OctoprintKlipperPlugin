@@ -977,3 +977,88 @@ div#settings_plugin_klipper div#macros label.control-label {
 #settings_dialog label {
   cursor: default;
 }
+
+/* ============================================================
+   Live klippy.log tail (main tab "Klippy Log" pane)
+   ============================================================ */
+
+/* Pills to switch between the messages log and the klippy.log tail */
+#tab_plugin_klipper_main #klipper-log-pills {
+  margin: 0 0 5px 0;
+}
+
+#tab_plugin_klipper_main #klipper-log-pills a {
+  padding: 4px 10px;
+}
+
+/* The tab-content wrapper must not collapse the panes */
+#tab_plugin_klipper_main #left-side .tab-content {
+  overflow: visible;
+}
+
+/* The klippy.log tail reuses .plugin-klipper-log styling; give it the same
+   height as the messages log so the layout stays stable when switching tabs */
+#tab_plugin_klipper_main #klippy-log {
+  height: 400px;
+}
+
+#tab_plugin_klipper_main #klippy-log .log-item {
+  color: #000;
+  background-color: rgba(255, 255, 255, 0);
+  border: none;
+  word-break: keep-all;
+}
+
+/* Banner showing which file the backend resolves and loads */
+#tab_plugin_klipper_main .klippy-log-path {
+  margin-bottom: 5px;
+  padding: 4px 8px;
+  border: 1px solid #d6e9c6;
+  border-radius: 3px;
+  background-color: #dff0d8;
+  color: #3c763d;
+  font-family: monospace;
+  font-size: 0.85em;
+  word-break: break-all;
+}
+
+#tab_plugin_klipper_main .klippy-log-path.klippy-log-path-missing {
+  border-color: #f2dede;
+  background-color: #f2dede;
+  color: #a94442;
+}
+
+/* Settings hint under the "Klipper Log File" input, showing the resolved path */
+#settings_plugin_klipper .klippy-log-path-resolved {
+  display: block;
+  margin-top: 5px;
+  padding: 4px 8px;
+  border: 1px solid #d6e9c6;
+  border-radius: 3px;
+  background-color: #dff0d8;
+  color: #3c763d;
+  font-size: 0.9em;
+  word-break: break-all;
+}
+
+#settings_plugin_klipper .klippy-log-path-resolved code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+#settings_plugin_klipper .klippy-log-path-resolved-missing {
+  border-color: #f2dede;
+  background-color: #f2dede;
+  color: #a94442;
+}
+
+/* Error banner shown when the log file cannot be read */
+#tab_plugin_klipper_main .klippy-log-error {
+  margin-top: 5px;
+  padding: 4px 8px;
+  border: 1px solid #eebabb;
+  border-radius: 3px;
+  background-color: #eebabb;
+  color: #333;
+}

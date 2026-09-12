@@ -61,6 +61,7 @@ $(function () {
         url: self.apiUrl,
         method: "POST",
         headers: self.header,
+        contentType: "application/json; charset=UTF-8",
         processData: false,
         dataType: "json",
         data: JSON.stringify({ command: "listLogFiles" }),
@@ -100,6 +101,7 @@ $(function () {
         url: self.apiUrl,
         method: "POST",
         headers: self.header,
+        contentType: "application/json; charset=UTF-8",
         processData: false,
         dataType: "json",
         data: JSON.stringify({

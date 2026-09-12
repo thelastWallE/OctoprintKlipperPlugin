@@ -1,8 +1,8 @@
 """Tests for octoprint_klipper.modules.KlipperLogAnalyzer."""
+
 import pytest
 
 from octoprint_klipper.modules import KlipperLogAnalyzer
-
 
 SAMPLE_LOG = """\
 Stats 100.0 mcu: bytes_write=100 bytes_read=50 bytes_retransmit=0 mcu_task_avg=0.001 mcu_task_stddev=0.0005 buffer_time=1.5 print_stall=0
@@ -72,3 +72,27 @@ class TestAnalyze:
         analyzer = KlipperLogAnalyzer.KlipperLogAnalyzer(str(path))
         result = analyzer.analyze()
         assert "error" in result["plot"]
+
+
+class TestTailFile:
+    def test_returns_last_n_lines(self, tmp_path):
+        path = tmp_path / "klippy.log"
+        path.write_text("line1\nline2\nline3\nline4\nline5\n")
+        result = KlipperLogAnalyzer.tail_file(str(path), 3)
+        assert result == ["line3", "line4", "line5"]
+
+    def test_returns_all_lines_when_file_smaller_than_n(self, tmp_path):
+        path = tmp_path / "klippy.log"
+        path.write_text("a\nb\n")
+        result = KlipperLogAnalyzer.tail_file(str(path), 10)
+        assert result == ["a", "b"]
+
+    def test_returns_empty_list_for_missing_file(self, tmp_path):
+        result = KlipperLogAnalyzer.tail_file(str(tmp_path / "nope.log"), 5)
+        assert result == []
+
+    def test_trailing_blank_line_does_not_keep_empty_last_entry(self, tmp_path):
+        path = tmp_path / "klippy.log"
+        path.write_text("x\ny\n")
+        result = KlipperLogAnalyzer.tail_file(str(path), 2)
+        assert result == ["x", "y"]

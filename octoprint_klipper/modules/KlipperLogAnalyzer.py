@@ -14,7 +14,34 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import collections
+
 import octoprint_klipper.utils.extra as extra
+
+
+def tail_file(logname, num_lines=20):
+    """Return the last ``num_lines`` lines of a file as a list of strings.
+
+    A ``tail -f`` style helper used to live-read the tail of ``klippy.log``.
+    Lines are returned newline-stripped. If the file cannot be read (missing
+    or inaccessible) an empty list is returned.
+
+    Args:
+        logname (str): path to the log file
+        num_lines (int): maximum number of trailing lines to return
+
+    Returns:
+        list: the last lines of the file, newest last
+    """
+    if num_lines <= 0:
+        return []
+    try:
+        with open(logname, "r", errors="replace") as f:
+            return [
+                line.rstrip("\r\n") for line in collections.deque(f, maxlen=num_lines)
+            ]
+    except (IOError, OSError):
+        return []
 
 
 class KlipperLogAnalyzer:

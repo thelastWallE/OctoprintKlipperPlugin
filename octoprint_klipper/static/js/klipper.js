@@ -57,6 +57,16 @@ $(function () {
     self.log = ko.observableArray([]);
     self.plainLogLines = ko.observableArray([]);
 
+    // Live tail of /tmp/klippy.log (the Klipper log file), rendered in a
+    // dedicated tab on the main plugin tab.
+    self.klippyLogLines = ko.observableArray([]);
+    self.klippyLogEnabled = ko.observable(true);
+    self.klippyLogError = ko.observable("");
+    self.klippyLogPath = ko.observable("");
+    self.klippyLogExists = ko.observable(false);
+    self.klippyLogPollInterval = 2000; // ms
+    self._klippyLogPollTimer = undefined;
+
     self.filterRegex = ko.observable();
 
     self.activeFilters = ko.observableArray([]);
@@ -440,6 +450,11 @@ $(function () {
       self.checkForKlipperUpdate();
       self.checkOctoKlipperUpdate();
       self._loadSettingsDefaults();
+      // Start the live klippy.log tail. Only poll while the tab is active;
+      // onAfterTabChange stops it when the user leaves the tab.
+      if (self.klippyLogEnabled()) {
+        self._startKlippyLogPolling();
+      }
     };
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
@@ -518,6 +533,134 @@ $(function () {
         testLog = null;
       }
     };
+
+    // -- Live Klippy.log tail (tail -f equivalent) -----------------------
+
+    self.refreshKlippyLog = function () {
+      var settings = {
+        crossDomain: true,
+        url: OctoPrint.getSimpleApiUrl("klipper"),
+        method: "POST",
+        headers: OctoPrint.getRequestHeaders("POST"),
+        contentType: "application/json; charset=UTF-8",
+        processData: false,
+        dataType: "json",
+        data: JSON.stringify({
+          command: "getKlipperLogTail",
+          numLines: self.klippyLogNumLines(),
+        }),
+      };
+
+      $.ajax(settings)
+        .done(function (response) {
+          self.klippyLogError("");
+          self.klippyLogPath(response["path"]);
+          self.klippyLogExists(response["exists"] === true);
+          self.klippyLogLines(response["lines"] || []);
+        })
+        .fail(function (xhr) {
+          var message = gettext("Could not read klippy.log");
+          if (xhr && xhr.status) {
+            message += " (" + xhr.status + ")";
+          }
+          self.klippyLogError(message);
+        });
+    };
+
+    // Check a given log directory on the server and report the resolved
+    // klippy.log path + whether it exists. Used by the settings "Check"
+    // button so the hint updates with the value currently in the field
+    // (not just the saved value at page load).
+    self.checkKlippyLogPath = function (logPath) {
+      var deferred = $.Deferred();
+      var settings = {
+        crossDomain: true,
+        url: OctoPrint.getSimpleApiUrl("klipper"),
+        method: "POST",
+        headers: OctoPrint.getRequestHeaders("POST"),
+        contentType: "application/json; charset=UTF-8",
+        processData: false,
+        dataType: "json",
+        data: JSON.stringify({
+          command: "checkKlipperLogPath",
+          logPath: logPath || "",
+        }),
+      };
+
+      $.ajax(settings)
+        .done(function (response) {
+          deferred.resolve(response);
+        })
+        .fail(function (xhr) {
+          deferred.reject(xhr);
+        });
+      return deferred.promise();
+    };
+
+    self._startKlippyLogPolling = function () {
+      self._stopKlippyLogPolling();
+      self.refreshKlippyLog();
+      self._klippyLogPollTimer = setInterval(self.refreshKlippyLog, self.klippyLogPollInterval);
+    };
+
+    self._stopKlippyLogPolling = function () {
+      if (self._klippyLogPollTimer) {
+        clearInterval(self._klippyLogPollTimer);
+        self._klippyLogPollTimer = undefined;
+      }
+    };
+
+    self.klippyLogToggleText = ko.pureComputed(function () {
+      return self.klippyLogEnabled() ? gettext("Pause") : gettext("Start");
+    });
+
+    self.toggleKlippyLog = function () {
+      self.klippyLogEnabled(!self.klippyLogEnabled());
+      if (self.klippyLogEnabled()) {
+        self._startKlippyLogPolling();
+      } else {
+        self._stopKlippyLogPolling();
+      }
+    };
+
+    self.klippyLogAutoscroll = ko.observable(true);
+    self.klippyLogNumLines = ko.observable(20);
+    self.klippyLogAutoscroll.subscribe(function (enabled) {
+      if (enabled) {
+        self.klippyLogScrollToEnd();
+      }
+    });
+    self.klippyLogLines.subscribe(function (lines) {
+      if (self.klippyLogAutoscroll() && lines && lines.length) {
+        self.klippyLogScrollToEnd();
+      }
+    });
+    self.klippyLogScrollToEnd = function () {
+      _.defer(function () {
+        var container = $("#klippy-log");
+        if (container.length) {
+          container.scrollTop(container[0].scrollHeight);
+        }
+      });
+    };
+    self.klippyLogScrolledToEnd = function (data, event) {
+      var container = $("#klippy-log");
+      var pos = container.scrollTop() + container.innerHeight();
+      if (pos >= container[0].scrollHeight - 10) {
+        self.klippyLogAutoscroll(true);
+      } else {
+        self.klippyLogAutoscroll(false);
+      }
+    };
+
+    self.klippyLogDisplayed = ko.pureComputed(function () {
+      var lines = self.klippyLogLines();
+      var result = [];
+      for (var i = 0; i < lines.length; i++) {
+        result.push({ msg: lines[i].replace(/\n/gi, "<br />") });
+      }
+      return result;
+    });
 
     self.logMessage = function (timestamp, type = "info", message) {
       if (!timestamp) {
@@ -1127,6 +1270,13 @@ $(function () {
 
     self.onAfterTabChange = function (current, previous) {
       self.tabActive = current === "#tab_plugin_klipper_main";
+      if (self.tabActive) {
+        if (self.klippyLogEnabled() && !self._klippyLogPollTimer) {
+          self._startKlippyLogPolling();
+        }
+      } else {
+        self._stopKlippyLogPolling();
+      }
       self.updateOutput();
       $("document").scrollTop(0);
     };

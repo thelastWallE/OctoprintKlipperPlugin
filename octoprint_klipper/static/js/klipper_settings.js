@@ -64,6 +64,8 @@ $(function () {
       self.getServerInfo();
       self.updateMacroList();
       self.servicefilePasswordDialog = $("#klipper_servicefile_password_dialog");
+      // Show a hint for the currently configured log path without a click
+      self.checkLogPath();
     };
 
     self.getServerInfo = function () {
@@ -146,6 +148,32 @@ $(function () {
         })
         .fail(function (response) {
           self.klipperViewModel.showPopUp("error", gettext("Backup all configs"), response.responseText);
+        });
+    };
+
+    self.logPathResolved = ko.observable("");
+    self.logPathExists = ko.observable(false);
+    self.logPathChecking = ko.observable(false);
+
+    // Ask the backend to resolve the path currently in the "Klipper Log File"
+    // field and report whether klippy.log exists there. This updates the hint
+    // live (no page reload needed) and uses the entered value, not just the
+    // saved one.
+    self.checkLogPath = function () {
+      var logPath = self.settings.settings.plugins.klipper.configuration.logpath();
+      self.logPathChecking(true);
+      self.klipperViewModel
+        .checkKlippyLogPath(logPath)
+        .done(function (response) {
+          self.logPathResolved(response["path"] || "");
+          self.logPathExists(response["exists"] === true);
+        })
+        .fail(function () {
+          self.logPathResolved(logPath);
+          self.logPathExists(false);
+        })
+        .always(function () {
+          self.logPathChecking(false);
         });
     };
 
