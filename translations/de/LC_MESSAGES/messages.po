@@ -1295,6 +1295,10 @@ msgstr "Das wird die Konfigurationsdatei neuladen und die Hostsoftware neu start
 msgid "Host"
 msgstr "Host"
 
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:84
+msgid "Service"
+msgstr "Dienst"
+
 #: octoprint_klipper/templates/klipper_tab_main.jinja2:75
 msgid ""
 "Similar to a host restart, but also clears any error state from the "
