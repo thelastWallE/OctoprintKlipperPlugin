@@ -1,7 +1,7 @@
 # Config Versioning & Revert — Implementation Plan
 
 **Status:** Draft
-**Target:** OctoKlipper 0.4+
+**Target:** OctoKlipper 0.5+
 **Author:** Copilot (planning)
 
 ## 1. Goal
