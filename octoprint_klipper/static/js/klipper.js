@@ -457,6 +457,19 @@ $(function () {
       }
     };
 
+    self.onStartupComplete = function () {
+      self._applyConnectionPanelCollapse();
+    };
+
+    self._applyConnectionPanelCollapse = function () {
+      if (!self.settings.settings.plugins.klipper.connection.collapsed()) return;
+      var connectionTab = $("#sidebar_plugin_klipper");
+      if (connectionTab.length && connectionTab.hasClass("in")) {
+        connectionTab.collapse("hide");
+        connectionTab.closest(".accordion-group").find(".accordion-toggle").addClass("collapsed");
+      }
+    };
+
     self.onDataUpdaterPluginMessage = function (plugin, data) {
       if (plugin == "klipper") {
         hide = data.autohide || true;
