@@ -868,6 +868,19 @@ msgstr "Ersetze Verbindungsmenu"
 #: octoprint_klipper/templates/klipper_settings.jinja2:27
 #: octoprint_klipper/templates/klipper_settings.jinja2:29
 msgid ""
+"Collapse Connection Panel\n"
+"by default"
+msgstr ""
+"Verbindungsmenu standardmäßig\n"
+"eingeklappt"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:32
+msgid "The connection panel is collapsed on page load. Expand it with the header to use it."
+msgstr "Das Verbindungsmenu wird beim Laden der Seite eingeklappt. Zum Verwenden über die Kopfzeile aufklappen."
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:38
+#: octoprint_klipper/templates/klipper_settings.jinja2:40
+msgid ""
 "Hide 'Open Editor' Button\n"
 "in the Connection Panel"
 msgstr ""

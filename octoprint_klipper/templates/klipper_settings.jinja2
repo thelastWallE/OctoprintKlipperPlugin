@@ -36,6 +36,20 @@
         </div>
       </div>
       <div class="control-group">
+        <div class="control-label">{{ _('Collapse Connection Panel\nby default') }}</div>
+        <div class="controls">
+          <div class="klipper-reset-row">
+            <input class="controls-checkbox" title="{{ _('Collapse Connection Panel by default') }}"
+              type="checkbox" data-bind="checked: settings.settings.plugins.klipper.connection.collapsed">
+            <span
+              class="klipper-help-inline">{{ _('The connection panel is collapsed on page load. Expand it with the header to use it.') }}</span>
+            <button type="button" class="btn btn-mini klipper-reset-btn"
+              data-bind="click: function() { klipperViewModel.resetSetting('connection', 'collapsed') }"
+              title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
         <div class="control-label">{{ _('Hide \'Open Editor\' Button\nin the Connection Panel') }}</div>
         <div class="controls">
           <div class="klipper-reset-row">
