@@ -484,10 +484,7 @@ $(function () {
         // indicator) is only toggled by Bootstrap's click data-api, not by a
         // programmatic collapse("hide"). Set it manually so the header shows
         // the collapsed state too.
-        connectionTab
-          .closest(".accordion-group")
-          .find(".accordion-toggle")
-          .addClass("collapsed");
+        connectionTab.closest(".accordion-group").find(".accordion-toggle").addClass("collapsed");
       }
     };
 
