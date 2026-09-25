@@ -457,6 +457,40 @@ $(function () {
       }
     };
 
+    /**
+     * Collapse the connection panel on page load when the user enabled the
+     * "Collapse Connection Panel by default" option.
+     *
+     * The sidebar sections are Bootstrap accordions. The plugin's sidebar is
+     * the accordion-body with id "sidebar_plugin_klipper" (it replaces the
+     * stock connection sidebar, but keeps its own _div). It starts with the
+     * "in" class (expanded); removing it collapses the panel.
+     *
+     * This runs in onStartupComplete so it is applied after OctoPrint's own
+     * connection viewmodel has decided the initial open/closed state based on
+     * the printer state (openOrCloseOnStateChange). The user can still expand
+     * the panel manually via the accordion header.
+     */
+    self.onStartupComplete = function () {
+      self._applyConnectionPanelCollapse();
+    };
+
+    self._applyConnectionPanelCollapse = function () {
+      if (!self.settings.settings.plugins.klipper.connection.collapsed()) return;
+      var connectionTab = $("#sidebar_plugin_klipper");
+      if (connectionTab.length && connectionTab.hasClass("in")) {
+        connectionTab.collapse("hide");
+        // The "collapsed" class on the accordion-toggle (the caret/arrow
+        // indicator) is only toggled by Bootstrap's click data-api, not by a
+        // programmatic collapse("hide"). Set it manually so the header shows
+        // the collapsed state too.
+        connectionTab
+          .closest(".accordion-group")
+          .find(".accordion-toggle")
+          .addClass("collapsed");
+      }
+    };
+
     self.onDataUpdaterPluginMessage = function (plugin, data) {
       if (plugin == "klipper") {
         hide = data.autohide || true;

@@ -1,3 +1,4 @@
+2026-09-25: add option to collapse the connection panel by default -closes #91
 2021-05-06: another day another work on highlighter
 2021-05-05: update highlighter
 2021-05-04: work on ace highlighter

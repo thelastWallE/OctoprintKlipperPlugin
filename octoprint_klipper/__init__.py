@@ -192,6 +192,7 @@ class KlipperPlugin(
                 replace_connection_panel=True,
                 hide_editor_button=False,
                 hide_config_button=False,
+                collapsed=False,
             ),
             macros=[
                 dict(
