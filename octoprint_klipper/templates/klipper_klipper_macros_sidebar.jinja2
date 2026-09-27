@@ -1,0 +1,24 @@
+<!-- ko if: settings.settings.plugins.klipper.configuration.parse_macros -->
+<div class="control-group" data-bind="visible: hasPermKo('MACRO')">
+  <div class="controls">
+    <div data-bind="foreach: klipperMacroGroups">
+      <!-- ko if: name -->
+      <div class="klipper-macro-group">
+        <a href="javascript:void(0)"
+          data-bind="click: function() { $root.toggleKlipperMacroGroup(name, 'sidebar') }">
+          <i class="icon-chevron-down"
+            data-bind="css: $root.klipperMacroGroupCollapsed(name, 'sidebar') ? 'icon-chevron-right' : 'icon-chevron-down'"></i>
+          <span data-bind="text: name"></span>
+        </a>
+      </div>
+      <!-- /ko -->
+      <div data-bind="foreach: macros, visible: !name || !$root.klipperMacroGroupCollapsed(name, 'sidebar')">
+        <!-- ko if: sidebar -->
+        <button class="btn btn-block"
+          data-bind="text: name, attr: { title: gcodePreview }, click: $root.executeKlipperMacro, enable: $root.isActive()"></button>
+        <!-- /ko -->
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /ko -->

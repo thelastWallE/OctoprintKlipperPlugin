@@ -64,6 +64,47 @@ $(function () {
       self.parameters(params);
     };
 
+    // Same as process(), but for macros parsed out of printer.cfg. Those are
+    // plain objects ({name, gcode, has_params, source}) instead of the
+    // observable-based settings macros.
+    self.processKlipperMacro = function (macro, callerViewModel) {
+      self.macro = macro.gcode;
+      self.macroName(macro.name);
+      self.callerViewModel = callerViewModel;
+
+      var matches = self.macro.match(paramObjRegex);
+      var params = [];
+
+      for (var i = 0; i < matches.length; i++) {
+        var obj = {};
+        var res = keyValueRegex.exec(matches[i]);
+
+        while (res != null) {
+          if ("options" == res[1]) {
+            obj["options"] = res[2].trim().split("|");
+          } else {
+            obj[res[1]] = res[2].trim();
+          }
+          res = keyValueRegex.exec(matches[i]);
+        }
+
+        if (!("label" in obj)) {
+          obj["label"] = "Input " + (i + 1);
+        }
+
+        if (!("unit" in obj)) {
+          obj["unit"] = "";
+        }
+
+        if ("default" in obj) {
+          obj["value"] = obj["default"];
+        }
+
+        params.push(obj);
+      }
+      self.parameters(params);
+    };
+
     self.executeMacro = function () {
       var i = -1;
 

@@ -23,14 +23,3 @@
     data-bind="click: navbarClicked, html: shortStatus_sidebar, style: { color: shortStatus_type()=='warning' || shortStatus_type()=='error' ? 'black' : '' }"></a>
 </div>
 <!-- /ko -->
-<div class="control-group" data-bind="visible: hasPermKo('MACRO')">
-  <div class="controls">
-    <label class="control-label small"><i class="icon-list-alt"></i> {{ _('Macros') }}</label>
-    <div data-bind="foreach: settings.settings.plugins.klipper.macros">
-      <!-- ko if: sidebar -->
-      <button class="btn btn-block"
-        data-bind="text: name, class: buttonStyle() != '' ? buttonStyle : '', click: $parent.executeMacro, enable: $parent.isActive(), attr: { style: $parent.buttonColor($data)}"></button>
-      <!-- /ko -->
-    </div>
-  </div>
-</div>

@@ -440,6 +440,22 @@ msgstr "Syntaxprüfung"
 msgid "SyntaxCheck OK"
 msgstr "Syntaxprüfung OK"
 
+#: octoprint_klipper/static/js/klipper_editor.js:365
+msgid "SyntaxCheck OK, but some included files were not found."
+msgstr "Syntaxprüfung OK, aber einige eingebundene Dateien wurden nicht gefunden."
+
+#: octoprint_klipper/static/js/klipper_editor.js:301
+msgid "Included file not found"
+msgstr "Eingebundene Datei nicht gefunden"
+
+#: octoprint_klipper/config_tools/CfgUtils.py:290
+msgid "Included file not found: "
+msgstr "Eingebundene Datei nicht gefunden: "
+
+#: octoprint_klipper/config_tools/CfgUtils.py:296
+msgid "via"
+msgstr "über"
+
 #: octoprint_klipper/static/js/klipper_editor.js:281
 msgid "Faulty config not saved!"
 msgstr "Fehlerhafte Datei nicht gespeichert!"
@@ -1038,6 +1054,95 @@ msgstr "Diese Makros sind nur für OctoPrint gedacht."
 #: octoprint_klipper/templates/klipper_settings.jinja2:171
 msgid "They are not the ones that can be defined in the printer.cfg."
 msgstr "Es sind nicht die, die in der printer.cfg definiert werden können."
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:451
+#: octoprint_klipper/templates/klipper_settings.jinja2:454
+msgid "Parse macros from printer.cfg"
+msgstr "Makros aus printer.cfg auslesen"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:457
+msgid ""
+"Collects gcode macros from the baseconfig and its [include]d files and "
+"shows them as clickable buttons on the Klipper tab."
+msgstr ""
+"Sammelt G-Code-Makros aus der Basisconfig und ihren [include]d Dateien und "
+"zeigt sie als klickbare Schaltflächen auf dem Klipper-Reiter."
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:190
+#: octoprint_klipper/templates/klipper_settings.jinja2:192
+msgid "Show Macros on the sidebar"
+msgstr "Makros auf der Seitenleiste anzeigen"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:195
+msgid "Shows the macros in their own panel on the sidebar."
+msgstr "Zeigt die Makros in einem eigenen Bereich auf der Seitenleiste."
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:204
+#: octoprint_klipper/templates/klipper_settings.jinja2:206
+msgid "Collapse Macros panel by default"
+msgstr "Makros-Bereich standardmäßig einklappen"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:209
+msgid "The macros panel is collapsed on page load. Expand it with the header to use it."
+msgstr "Der Makros-Bereich wird beim Laden der Seite eingeklappt. Zum Verwenden über die Kopfzeile aufklappen."
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:218
+msgid "Group"
+msgstr "Gruppe"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:193
+msgid "Group this macro under a collapsible heading, e.g. Tests or Calibration."
+msgstr "Gruppiere dieses Makro unter einer einklappbaren Überschrift, z.B. Tests oder Kalibrierung."
+
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:180
+#: octoprint_klipper/templates/klipper_settings.jinja2:7
+msgid "Klipper Macros"
+msgstr "Klipper-Makros"
+
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:190
+msgid "No macros found in printer.cfg."
+msgstr "Keine Makros in printer.cfg gefunden."
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:447
+msgid "These macros are parsed from your printer.cfg and its [include]d files."
+msgstr "Diese Makros werden aus deiner printer.cfg und ihren [include]d Dateien ausgelesen."
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:448
+msgid "Assign them to groups and choose where they are shown."
+msgstr "Weise sie Gruppen zu und wähle, wo sie angezeigt werden."
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:456
+msgid "Refresh"
+msgstr "Aktualisieren"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:457
+msgid "Re-parse the macros from the config files"
+msgstr "Makros aus den Konfigurationsdateien neu einlesen"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:465
+#: octoprint_klipper/templates/klipper_settings.jinja2:468
+msgid "Collapse Klipper Macros panel by default"
+msgstr "Klipper-Makros-Bereich standardmäßig einklappen"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:471
+msgid "The Klipper Macros panel is collapsed on page load. Expand it with the header to use it."
+msgstr "Der Klipper-Makros-Bereich wird beim Laden der Seite eingeklappt. Zum Verwenden über die Kopfzeile aufklappen."
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:466
+msgid "Source"
+msgstr "Quelle"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:467
+msgid "Params"
+msgstr "Parameter"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:475
+msgid "This macro has parameters and opens a dialog when run."
+msgstr "Dieses Makro hat Parameter und öffnet beim Ausführen einen Dialog."
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:478
+msgid "This macro has no parameters."
+msgstr "Dieses Makro hat keine Parameter."
 
 #: octoprint_klipper/templates/klipper_settings.jinja2:177
 msgid "Add macro button to:"

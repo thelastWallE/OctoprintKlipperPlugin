@@ -32,6 +32,18 @@
     return this.base.get(this.url + "serverinfo", opts);
   };
 
+  OctoKlipperClient.prototype.getKlipperMacros = function (opts) {
+    return this.base.simpleApiCommand("klipper", "getKlipperMacros", {}, opts);
+  };
+
+  OctoKlipperClient.prototype.saveParsedMacros = function (parsedMacros, opts) {
+    return this.base.postJson(
+      this.url + "config/saveParsedMacros",
+      { parsedMacros: parsedMacros },
+      opts
+    );
+  };
+
   OctoKlipperClient.prototype.restartKlipper = function (opts) {
     return this.base.post(this.url + "restart", opts);
   };
@@ -168,11 +180,12 @@
     return this.base.get(this.url + "backup/list", opts);
   };
 
-  OctoKlipperClient.prototype.checkCfg = function (content, opts) {
+  OctoKlipperClient.prototype.checkCfg = function (content, currentFile, opts) {
     content = content || [];
 
     var data = {
       DataToCheck: content,
+      CurrentFile: currentFile || "",
     };
 
     return this.base.postJson(this.url + "config/check", data, opts);

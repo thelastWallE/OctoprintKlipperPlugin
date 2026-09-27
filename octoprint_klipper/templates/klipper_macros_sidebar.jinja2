@@ -1,0 +1,21 @@
+<div class="control-group" data-bind="visible: hasPermKo('MACRO')">
+  <div class="controls">
+    <div data-bind="foreach: macroGroups">
+      <!-- ko if: name -->
+      <div class="klipper-macro-group">
+        <a href="javascript:void(0)" data-bind="click: function() { $root.toggleMacroGroup(name, 'sidebar') }">
+          <i class="icon-chevron-down"
+            data-bind="css: $root.macroGroupCollapsed(name, 'sidebar') ? 'icon-chevron-right' : 'icon-chevron-down'"></i>
+          <span data-bind="text: name"></span>
+        </a>
+      </div>
+      <!-- /ko -->
+      <div data-bind="foreach: macros, visible: !name || !$root.macroGroupCollapsed(name, 'sidebar')">
+        <!-- ko if: sidebar -->
+        <button class="btn btn-block"
+          data-bind="text: name, class: buttonStyle() != '' ? buttonStyle : '', click: $root.executeMacro, enable: $root.isActive(), attr: { style: $root.buttonColor($data)}"></button>
+        <!-- /ko -->
+      </div>
+    </div>
+  </div>
+</div>

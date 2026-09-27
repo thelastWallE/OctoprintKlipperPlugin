@@ -58,6 +58,7 @@ import octoprint_klipper.utils.repo_handler as repo_handler
 from octoprint_klipper.config_tools import CfgUtils as cfg_utils
 
 from .modules import KlipperLogAnalyzer
+from .modules import KlipperMacroParser
 
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5Mb
 _FILE_DESTINATION = "klipper_configs"
@@ -202,8 +203,13 @@ class KlipperPlugin(
                     tab=True,
                     buttonColor="",
                     buttonStyle="",
+                    group="",
                 )
             ],
+            # Per-macro display preferences for the macros parsed out of
+            # printer.cfg (and its [include]d files). Keyed by the parsed
+            # macro name; each value holds the group + where it is shown.
+            parsedMacros={},
             probe=dict(
                 height=0,
                 lift=5,
@@ -237,7 +243,11 @@ class KlipperPlugin(
                 confirm_reload=True,
                 shortStatus_navbar=True,
                 shortStatus_sidebar=True,
+                show_macros_sidebar=True,
+                macros_sidebar_collapsed=False,
+                parsed_macros_sidebar_collapsed=False,
                 parse_check=False,
+                parse_macros=False,
                 fontsize=12,
                 hide_error_popups=False,
                 remote_host_git="https://github.com/Klipper3d/klipper.git",
@@ -374,6 +384,22 @@ class KlipperPlugin(
                     )
                     else ""
                 ),
+            ),
+            dict(
+                type="sidebar",
+                name="Macros",
+                template="klipper_macros_sidebar.jinja2",
+                suffix="_macros",
+                custom_bindings=True,
+                icon="list-alt",
+            ),
+            dict(
+                type="sidebar",
+                name="Klipper Macros",
+                template="klipper_klipper_macros_sidebar.jinja2",
+                suffix="_parsed_macros",
+                custom_bindings=True,
+                icon="list-alt",
             ),
             dict(
                 type="generic",
@@ -586,6 +612,7 @@ class KlipperPlugin(
             getStats=["logFile"],
             getKlipperLogTail=["numLines"],
             checkKlipperLogPath=["logPath"],
+            getKlipperMacros=[],
         )
 
     def _resolve_logpath(self, logpath=None):
@@ -644,6 +671,21 @@ class KlipperPlugin(
             return flask.jsonify(
                 path=klippy_log,
                 exists=os.path.isfile(klippy_log),
+            )
+        elif command == "getKlipperMacros":
+            # Parse gcode macros out of the baseconfig (printer.cfg) and any
+            # files it includes via [include ...] directives.
+            baseconfig = os.path.expanduser(
+                self._settings.get(["configuration", "baseconfig"])
+            )
+            macros = KlipperMacroParser.parse_macros(baseconfig)
+            # Return the saved per-macro display preferences alongside the
+            # macros. The frontend cannot rely on the settings tree for this
+            # dict-of-dicts: ko.mapping flattens nested dict values to empty
+            # objects, so the prefs are delivered here instead.
+            return flask.jsonify(
+                macros=macros,
+                parsedMacros=self._settings.get(["parsedMacros"]) or {},
             )
 
     def is_blueprint_protected(self):
@@ -1268,8 +1310,33 @@ class KlipperPlugin(
     def check_config(self):
         data = flask.request.json
         data_to_check = data.get("DataToCheck", [])
+        current_file = data.get("CurrentFile", "")
 
-        return flask.jsonify(cfg_utils.check_config(self, data_to_check))
+        # Resolve the directory the config lives in so [include ...]
+        # directives can be checked against the filesystem.
+        base_dir = self._resolve_config_base_dir(current_file)
+
+        return flask.jsonify(
+            cfg_utils.check_config(self, data_to_check, base_dir=base_dir)
+        )
+
+    def _resolve_config_base_dir(self, current_file):
+        """Resolve the directory a config file lives in.
+
+        ``current_file`` is either the special value ``"baseconfig"`` (the
+        baseconfig setting is a full path) or a storage-relative path. Falls
+        back to the configured config path.
+        """
+        if current_file == "baseconfig":
+            return os.path.dirname(
+                os.path.expanduser(self._settings.get(["configuration", "baseconfig"]))
+            )
+        config_path = os.path.expanduser(
+            self._settings.get(["configuration", "config_path"])
+        )
+        if current_file:
+            return os.path.join(config_path, os.path.dirname(current_file))
+        return config_path
 
     # copy all config files to the plugin data "current" folder so OctoPrint's
     # own backup holds every config, not only the ones saved through the plugin
@@ -1312,6 +1379,20 @@ class KlipperPlugin(
         if results["status"] == "success":
             extra.send_message(self, type="reload", subtype="configlist")
         return flask.jsonify(results)
+
+    # persist the parsed macro preferences (group/sidebar/tab) directly to the
+    # plugin settings. This is more reliable than relying on the frontend
+    # settings save, which only sends changed data and can drop the dict.
+    @octoprint.plugin.BlueprintPlugin.route("/config/saveParsedMacros", methods=["POST"])
+    @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
+    def save_parsed_macros(self):
+        data = flask.request.json or {}
+        prefs = data.get("parsedMacros", {})
+        if not isinstance(prefs, dict):
+            flask.abort(400, description="Invalid request, parsedMacros must be an object")
+        self._settings.set(["parsedMacros"], prefs)
+        self._settings.save()
+        return flask.jsonify(status="success")
 
     @octoprint.plugin.BlueprintPlugin.route("/servicefile/modify", methods=["POST"])
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
@@ -1769,6 +1850,65 @@ class KlipperPlugin(
     def support_cfg_klipperfiles(self, *args, **kwargs):
         return dict(config=dict(cfg=["cfg", "config"]))
 
+    def get_template_sorting(self, sorting, rules):
+        """Customize the sidebar template sorting so the plugin's "Macros"
+        panel is placed directly below the connection panel.
+
+        OctoPrint appends sidebar entries that are not part of the configured
+        order at the end (after "Files"). This hook switches the sidebar to
+        ``custom_insert`` so the "Macros" panel can be inserted right after
+        the connection panel instead.
+
+        NOTE: ``sorting`` is a shallow copy of the real template_sorting, but
+        its values are shared references. We must MUTATE ``sorting["sidebar"]``
+        in place (not replace it) so the change reaches the real dict, and
+        return ``[]`` — returning a ``(key, order, rule)`` tuple would register
+        the order under a prefixed phantom key (``plugin_klipper_sidebar``)
+        instead of ``sidebar``.
+        """
+        self._logger.info(
+            "OctoKlipper get_template_sorting hook called sorting_keys=%s rules_keys=%s",
+            sorted(sorting.keys()),
+            sorted(rules.keys()),
+        )
+        if "sidebar" in sorting:
+            sorting["sidebar"].update(
+                add="custom_insert",
+                key="name",
+                custom_insert_entries=lambda missing: {},
+                custom_insert_order=self._insert_macros_sidebar_after_connection,
+            )
+        return []
+
+    def _insert_macros_sidebar_after_connection(self, existing, missing):
+        """Insert the "Macros" and "Klipper Macros" sidebar entries directly
+        below the connection panel; all other missing entries are appended at
+        the end (the default behavior)."""
+        self._logger.info(
+            "OctoKlipper custom_insert_order existing=%s missing=%s", existing, missing
+        )
+        result = list(existing)
+        for key in missing:
+            # The sidebar entry keys are the plugin _key values, e.g.
+            # "plugin_klipper_macros" for the macros panel and
+            # "plugin_klipper_parsed_macros" for the Klipper Macros panel.
+            if key == "plugin_klipper_macros" and "connection" in result:
+                result.insert(result.index("connection") + 1, key)
+            elif key == "plugin_klipper_parsed_macros":
+                # Place the "Klipper Macros" panel directly below the "Macros"
+                # panel (or below the connection panel if the Macros panel is
+                # not present).
+                if "plugin_klipper_macros" in result:
+                    result.insert(result.index("plugin_klipper_macros") + 1, key)
+                elif "connection" in result:
+                    result.insert(result.index("connection") + 1, key)
+                else:
+                    result.append(key)
+            else:
+                result.append(key)
+        self._logger.info("OctoKlipper custom_insert_order result=%s", result)
+        return result
+
     def get_update_information(self):
         return dict(
             klipper=dict(
@@ -1811,4 +1951,5 @@ def __plugin_load__():
         "octoprint.comm.protocol.gcode.received": __plugin_implementation__.on_parse_gcode,
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
         "octoprint.plugin.backup.before_backup": __plugin_implementation__.before_backup_hook,
+        "octoprint.ui.web.templatetypes": __plugin_implementation__.get_template_sorting,
     }

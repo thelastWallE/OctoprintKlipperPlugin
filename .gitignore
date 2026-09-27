@@ -26,6 +26,9 @@ scripts
 docs/install.md
 build_zip.py
 
+# Playwright MCP browser-test artifacts
+.playwright-mcp
+
 # Deploy config (machine-specific) and logs
 deploy/deploy.config.json
 deploy/deploylogs/

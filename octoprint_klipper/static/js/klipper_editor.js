@@ -35,6 +35,11 @@ $(function () {
     self.cfgChangedExtern = false;
     self.configChangedExternallyDialog = $("#klipper_file_changed_ext_dialog");
 
+    // The file currently open in the editor: "baseconfig" for the base config
+    // (a full path on the server) or a storage-relative path. Used by the
+    // linter to resolve [include ...] directives against the right directory.
+    self.currentFile = ko.observable("");
+
     self.fontSize = ko.observable("");
 
     self.saveFontSize = function () {
@@ -100,6 +105,9 @@ $(function () {
       // Run the linter on open so squiggles are visible immediately for the
       // loaded config (the content may not change when the dialog is shown).
       self._scheduleSyntaxCheck();
+      // Refresh the [include ...] autocomplete file list so newly added
+      // config files are suggested.
+      self._refreshIncludeFileList();
       editor.focus();
       self.setEditorDivSize();
     };
@@ -109,6 +117,7 @@ $(function () {
       self.loadedConfigContent = "";
       self.loadedConfigFilename = "";
       self.klipperViewModel.currentCfgFilename("");
+      self.currentFile("");
       self.cfgContent("");
       self.cfgChangedExtern = false;
       if (editor) {
@@ -279,19 +288,40 @@ $(function () {
       if (!editor || !monaco) return;
       var model = editor.getModel();
       if (!model) return;
-      var line = response.line || 1;
-      var lineCount = model.getLineCount();
-      if (line > lineCount) line = lineCount;
-      var markers = [
-        {
+      var markers = [];
+
+      // Primary parse/float error (whole line).
+      if (response.error) {
+        var line = response.line || 1;
+        var lineCount = model.getLineCount();
+        if (line > lineCount) line = lineCount;
+        markers.push({
           severity: monaco.MarkerSeverity.Error,
-          message: (response.error ? response.error.message : gettext("Syntax error")).replace(/<[^>]*>/g, ""),
+          message: (response.error.message || gettext("Syntax error")).replace(/<[^>]*>/g, ""),
           startLineNumber: line,
           startColumn: 1,
           endLineNumber: line,
           endColumn: model.getLineMaxColumn(line),
-        },
-      ];
+        });
+      }
+
+      // Missing [include ...] targets: squiggle under the filename only.
+      if (response.markers) {
+        _.each(response.markers, function (m) {
+          var mline = m.line || 1;
+          var mlineCount = model.getLineCount();
+          if (mline > mlineCount) mline = mlineCount;
+          markers.push({
+            severity: monaco.MarkerSeverity.Error,
+            message: (m.message || gettext("Included file not found")).replace(/<[^>]*>/g, ""),
+            startLineNumber: mline,
+            startColumn: m.startColumn || 1,
+            endLineNumber: mline,
+            endColumn: m.endColumn || model.getLineMaxColumn(mline),
+          });
+        });
+      }
+
       monaco.editor.setModelMarkers(model, "klipper", markers);
     };
 
@@ -317,15 +347,14 @@ $(function () {
     self._runLinterCheck = function () {
       if (!editor || !self.klipperViewModel.hasPerm("CONFIG")) return;
       if (!editordialog.is(":visible")) return;
-      OctoPrint.plugins.klipper
-        .checkCfg(editor.getValue())
-        .done(function (response) {
-          if (response.status == "success") {
-            self.clearSyntaxMarkers();
-          } else {
-            self.setSyntaxMarkers(response);
-          }
-        });
+      OctoPrint.plugins.klipper.checkCfg(editor.getValue(), self.currentFile()).done(function (response) {
+        var hasMarkers = response.markers && response.markers.length;
+        if (response.status == "success" && !hasMarkers) {
+          self.clearSyntaxMarkers();
+        } else {
+          self.setSyntaxMarkers(response);
+        }
+      });
     };
 
     self.checkSyntax = function () {
@@ -334,11 +363,21 @@ $(function () {
           self.klipperViewModel.consoleMessage("debug", "checkSyntax started");
 
           OctoPrint.plugins.klipper
-            .checkCfg(editor.getValue())
+            .checkCfg(editor.getValue(), self.currentFile())
             .done(function (response) {
+              var hasMarkers = response.markers && response.markers.length;
               if (response.status == "success") {
-                self.clearSyntaxMarkers();
-                self.klipperViewModel.showPopUp("success", gettext("SyntaxCheck"), gettext("SyntaxCheck OK"));
+                if (hasMarkers) {
+                  self.setSyntaxMarkers(response);
+                  self.klipperViewModel.showPopUp(
+                    "warning",
+                    gettext("SyntaxCheck"),
+                    gettext("SyntaxCheck OK, but some included files were not found."),
+                  );
+                } else {
+                  self.clearSyntaxMarkers();
+                  self.klipperViewModel.showPopUp("success", gettext("SyntaxCheck"), gettext("SyntaxCheck OK"));
+                }
                 self.editorFocusDelay(1000);
                 resolve(true);
               } else {
@@ -522,6 +561,7 @@ $(function () {
     self.openConfig = function (file) {
       if (!self.klipperViewModel.hasPerm("CONFIG")) return;
 
+      self.currentFile(file);
       OctoPrint.plugins.klipper
         .getCfg(self.klipperViewModel.storageLocation, file)
         .done(function (response) {
@@ -661,6 +701,7 @@ $(function () {
             self.cfgContent(editor.getValue());
             self._scheduleSyntaxCheck();
           });
+          self._registerIncludeCompletionProvider();
           // apply any content that was set before the editor was ready
           if (self.cfgContent()) {
             editor.setValue(self.cfgContent());
@@ -695,6 +736,70 @@ $(function () {
       self._bindSettingsSaving();
       self.prepareMonacoEditor().then(function () {
         self.loadBaseConfig();
+      });
+    };
+
+    // Refresh the cached list of config file paths used by the [include ...]
+    // autocomplete. Called once on registration and again whenever the editor
+    // is opened so newly added files show up.
+    self._refreshIncludeFileList = function () {
+      OctoPrint.plugins.klipper
+        .list(true)
+        .done(function (response) {
+          self._includeFilePaths = [];
+          var walk = function (entries, prefix) {
+            _.each(entries || [], function (entry) {
+              if (entry.type == "folder") {
+                walk(entry.children, prefix + entry.name + "/");
+              } else {
+                self._includeFilePaths.push(prefix + entry.name);
+              }
+            });
+          };
+          walk(response.data && response.data.files, "");
+        })
+        .fail(function () {
+          // No file list available (e.g. missing FILES_LIST permission) - the
+          // autocomplete simply won't offer suggestions.
+          self._includeFilePaths = [];
+        });
+    };
+
+    // Register a Monaco completion provider that suggests config file paths
+    // while typing inside an "[include ...]" directive.
+    self._registerIncludeCompletionProvider = function () {
+      if (self._includeCompletionRegistered) return;
+      self._includeCompletionRegistered = true;
+      self._includeFilePaths = [];
+      self._refreshIncludeFileList();
+
+      monaco.languages.registerCompletionItemProvider("klipper_config", {
+        triggerCharacters: ["[", " ", "/", "."],
+        provideCompletionItems: function (model, position) {
+          var lineText = model.getLineContent(position.lineNumber);
+          var textBefore = lineText.substring(0, position.column - 1);
+          var includeMatch = textBefore.match(/\[\s*include\s+(.*)$/i);
+          if (!includeMatch) return { suggestions: [] };
+
+          var typed = includeMatch[1];
+          var suggestions = [];
+          _.each(self._includeFilePaths, function (path) {
+            if (path.indexOf(typed) === 0) {
+              suggestions.push({
+                label: path,
+                kind: monaco.languages.CompletionItemKind.File,
+                insertText: path,
+                range: {
+                  startLineNumber: position.lineNumber,
+                  startColumn: position.column - typed.length,
+                  endLineNumber: position.lineNumber,
+                  endColumn: position.column,
+                },
+              });
+            }
+          });
+          return { suggestions: suggestions };
+        },
       });
     };
 
@@ -746,9 +851,9 @@ $(function () {
         self.klipperViewModel.consoleMessage(
           "debug",
           "SaveCfg filename changed to " +
-          self.klipperViewModel.currentCfgFilename() +
-          " from " +
-          self.loadedConfigFilename,
+            self.klipperViewModel.currentCfgFilename() +
+            " from " +
+            self.loadedConfigFilename,
         );
         hasNewName = true;
       }
@@ -759,6 +864,9 @@ $(function () {
             self.klipperViewModel.showPopUp("success", gettext("Save Config"), gettext("File saved."));
             self.loadedConfigContent = editor.getValue(); //set loaded config to current for resetting dirtyEditor
             self.loadedConfigFilename = self.klipperViewModel.currentCfgFilename();
+            // The saved config may define/rename macros or change [include]s,
+            // so re-parse the macros from the config files.
+            self.klipperViewModel.loadKlipperMacros();
             if (closing) {
               editordialog.modal("hide");
             }

@@ -2,6 +2,7 @@
   <ul class="nav nav-pills" id="klipper-settings">
     <li><a href="#basic" data-toggle="tab" data-profile-type="klipper-basic">{{ _('Basic') }}</a></li>
     <li><a href="#macros" data-toggle="tab" data-profile-type="klipper-macros">{{ _('Macros') }}</a></li>
+    <li><a href="#parsedmacros" data-toggle="tab" data-profile-type="klipper-parsed-macros">{{ _('Klipper Macros') }}</a></li>
     <li><a href="#level" data-toggle="tab" data-profile-type="klipper-bed">{{ _('Bed Leveling') }}</a></li>
     <li><a href="#update" data-toggle="tab" data-profile-type="klipper-update">{{ _('Klipper Update') }}</a></li>
   </ul>
@@ -306,10 +307,38 @@
             {{ _('They are not the ones that can be defined in the printer.cfg.') }}<br />
           </span>
         </div>
+        <div class="control-group">
+          <div class="control-label">{{ _('Show Macros on the sidebar') }}</div>
+          <div class="controls">
+            <div class="klipper-reset-row">
+              <input class="controls-checkbox" title="{{ _('Show Macros on the sidebar') }}" type="checkbox"
+                data-bind="checked: settings.settings.plugins.klipper.configuration.show_macros_sidebar" />
+              <span class="klipper-help-inline">{{ _('Shows the macros in their own panel on the sidebar.') }}</span>
+              <button type="button" class="btn btn-mini klipper-reset-btn"
+                data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'show_macros_sidebar') }"
+                title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">{{ _('Collapse Macros panel by default') }}</div>
+          <div class="controls">
+            <div class="klipper-reset-row">
+              <input class="controls-checkbox" title="{{ _('Collapse Macros panel by default') }}" type="checkbox"
+                data-bind="checked: settings.settings.plugins.klipper.configuration.macros_sidebar_collapsed" />
+              <span
+                class="klipper-help-inline">{{ _('The macros panel is collapsed on page load. Expand it with the header to use it.') }}</span>
+              <button type="button" class="btn btn-mini klipper-reset-btn"
+                data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'macros_sidebar_collapsed') }"
+                title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+            </div>
+          </div>
+        </div>
         <table class="table table-condensed klipper-macros-table">
           <thead>
             <tr>
               <th>{{ _('Name') }}</th>
+              <th>{{ _('Group') }}</th>
               <th colspan="2">{{ _('Add macro button to:') }}</th>
               <th>{{ _('Action') }}</th>
             </tr>
@@ -318,6 +347,10 @@
             <tr class="klipper-macro-item">
               <td class="klipper-w-50">
                 <input type="text" class="input-block-level" data-bind="value: name, valueUpdate: 'afterkeydown'" />
+              </td>
+              <td>
+                <input type="text" class="input-block-level" data-bind="value: group, valueUpdate: 'afterkeydown'"
+                  title="{{ _('Group this macro under a collapsible heading, e.g. Tests or Calibration.') }}" />
               </td>
               <td class="klipper-text-center">
                 <div class="klipper-flex klipper-flex-row klipper-items-center klipper-justify-center klipper-gap-1">
@@ -338,7 +371,7 @@
               </td>
             </tr>
             <tr class="klipper-border-t-0">
-              <td colspan="4">
+              <td colspan="5">
                 <div class="klipper-wrapper">
                   <div class="klipper-control-label-bordered">{{ _('Button Style') }}</div>
                   <div class="klipper-bordered">
@@ -367,7 +400,7 @@
               </td>
             </tr>
             <tr class="klipper-border-bottom klipper-border-t-0">
-              <td colspan="4">
+              <td colspan="5">
                 <div class="klipper-wrapper">
                   <div class="klipper-control-label-bordered">{{ _('Command') }}</div>
                   <div class="klipper-bordered">
@@ -379,7 +412,7 @@
           </tbody>
           <tfoot>
             <tr>
-              <td colspan="4">
+              <td colspan="5">
                 <a href='#' data-bind='click: addMacro' title="{{ _('Add Macro') }}" class="fa fa-plus-circle"></a>
                 {{ _('Add Macro') }}
               </td>
@@ -405,6 +438,91 @@
           </div>
         </div>
       </div>
+    </div>
+    <!-- Klipper Macros (parsed from printer.cfg) -->
+    <div class="tab-pane" id="parsedmacros">
+      <div class="control-group">
+        <span class="help-block">
+          {{ _('These macros are parsed from your printer.cfg and its [include]d files.') }}
+          {{ _('Assign them to groups and choose where they are shown.') }}<br />
+        </span>
+      </div>
+      <div class="control-group">
+        <div class="control-label">{{ _('Parse macros from printer.cfg') }}</div>
+        <div class="controls">
+          <div class="klipper-reset-row">
+            <input class="controls-checkbox" title="{{ _('Parse macros from printer.cfg') }}" type="checkbox"
+              data-bind="checked: settings.settings.plugins.klipper.configuration.parse_macros" />
+            <span
+              class="klipper-help-inline">{{ _('Collects gcode macros from the baseconfig and its [include]d files and shows them as clickable buttons on the Klipper tab.') }}</span>
+            <button type="button" class="btn btn-mini klipper-reset-btn"
+              data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'parse_macros') }"
+              title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="control-label">{{ _('Collapse Klipper Macros panel by default') }}</div>
+        <div class="controls">
+          <div class="klipper-reset-row">
+            <input class="controls-checkbox" title="{{ _('Collapse Klipper Macros panel by default') }}" type="checkbox"
+              data-bind="checked: settings.settings.plugins.klipper.configuration.parsed_macros_sidebar_collapsed" />
+            <span
+              class="klipper-help-inline">{{ _('The Klipper Macros panel is collapsed on page load. Expand it with the header to use it.') }}</span>
+            <button type="button" class="btn btn-mini klipper-reset-btn"
+              data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'parsed_macros_sidebar_collapsed') }"
+              title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="controls">
+          <button type="button" class="btn btn-small" data-bind="click: refreshParsedMacros"
+            title="{{ _('Re-parse the macros from the config files') }}">
+            <i class="icon-refresh"></i> {{ _('Refresh') }}
+          </button>
+        </div>
+      </div>
+      <table class="table table-condensed klipper-macros-table">
+        <thead>
+          <tr>
+            <th>{{ _('Name') }}</th>
+            <th>{{ _('Source') }}</th>
+            <th>{{ _('Params') }}</th>
+            <th>{{ _('Group') }}</th>
+            <th>{{ _('Klipper Tab') }}</th>
+            <th>{{ _('Sidebar') }}</th>
+          </tr>
+        </thead>
+        <tbody data-bind="foreach: klipperViewModel.klipperMacros">
+          <tr>
+            <td class="klipper-w-50">
+              <span data-bind="text: name, attr: { title: gcodePreview }"></span>
+            </td>
+            <td>
+              <span data-bind="text: sourceName"></span>
+            </td>
+            <td class="klipper-text-center">
+              <!-- ko if: has_params -->
+              <i class="icon-ok" title="{{ _('This macro has parameters and opens a dialog when run.') }}"></i>
+              <!-- /ko -->
+              <!-- ko ifnot: has_params -->
+              <i class="icon-minus" title="{{ _('This macro has no parameters.') }}"></i>
+              <!-- /ko -->
+            </td>
+            <td>
+              <input type="text" class="input-block-level" data-bind="value: group, valueUpdate: 'afterkeydown'"
+                title="{{ _('Group this macro under a collapsible heading, e.g. Tests or Calibration.') }}" />
+            </td>
+            <td class="klipper-text-center">
+              <input title="{{ _('Klipper Tab') }}" type="checkbox" data-bind="checked: tab" />
+            </td>
+            <td class="klipper-text-center">
+              <input title="{{ _('Sidebar') }}" type="checkbox" data-bind="checked: sidebar" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     <!-- Leveling -->
     <div class="tab-pane" id="level">

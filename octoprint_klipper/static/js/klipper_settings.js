@@ -66,6 +66,15 @@ $(function () {
       self.servicefilePasswordDialog = $("#klipper_servicefile_password_dialog");
       // Show a hint for the currently configured log path without a click
       self.checkLogPath();
+      // Load the parsed printer.cfg macros so the "Klipper Macros" settings
+      // tab can show/configure them.
+      self.klipperViewModel.loadKlipperMacros();
+    };
+
+    // Re-parse the macros from the config files (used by the "Refresh" button
+    // on the "Klipper Macros" settings tab).
+    self.refreshParsedMacros = function () {
+      self.klipperViewModel.loadKlipperMacros();
     };
 
     self.getServerInfo = function () {
@@ -205,6 +214,7 @@ $(function () {
         tab: true,
         buttonColor: ko.observable(""),
         buttonStyle: ko.observable(""),
+        group: ko.observable(""),
       });
     };
 
@@ -303,12 +313,40 @@ $(function () {
       self.macros(self.settings.settings.plugins.klipper.macros());
     };
 
-    self.onUserSettingsBeforeSave = function () {
+    self.onSettingsBeforeSave = function () {
       self.saveMacroList();
+      self.saveParsedMacros();
     };
 
     self.saveMacroList = function () {
       self.settings.settings.plugins.klipper.macros(self.macros());
+    };
+
+    // Persist the per-macro display preferences (group / tab / sidebar) for
+    // the macros parsed out of printer.cfg. Stored as a dict keyed by the
+    // macro name so the settings survive a page reload.
+    self.saveParsedMacros = function () {
+      var parsedMacrosSetting = self.settings.settings.plugins.klipper.parsedMacros;
+      var macros = self.klipperViewModel.klipperMacros();
+      // If the parsed macros haven't loaded yet, don't touch the setting —
+      // otherwise we'd wipe any previously saved preferences.
+      if (!macros || !macros.length) return;
+      var prefs = {};
+      _.each(macros, function (m) {
+        prefs[m.name] = {
+          group: m.group(),
+          sidebar: m.sidebar(),
+          tab: m.tab(),
+        };
+      });
+      // Keep the settings tree in sync so the normal settings save also
+      // carries the dict (if the setting is available).
+      if (parsedMacrosSetting && typeof parsedMacrosSetting === "function") {
+        parsedMacrosSetting(prefs);
+      }
+      // Persist directly through the backend route — reliable even when the
+      // frontend settings save drops the dict.
+      OctoPrint.plugins.klipper.saveParsedMacros(prefs);
     };
   }
 

@@ -10,6 +10,7 @@ import flask
 
 import octoprint_klipper.utils.logger as logger
 import octoprint_klipper.utils.extra as extra
+from octoprint_klipper.modules import KlipperMacroParser
 
 from flask_babel import gettext
 from shutil import copyfile
@@ -221,14 +222,20 @@ def _find_key_line(content, section, key):
     return None
 
 
-def check_config(self, data):
+def check_config(self, data, base_dir=None):
     """Checks the given data on parsing errors.
 
     Args:
         data (str): Content to be validated.
+        base_dir (str, optional): Directory to resolve ``[include ...]``
+            directives against. When provided, missing include targets are
+            reported as additional markers.
 
     Returns:
-        dict: Status and if errors also the error message and line.
+        dict: Status and if errors also the error message and line. When
+        ``base_dir`` is given, a ``markers`` list with one entry per missing
+        include is included (each with ``line``, ``message``, ``startColumn``
+        and ``endColumn``).
     """
     try:
         if sys.version_info[0] < 3:
@@ -244,7 +251,7 @@ def check_config(self, data):
         # Log to the log files but don't broadcast a socket message: the
         # frontend linter shows squiggle markers instead of a toast.
         logger.log_error(self, "Error: {}".format(parsed_error), only_logging=True)
-        return {
+        result = {
             "status": "error",
             "error": {"message": gettext(parsed_error)},
             "line": _error_line(error),
@@ -256,9 +263,42 @@ def check_config(self, data):
             result["line"] = _find_key_line(
                 data, result.get("section"), result.get("key")
             )
-            return result
-        logger.log_debug(self, "check_cfg: OK", only_logging=False)
-        return {"status": "success"}
+        else:
+            logger.log_debug(self, "check_cfg: OK", only_logging=False)
+            result = {"status": "success"}
+
+    if base_dir:
+        include_errors = check_includes(self, data, base_dir)
+        if include_errors:
+            result["markers"] = include_errors
+    return result
+
+
+def check_includes(self, data, base_dir):
+    """Check ``[include ...]`` directives in config content for missing files.
+
+    Args:
+        data (str): Config content.
+        base_dir (str): Directory to resolve relative includes against.
+
+    Returns:
+        list: dicts with ``line``, ``message``, ``startColumn`` and
+        ``endColumn`` (1-based) for each missing include.
+    """
+    errors = []
+    for missing in KlipperMacroParser.find_missing_includes(data, base_dir):
+        message = gettext("Included file not found: ") + "{}".format(missing["include"])
+        if missing.get("chain"):
+            message += " (" + gettext("via") + " " + " > ".join(missing["chain"]) + ")"
+        errors.append(
+            dict(
+                line=missing["line"],
+                message=message,
+                startColumn=missing["startColumn"],
+                endColumn=missing["endColumn"],
+            )
+        )
+    return errors
 
 
 def parse_error_message(self, error):

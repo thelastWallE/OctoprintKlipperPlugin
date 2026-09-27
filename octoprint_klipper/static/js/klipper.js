@@ -389,6 +389,193 @@ $(function () {
       return cssStyle;
     };
 
+    // -- Macros parsed out of printer.cfg (and its [include]d files) --------
+
+    self.klipperMacros = ko.observableArray([]);
+    self.klipperMacrosLoaded = ko.observable(false);
+
+    // Preview of a macro's gcode body: first few lines, with "..." when there
+    // are more. Used for the tooltips on the settings tab, sidebar and main
+    // tab.
+    self._gcodePreview = function (gcode) {
+      if (!gcode) return "";
+      var lines = gcode.split(/\r\n|\r|\n/);
+      var preview = lines.slice(0, 3).join("\n");
+      if (lines.length > 3) preview += "\n...";
+      return preview;
+    };
+
+    self.loadKlipperMacros = function () {
+      OctoPrint.plugins.klipper
+        .getKlipperMacros()
+        .done(function (response) {
+          var raw = response.macros || [];
+          var merged;
+          try {
+            // Merge the user's per-macro preferences (group / tab / sidebar)
+            // into each parsed macro.
+            //
+            // The prefs come from the getKlipperMacros API response (the
+            // backend reads them straight from the plugin settings). They are
+            // NOT read from the frontend settings tree: ko.mapping flattens
+            // nested dict values to empty objects, so the tree cannot be
+            // trusted for this dict-of-dicts. Each pref value is a plain
+            // object {group, sidebar, tab}.
+            var prefs = response.parsedMacros || {};
+            var prefValue = function (pref, key, defaultValue) {
+              if (!pref) return defaultValue;
+              var v = pref[key];
+              return typeof v === "function" ? v() : v !== undefined ? v : defaultValue;
+            };
+            // Index the currently displayed macros by name so a re-parse keeps
+            // the user's current group/sidebar/tab values (including unsaved
+            // edits made in the settings tab) instead of resetting them.
+            var current = {};
+            _.each(self.klipperMacros(), function (m) {
+              current[m.name] = m;
+            });
+            merged = _.map(raw, function (m) {
+              var cur = current[m.name];
+              var pref = prefs[m.name];
+              return {
+                name: m.name,
+                gcode: m.gcode,
+                has_params: m.has_params,
+                source: m.source,
+                // Display info for the settings tab: the file the macro was
+                // parsed from (basename) and a preview of its gcode.
+                sourceName: m.source ? m.source.split(/[\\/]/).pop() : "",
+                gcodePreview: self._gcodePreview(m.gcode),
+                group: ko.observable(cur ? cur.group() : prefValue(pref, "group", "")),
+                sidebar: ko.observable(cur ? cur.sidebar() : prefValue(pref, "sidebar", false)),
+                tab: ko.observable(cur ? cur.tab() : prefValue(pref, "tab", true)),
+              };
+            });
+          } catch (e) {
+            // If merging the preferences fails for any reason, fall back to
+            // the raw macros so parsing still works.
+            self.logMessage(
+              null,
+              "error",
+              gettext("Error:") + " " + _.escape(String((e && e.message) || e))
+            );
+            merged = _.map(raw, function (m) {
+              return {
+                name: m.name,
+                gcode: m.gcode,
+                has_params: m.has_params,
+                source: m.source,
+                sourceName: m.source ? m.source.split(/[\\/]/).pop() : "",
+                gcodePreview: self._gcodePreview(m.gcode),
+                group: ko.observable(""),
+                sidebar: ko.observable(false),
+                tab: ko.observable(true),
+              };
+            });
+          }
+          self.klipperMacros(merged);
+          self.klipperMacrosLoaded(true);
+        })
+        .fail(function (response) {
+          self.klipperMacros([]);
+          self.klipperMacrosLoaded(true);
+          self.logMessage(null, "error", gettext("Error:") + " " + _.escape(response.responseText));
+        });
+    };
+
+    self.executeKlipperMacro = function (macro) {
+      if (!self.hasPerm("MACRO")) return;
+
+      if (!macro.has_params) {
+        let expanded = macro.gcode.split(/\r\n|\r|\n/);
+        self.logMessage(null, null, gettext("Execute Macro: ") + macro.name);
+        OctoPrint.control.sendGcode(expanded);
+      } else {
+        self.paramMacroViewModel.processKlipperMacro(macro, self);
+        var dialog = $("#klipper_macro_dialog");
+        dialog.modal({
+          show: "true",
+          backdrop: "static",
+        });
+      }
+    };
+
+    // Group the parsed Klipper macros by their (optional) group. Macros
+    // without a group go into the "" group which is rendered without a
+    // collapsible header.
+    self.klipperMacroGroups = ko.pureComputed(function () {
+      var groups = {};
+      var ordered = [];
+      _.each(self.klipperMacros(), function (macro) {
+        var groupName = macro.group();
+        if (!groups[groupName]) {
+          groups[groupName] = { name: groupName, macros: [] };
+          ordered.push(groups[groupName]);
+        }
+        groups[groupName].macros.push(macro);
+      });
+      return ordered;
+    });
+
+    // Collapse state for parsed-macro groups, tracked per location
+    // ("tab" / "sidebar") like the user-defined macro groups.
+    self.klipperMacroGroupsCollapsed = ko.observable({});
+
+    self.toggleKlipperMacroGroup = function (name, location) {
+      var collapsed = _.clone(self.klipperMacroGroupsCollapsed());
+      var loc = _.clone(collapsed[location] || {});
+      loc[name] = !loc[name];
+      collapsed[location] = loc;
+      self.klipperMacroGroupsCollapsed(collapsed);
+    };
+
+    self.klipperMacroGroupCollapsed = function (name, location) {
+      var collapsed = self.klipperMacroGroupsCollapsed();
+      return !!(collapsed[location] && collapsed[location][name]);
+    };
+
+    // -- Collapsible macro groups (#93) -------------------------------------
+
+    // Collapse state is tracked per location ("tab" / "sidebar") so a user
+    // can, e.g., expand a group on the sidebar while it stays collapsed on
+    // the main tab. Shape: { location: { groupName: bool } }.
+    self.macroGroupsCollapsed = ko.observable({});
+
+    self.toggleMacroGroup = function (name, location) {
+      // Clone so the observable gets a new reference and notifies subscribers
+      // (Knockout compares observable values by reference).
+      var collapsed = _.clone(self.macroGroupsCollapsed());
+      var loc = _.clone(collapsed[location] || {});
+      loc[name] = !loc[name];
+      collapsed[location] = loc;
+      self.macroGroupsCollapsed(collapsed);
+    };
+
+    self.macroGroupCollapsed = function (name, location) {
+      var collapsed = self.macroGroupsCollapsed();
+      return !!(collapsed[location] && collapsed[location][name]);
+    };
+
+    // Group the user-defined macros by their (optional) group name. Macros
+    // without a group go into the "" group which is rendered without a
+    // collapsible header.
+    self.macroGroups = ko.pureComputed(function () {
+      var groups = {};
+      var ordered = [];
+      _.each(self.settings.settings.plugins.klipper.macros(), function (macro) {
+        var groupName = "";
+        if (macro.group) {
+          groupName = typeof macro.group === "function" ? macro.group() : macro.group;
+        }
+        if (!groups[groupName]) {
+          groups[groupName] = { name: groupName, macros: [] };
+          ordered.push(groups[groupName]);
+        }
+        groups[groupName].macros.push(macro);
+      });
+      return ordered;
+    });
+
     self.navbarClicked = function () {
       $("#tab_plugin_klipper_main_link").find("a").click();
       self.clearShortStatus();
@@ -450,6 +637,24 @@ $(function () {
       self.checkForKlipperUpdate();
       self.checkOctoKlipperUpdate();
       self._loadSettingsDefaults();
+      self.loadKlipperMacros();
+      self._applyMacrosSidebarVisibility();
+      self._applyParsedMacrosSidebarVisibility();
+      // Apply the sidebar visibility immediately when the setting changes.
+      // (Set up here, not in the constructor, because the settings data is
+      // only available after binding.)
+      if (!self._macrosSidebarVisibilitySubscribed) {
+        self._macrosSidebarVisibilitySubscribed = true;
+        self.settings.settings.plugins.klipper.configuration.show_macros_sidebar.subscribe(function () {
+          self._applyMacrosSidebarVisibility();
+        });
+      }
+      if (!self._parsedMacrosSidebarVisibilitySubscribed) {
+        self._parsedMacrosSidebarVisibilitySubscribed = true;
+        self.settings.settings.plugins.klipper.configuration.show_macros_sidebar.subscribe(function () {
+          self._applyParsedMacrosSidebarVisibility();
+        });
+      }
       // Start the live klippy.log tail. Only poll while the tab is active;
       // onAfterTabChange stops it when the user leaves the tab.
       if (self.klippyLogEnabled()) {
@@ -457,8 +662,39 @@ $(function () {
       }
     };
 
+    // Show/hide the dedicated "Macros" sidebar panel based on the
+    // "Show Macros on the sidebar" setting. The wrapper div is outside the
+    // plugin's binding context, so we toggle it directly via jQuery.
+    self._applyMacrosSidebarVisibility = function () {
+      var wrapper = $("#sidebar_plugin_klipper_macros_wrapper");
+      if (!wrapper.length) return;
+      if (self.settings.settings.plugins.klipper.configuration.show_macros_sidebar()) {
+        wrapper.show();
+      } else {
+        wrapper.hide();
+      }
+    };
+
+    // Show/hide the dedicated "Klipper Macros" sidebar panel based on the
+    // "Show Macros on the sidebar" setting (same as the "Macros" panel). Its
+    // content is additionally gated on "Parse macros from printer.cfg" in the
+    // template.
+    self._applyParsedMacrosSidebarVisibility = function () {
+      var wrapper = $("#sidebar_plugin_klipper_parsed_macros_wrapper");
+      if (!wrapper.length) return;
+      if (self.settings.settings.plugins.klipper.configuration.show_macros_sidebar()) {
+        wrapper.show();
+      } else {
+        wrapper.hide();
+      }
+    };
+
     self.onStartupComplete = function () {
       self._applyConnectionPanelCollapse();
+      self._applyMacrosSidebarCollapse();
+      self._applyParsedMacrosSidebarCollapse();
+      self._applyMacrosSidebarVisibility();
+      self._applyParsedMacrosSidebarVisibility();
     };
 
     self._applyConnectionPanelCollapse = function () {
@@ -467,6 +703,29 @@ $(function () {
       if (connectionTab.length && connectionTab.hasClass("in")) {
         connectionTab.collapse("hide");
         connectionTab.closest(".accordion-group").find(".accordion-toggle").addClass("collapsed");
+      }
+    };
+
+    // Collapse the dedicated "Macros" sidebar panel on page load when the
+    // "Collapse Macros panel by default" option is enabled. Mirrors the
+    // connection panel collapse.
+    self._applyMacrosSidebarCollapse = function () {
+      if (!self.settings.settings.plugins.klipper.configuration.macros_sidebar_collapsed()) return;
+      var macrosTab = $("#sidebar_plugin_klipper_macros");
+      if (macrosTab.length && macrosTab.hasClass("in")) {
+        macrosTab.collapse("hide");
+        macrosTab.closest(".accordion-group").find(".accordion-toggle").addClass("collapsed");
+      }
+    };
+
+    // Collapse the dedicated "Klipper Macros" sidebar panel on page load when
+    // the "Collapse Klipper Macros panel by default" option is enabled.
+    self._applyParsedMacrosSidebarCollapse = function () {
+      if (!self.settings.settings.plugins.klipper.configuration.parsed_macros_sidebar_collapsed()) return;
+      var macrosTab = $("#sidebar_plugin_klipper_parsed_macros");
+      if (macrosTab.length && macrosTab.hasClass("in")) {
+        macrosTab.collapse("hide");
+        macrosTab.closest(".accordion-group").find(".accordion-toggle").addClass("collapsed");
       }
     };
 
@@ -1312,6 +1571,12 @@ $(function () {
       "piSupportViewModel",
     ],
     optional: ["piSupportViewModel"],
-    elements: ["#tab_plugin_klipper_main", "#sidebar_plugin_klipper", "#navbar_plugin_klipper"],
+    elements: [
+      "#tab_plugin_klipper_main",
+      "#sidebar_plugin_klipper",
+      "#sidebar_plugin_klipper_macros",
+      "#sidebar_plugin_klipper_parsed_macros",
+      "#navbar_plugin_klipper",
+    ],
   });
 });
