@@ -356,20 +356,36 @@ $(function () {
       });
     };
 
+    // Send a macro's gcode to the printer. When the printer is not connected,
+    // sending would fail silently, so instead log the commands and show a hint
+    // — this lets the macro feature be tested without a connected printer.
+    self._sendGcode = function (gcodeLines, macroName) {
+      self.logMessage(null, null, gettext("Execute Macro: ") + macroName);
+      if (!self.connectionState.isOperational()) {
+        _.each(gcodeLines, function (line) {
+          self.logMessage(null, null, line);
+        });
+        self.showPopUp(
+          "warning",
+          gettext("Printer not connected"),
+          gettext(
+            "The printer is not connected, so the macro was not sent. The commands were logged below."
+          )
+        );
+        return;
+      }
+      OctoPrint.control.sendGcode(gcodeLines);
+    };
+
     self.executeMacro = function (macro) {
       var paramObjRegex = /{(.*?)}/g;
 
       if (!self.hasPerm("MACRO")) return;
 
       if (macro.macro().match(paramObjRegex) == null) {
-        let expanded = macro.macro().split(/\r\n|\r|\n/);
-        self.logMessage(null, null, gettext("Execute Macro: ") + macro.name());
-
-        OctoPrint.control.sendGcode(
-          // Use .split to create an array of strings which is sent to
-          // OctoPrint.control.sendGcode instead of a single string.
-          expanded,
-        );
+        // Use .split to create an array of strings which is sent to
+        // OctoPrint.control.sendGcode instead of a single string.
+        self._sendGcode(macro.macro().split(/\r\n|\r|\n/), macro.name());
       } else {
         self.paramMacroViewModel.process(macro, self);
 
@@ -487,9 +503,7 @@ $(function () {
       if (!self.hasPerm("MACRO")) return;
 
       if (!macro.has_params) {
-        let expanded = macro.gcode.split(/\r\n|\r|\n/);
-        self.logMessage(null, null, gettext("Execute Macro: ") + macro.name);
-        OctoPrint.control.sendGcode(expanded);
+        self._sendGcode(macro.gcode.split(/\r\n|\r|\n/), macro.name);
       } else {
         self.paramMacroViewModel.processKlipperMacro(macro, self);
         var dialog = $("#klipper_macro_dialog");

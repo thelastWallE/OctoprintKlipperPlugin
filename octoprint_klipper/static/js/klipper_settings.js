@@ -210,8 +210,8 @@ $(function () {
       self.settings.settings.plugins.klipper.macros.push({
         name: ko.observable("Macro"),
         macro: ko.observable(""),
-        sidebar: true,
-        tab: true,
+        sidebar: ko.observable(true),
+        tab: ko.observable(true),
         buttonColor: ko.observable(""),
         buttonStyle: ko.observable(""),
         group: ko.observable(""),
@@ -310,7 +310,20 @@ $(function () {
     // End LogFilters
 
     self.updateMacroList = function () {
-      self.macros(self.settings.settings.plugins.klipper.macros());
+      var macros = self.settings.settings.plugins.klipper.macros();
+      // Older saved settings may be missing fields that were added in later
+      // plugin versions (e.g. `group`). Normalize each macro so the settings
+      // template can bind to every field without throwing a ReferenceError.
+      _.each(macros, function (m) {
+        if (m.name === undefined) m.name = ko.observable("");
+        if (m.macro === undefined) m.macro = ko.observable("");
+        if (m.sidebar === undefined) m.sidebar = ko.observable(true);
+        if (m.tab === undefined) m.tab = ko.observable(true);
+        if (m.buttonColor === undefined) m.buttonColor = ko.observable("");
+        if (m.buttonStyle === undefined) m.buttonStyle = ko.observable("");
+        if (m.group === undefined) m.group = ko.observable("");
+      });
+      self.macros(macros);
     };
 
     self.onSettingsBeforeSave = function () {

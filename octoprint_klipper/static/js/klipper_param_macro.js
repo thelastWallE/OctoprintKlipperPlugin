@@ -25,11 +25,18 @@ $(function () {
 
     var paramObjRegex = /{(.*?)}/g;
     var keyValueRegex = /(\w*)\s*:\s*([\w\s°"|\.]*)/g;
+    // Klipper's runtime parameters used in macro bodies, e.g.
+    // {params.LENGTH}, {params.LENGTH|float}, {rawparams.X}, {input.Y}. These
+    // are collected via the dialog and sent as MACRONAME X=value arguments.
+    // Only single-brace expressions match — {{ params.X }} (double braces) is
+    // a plain Jinja2 expression and is not treated as a parameter.
+    var klipperParamRegex = /(?<!\{)\{(?:params|rawparams|input)\.(\w+)[^{}]*\}/g;
 
     self.process = function (macro, callerViewModel) {
       self.macro = macro.macro();
       self.macroName(macro.name());
       self.callerViewModel = callerViewModel;
+      self.isKlipperParams = false;
 
       var matches = self.macro.match(paramObjRegex);
       var params = [];
@@ -56,7 +63,7 @@ $(function () {
         }
 
         if ("default" in obj) {
-          obj["value"] = obj["default"];
+          obj["value"] = ko.observable(obj["default"]);
         }
 
         params.push(obj);
@@ -71,6 +78,31 @@ $(function () {
       self.macro = macro.gcode;
       self.macroName(macro.name);
       self.callerViewModel = callerViewModel;
+      self.isKlipperParams = false;
+
+      // Klipper runtime parameters ({params.X}, {rawparams.X}, {input.X}) are
+      // collected via the dialog and sent as MACRONAME X=value arguments.
+      var klipperNames = [];
+      var km;
+      klipperParamRegex.lastIndex = 0;
+      while ((km = klipperParamRegex.exec(self.macro)) !== null) {
+        if (klipperNames.indexOf(km[1]) === -1) klipperNames.push(km[1]);
+      }
+
+      if (klipperNames.length) {
+        self.isKlipperParams = true;
+        var kparams = [];
+        for (var i = 0; i < klipperNames.length; i++) {
+          kparams.push({
+            label: klipperNames[i],
+            value: ko.observable(""),
+            unit: "",
+            klipperParam: klipperNames[i],
+          });
+        }
+        self.parameters(kparams);
+        return;
+      }
 
       var matches = self.macro.match(paramObjRegex);
       var params = [];
@@ -97,7 +129,7 @@ $(function () {
         }
 
         if ("default" in obj) {
-          obj["value"] = obj["default"];
+          obj["value"] = ko.observable(obj["default"]);
         }
 
         params.push(obj);
@@ -106,18 +138,34 @@ $(function () {
     };
 
     self.executeMacro = function () {
+      if (self.isKlipperParams) {
+        // Klipper runtime params: send the macro invocation with the collected
+        // values as arguments, e.g. "SET_RETRACTIONLENGTH LENGTH=5". Klipper
+        // then evaluates {params.LENGTH} in the macro body.
+        var args = [];
+        _.each(self.parameters(), function (p) {
+          var v = p.value();
+          if (v !== undefined && v !== "") {
+            args.push(p.klipperParam + "=" + v);
+          }
+        });
+        var cmd = self.macroName();
+        if (args.length) cmd += " " + args.join(" ");
+        self.callerViewModel._sendGcode([cmd], self.macroName());
+        return;
+      }
+
       var i = -1;
 
       function replaceParams(match) {
         i++;
-        return self.parameters()[i]["value"];
+        return self.parameters()[i]["value"]();
       }
       // Use .split to create an array of strings which is sent to
       // OctoPrint.control.sendGcode instead of a single string.
       expanded = self.macro.replace(paramObjRegex, replaceParams);
       expanded = expanded.split(/\r\n|\r|\n/);
-      self.callerViewModel.logMessage(null, null, gettext("Execute Macro: ") + self.macroName());
-      OctoPrint.control.sendGcode(expanded);
+      self.callerViewModel._sendGcode(expanded, self.macroName());
     };
   }
 

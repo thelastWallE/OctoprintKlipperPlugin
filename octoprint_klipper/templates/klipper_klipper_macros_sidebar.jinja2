@@ -15,7 +15,7 @@
       <div data-bind="foreach: macros, visible: !name || !$root.klipperMacroGroupCollapsed(name, 'sidebar')">
         <!-- ko if: sidebar -->
         <button class="btn btn-block"
-          data-bind="text: name, attr: { title: gcodePreview }, click: $root.executeKlipperMacro, enable: $root.isActive()"></button>
+          data-bind="text: name, attr: { title: gcodePreview }, click: $root.executeKlipperMacro"></button>
         <!-- /ko -->
       </div>
     </div>

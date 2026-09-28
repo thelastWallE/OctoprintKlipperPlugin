@@ -13,7 +13,7 @@
       <div data-bind="foreach: macros, visible: !name || !$root.macroGroupCollapsed(name, 'sidebar')">
         <!-- ko if: sidebar -->
         <button class="btn btn-block"
-          data-bind="text: name, class: buttonStyle() != '' ? buttonStyle : '', click: $root.executeMacro, enable: $root.isActive(), attr: { style: $root.buttonColor($data)}"></button>
+          data-bind="text: name, class: buttonStyle() != '' ? buttonStyle : '', click: $root.executeMacro, attr: { style: $root.buttonColor($data)}"></button>
         <!-- /ko -->
       </div>
     </div>

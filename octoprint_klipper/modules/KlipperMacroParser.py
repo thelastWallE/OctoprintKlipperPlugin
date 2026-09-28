@@ -25,6 +25,15 @@ _PARAM_PLACEHOLDER_RE = re.compile(
     r"\{[^{}]*\b(?:label|default|options|unit)\s*:[^{}]*\}"
 )
 
+# Matches Klipper's runtime parameters used in macro bodies, e.g.
+# {params.LENGTH}, {rawparams.X}, {input.Y}. These are collected via the macro
+# dialog and sent as MACRONAME X=value arguments. Only single-brace
+# expressions match — {{ params.X }} (double braces) is a plain Jinja2
+# expression and is not treated as a parameter.
+_KLIPPER_PARAM_RE = re.compile(
+    r"(?<!\{)\{[^{}]*\b(?:params|rawparams|input)\.(\w+)[^{}]*\}"
+)
+
 _INCLUDE_RE = re.compile(r"^\s*\[include\s+(.+?)\s*\]\s*$", re.IGNORECASE)
 _SECTION_RE = re.compile(r"^\s*\[([^\]]+)\]\s*$")
 _GCODE_MACRO_RE = re.compile(r"^gcode_macro\s+(.+)$", re.IGNORECASE)
@@ -172,7 +181,9 @@ def _parse_macro_section(lines, section_name, source_file):
     return dict(
         name=name,
         gcode=gcode,
-        has_params=bool(_PARAM_PLACEHOLDER_RE.search(gcode)),
+        has_params=bool(
+            _PARAM_PLACEHOLDER_RE.search(gcode) or _KLIPPER_PARAM_RE.search(gcode)
+        ),
         source=source_file,
     )
 

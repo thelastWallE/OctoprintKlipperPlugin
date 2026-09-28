@@ -1,3 +1,5 @@
+2026-09-27: detect Klipper runtime parameters ({params.X}, {rawparams.X}, {input.X}) in parsed macros and open the parameter dialog — values are sent as MACRONAME X=value arguments
+2026-09-27: allow macro buttons to be clicked without a connected printer — when not connected the gcode is logged and a hint toast is shown instead of failing silently
 2026-09-27: deliver parsed macro preferences via the getKlipperMacros API response — ko.mapping flattens nested dict values in the settings tree to empty objects, so the frontend can't read parsedMacros from there
 2026-09-27: fix parsed macro preferences not being saved — use the onSettingsBeforeSave hook (the plugin settings dialog fires that, not onUserSettingsBeforeSave) and persist via a dedicated /config/saveParsedMacros route
 2026-09-27: add "Collapse Klipper Macros panel by default" option and make parsed macro loading resilient to preference-merge errors

@@ -177,7 +177,7 @@
           <div data-bind="foreach: macros, visible: !name || !$root.macroGroupCollapsed(name, 'tab')">
             <!-- ko if: tab -->
             <button class="btn btn-block btn-small"
-              data-bind="text: name, class: buttonStyle, click: $root.executeMacro, enable: $root.isActive(), attr: { style: $root.buttonColor($data)}">
+              data-bind="text: name, class: buttonStyle, click: $root.executeMacro, attr: { style: $root.buttonColor($data)}">
             </button>
             <!-- /ko -->
           </div>
@@ -202,7 +202,7 @@
           <div data-bind="foreach: macros, visible: !name || !$root.klipperMacroGroupCollapsed(name, 'tab')">
             <!-- ko if: tab -->
             <button class="btn btn-block btn-small"
-              data-bind="text: name, attr: { title: gcodePreview }, click: $root.executeKlipperMacro, enable: $root.isActive()">
+              data-bind="text: name, attr: { title: gcodePreview }, click: $root.executeKlipperMacro">
             </button>
             <!-- /ko -->
           </div>

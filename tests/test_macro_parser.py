@@ -47,6 +47,33 @@ class TestParseMacros:
         assert len(macros) == 1
         assert macros[0]["has_params"] is False
 
+    def test_detects_klipper_runtime_params(self, tmp_path):
+        cfg = _write(
+            tmp_path / "printer.cfg",
+            "[gcode_macro SET_RETRACTIONLENGTH]\n"
+            "gcode:\n"
+            "    SET_RETRACTION RETRACT_LENGTH={params.LENGTH|float}\n"
+            "    GET_RETRACTION\n",
+        )
+        macros = KlipperMacroParser.parse_macros(cfg)
+        assert len(macros) == 1
+        assert macros[0]["name"] == "SET_RETRACTIONLENGTH"
+        assert macros[0]["has_params"] is True
+
+    def test_double_brace_params_are_not_klipper_params(self, tmp_path):
+        cfg = _write(
+            tmp_path / "printer.cfg",
+            "[gcode_macro FOO]\n"
+            "gcode:\n"
+            "    M117 {{ params.MSG|default('hi') }}\n"
+            "    M118 {params.BAR}\n",
+        )
+        macros = KlipperMacroParser.parse_macros(cfg)
+        assert len(macros) == 1
+        # The single-brace {params.BAR} is a runtime param, the double-brace
+        # {{ params.MSG }} is not.
+        assert macros[0]["has_params"] is True
+
     def test_follows_include_directive(self, tmp_path):
         _write(
             tmp_path / "macros.cfg",
