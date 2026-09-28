@@ -21,6 +21,68 @@ $(function () {
     self.settings = parameters[0];
     self.loginState = parameters[1];
     self.connectionState = parameters[2];
+
+    // The connection view model's API changed between OctoPrint 1.11 and 2.0:
+    // 1.11 exposes printerOptions/selectedPrinter/selectedPort/selectedBaudrate,
+    // 2.0 uses profileOptions/currentProfile and a connector-based parameter
+    // model. These helpers abstract the difference so the plugin's connection
+    // panel works on both versions.
+    self.connectionPrinterOptions = ko.pureComputed(function () {
+      var cs = self.connectionState;
+      if (cs.profileOptions) return cs.profileOptions();
+      if (cs.printerOptions) return cs.printerOptions();
+      return [];
+    });
+
+    self.connectionSelectedPrinter = ko.pureComputed({
+      read: function () {
+        var cs = self.connectionState;
+        if (cs.currentProfile) return cs.currentProfile();
+        if (cs.selectedPrinter) return cs.selectedPrinter();
+        return undefined;
+      },
+      write: function (value) {
+        var cs = self.connectionState;
+        if (cs.currentProfile) cs.currentProfile(value);
+        else if (cs.selectedPrinter) cs.selectedPrinter(value);
+      },
+    });
+
+    // Connect/disconnect using the plugin's configured port. OctoPrint 1.11's
+    // stock connect reads selectedPort/selectedBaudrate observables; 2.0's
+    // reads the port from the connection form's DOM inputs, which don't exist
+    // because this plugin replaces the connection panel — so send the port
+    // directly as a connector parameter.
+    self.connect = function () {
+      var cs = self.connectionState;
+      if (cs.isErrorOrClosed()) {
+        if (cs.selectedPort) {
+          // OctoPrint 1.11: the stock connect uses selectedPort/selectedBaudrate
+          cs.connect();
+        } else {
+          // OctoPrint 2.0: connector-based connect; send the configured port
+          var connector = cs.selectedConnector();
+          if (!connector) {
+            cs.connect();
+            return;
+          }
+          OctoPrint.connection
+            .connect({
+              connector: connector,
+              parameters: { port: self.settings.settings.plugins.klipper.connection.port() },
+              printerProfile: cs.currentProfile(),
+              autoconnect: false,
+            })
+            .done(function () {
+              cs.settings.requestData();
+              cs.settings.printerProfiles.requestData();
+            });
+        }
+      } else {
+        cs.connect();
+      }
+    };
+
     self.levelingViewModel = parameters[3];
     self.paramMacroViewModel = parameters[4];
     self.access = parameters[5];
@@ -643,7 +705,13 @@ $(function () {
     };
 
     self.onAfterBinding = function () {
-      self.connectionState.selectedPort(self.settings.settings.plugins.klipper.connection.port());
+      // OctoPrint 1.11 exposes a selectedPort observable on the connection view
+      // model; 2.0 uses a connector-based model where the port is sent as a
+      // connector parameter on connect (handled in self.connect). Only set the
+      // observable when it exists.
+      if (self.connectionState.selectedPort) {
+        self.connectionState.selectedPort(self.settings.settings.plugins.klipper.connection.port());
+      }
       self.shortStatus(gettext("No Messages"), "");
       self.updateButtonTitles();
       self._fromLocalStorage();
