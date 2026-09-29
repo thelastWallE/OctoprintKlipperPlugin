@@ -973,8 +973,8 @@ msgid "Klipper Base Config Filename"
 msgstr "Klipper Haupt-Konfigurationsdatei"
 
 #: octoprint_klipper/templates/klipper_settings.jinja2:109
-msgid "Klipper Log File"
-msgstr "Klipper Logdatei"
+msgid "Klipper Log Path"
+msgstr "Klipper Log Pfad"
 
 #: octoprint_klipper/templates/klipper_settings.jinja2:116
 msgid "Configuration Restart GCode Command"
