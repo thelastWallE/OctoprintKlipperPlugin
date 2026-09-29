@@ -97,9 +97,9 @@ Also for the moment this plugin does what I wanted it to do, it is far from fini
 
 ![Settings](docs/assets/img/settings.png)
 
-#### Klipper Config
+#### Klipper Config Editor
 
-![Klipper Config](docs/assets/img/klipper-config.png)
+![Klipper Config Editor](docs/assets/img/editor.png)
 
 #### Performance Graph
 
