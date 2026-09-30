@@ -170,7 +170,7 @@
             <div class="klipper-macro-group">
               <div class="klipper-macro-group-name">
                 <a href="javascript:void(0)" data-bind="click: function() { $root.toggleMacroGroup(name, 'tab') }">
-                  <i class="icon-chevron-down"
+                  <i
                     data-bind="css: $root.macroGroupCollapsed(name, 'tab') ? 'icon-chevron-right' : 'icon-chevron-down'"></i>
                   <span data-bind="text: name"></span>
                 </a>
@@ -210,7 +210,7 @@
               <div class="klipper-macro-group-name">
                 <a href="javascript:void(0)"
                   data-bind="click: function() { $root.toggleKlipperMacroGroup(name, 'tab') }">
-                  <i class="icon-chevron-down"
+                  <i
                     data-bind="css: $root.klipperMacroGroupCollapsed(name, 'tab') ? 'icon-chevron-right' : 'icon-chevron-down'"></i>
                   <span data-bind="text: name"></span>
                 </a>
@@ -219,7 +219,7 @@
                 data-bind="foreach: macros, visible: !name || !$root.klipperMacroGroupCollapsed(name, 'tab')">
                 <!-- ko if: tab -->
                 <button class="btn btn-block btn-small klipper-truncate"
-                  data-bind="text: name, attr: { title: $root.macroTooltip($data) }, click: $root.executeKlipperMacro">
+                  data-bind="text: name, class: buttonStyle, attr: { title: $root.macroTooltip($data), style: $root.buttonColor($data) }, click: $root.executeKlipperMacro">
                 </button>
                 <!-- /ko -->
               </div>
@@ -230,7 +230,7 @@
               data-bind="foreach: macros, visible: !name || !$root.klipperMacroGroupCollapsed(name, 'tab')">
               <!-- ko if: tab -->
               <button class="btn btn-block btn-small klipper-truncate"
-                data-bind="text: name, attr: { title: $root.macroTooltip($data) }, click: $root.executeKlipperMacro">
+                data-bind="text: name, class: buttonStyle, attr: { title: $root.macroTooltip($data), style: $root.buttonColor($data) }, click: $root.executeKlipperMacro">
               </button>
               <!-- /ko -->
             </div>

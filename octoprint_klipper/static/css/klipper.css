@@ -465,7 +465,6 @@ div#settings_plugin_klipper div#macros label.control-label {
 }
 
 #settings_plugin_klipper .klipper-macros-table {
-  width: 100%;
   margin-bottom: 10px;
 }
 
@@ -604,16 +603,19 @@ div#settings_plugin_klipper div#macros label.control-label {
   border: 1px solid gray;
   border-radius: 6px;
   position: relative;
-  margin: 10px;
+  margin: 11px;
   padding: 10px;
 }
 
 .klipper-control-label-bordered {
   position: absolute;
-  top: -1.2ex;
+  top: -1.3ex;
   z-index: 1;
   left: 2em;
-  background-color: #eeeeee;
+  /* Solid background matching the settings dialog so the label blends in and
+     hides the box border line behind it. Override --klipper-label-bg to match
+     a different theme. */
+  background-color: var(--klipper-label-bg, #fff);
   padding: 0 5px;
 }
 
@@ -707,6 +709,38 @@ div#settings_plugin_klipper div#macros label.control-label {
 /* --- Spacing (margin) --- */
 .klipper-m-0 {
   margin: 0;
+}
+
+.klipper-m-1 {
+  margin: 4px;
+}
+
+.klipper-m-2 {
+  margin: 8px;
+}
+
+.klipper-m-3 {
+  margin: 12px;
+}
+
+.klipper-m-4 {
+  margin: 16px;
+}
+
+.klipper-mr-0 {
+  margin-right: 0;
+}
+.klipper-mr-1 {
+  margin-right: 4px;
+}
+.klipper-mr-2 {
+  margin-right: 8px;
+}
+.klipper-mr-3 {
+  margin-right: 12px;
+}
+.klipper-mr-4 {
+  margin-right: 16px;
 }
 
 .klipper-mt-0 {
@@ -833,6 +867,28 @@ div#settings_plugin_klipper div#macros label.control-label {
   white-space: nowrap;
 }
 
+#settings_plugin_klipper .klipper-macros-table .klipper-button-style-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+/* Bootstrap's clearfix adds ::before/::after (display: table) which would
+   become extra grid items and shift the three controls out of order. */
+#settings_plugin_klipper .klipper-macros-table .klipper-button-style-row::before,
+#settings_plugin_klipper .klipper-macros-table .klipper-button-style-row::after {
+  display: none;
+}
+
+#settings_plugin_klipper .klipper-macros-table .klipper-button-style-row select,
+#settings_plugin_klipper .klipper-macros-table .klipper-button-style-row input {
+  width: 100%;
+  /* Keep padding/border inside the 100% width so the input/select don't
+     overflow their grid cell and clip the bordered container. */
+  box-sizing: border-box;
+}
+
 .klipper-text-break {
   word-break: break-all;
 }
@@ -905,8 +961,34 @@ div#settings_plugin_klipper div#macros label.control-label {
   cursor: pointer;
 }
 
+.klipper-border {
+  border: 1px solid #000;
+}
+
 .klipper-rounded {
   border-radius: 3px;
+}
+
+/* Border around each parsed macro group (its main row + button style row).
+   Each macro is its own tbody; box-shadow is used instead of border because
+   the table uses border-collapse: collapse, which would swallow a tbody
+   border. */
+#settings_plugin_klipper .klipper-macros-table tbody.klipper-macro-group-border {
+  box-shadow: 0 0 0 1px #ccc;
+  margin-bottom: 4px;
+  border-radius: 4px;
+}
+
+.klipper-spacer-row {
+  height: 0px;
+}
+
+/* Make the macro tables slightly narrower than the scrollable tab-content so
+   the tbody box-shadow border isn't hidden behind the scrollbar. (Margin or
+   padding on the table doesn't shrink the tbody — it always spans the table
+   width — so the width itself is reduced.) */
+#settings_plugin_klipper .klipper-macros-table {
+  width: calc(100% - 20px);
 }
 
 .klipper-border-bottom {

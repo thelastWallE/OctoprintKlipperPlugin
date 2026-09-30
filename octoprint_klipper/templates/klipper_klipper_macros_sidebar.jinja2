@@ -8,7 +8,7 @@
       <div class="klipper-macro-group">
         <div class="klipper-macro-group-name">
           <a href="javascript:void(0)" data-bind="click: function() { $root.toggleKlipperMacroGroup(name, 'sidebar') }">
-            <i class="icon-chevron-down"
+            <i
               data-bind="css: $root.klipperMacroGroupCollapsed(name, 'sidebar') ? 'icon-chevron-right' : 'icon-chevron-down'"></i>
             <span data-bind="text: name"></span>
           </a>
@@ -16,7 +16,7 @@
         <div class="klipper-macros"
           data-bind="foreach: macros, visible: !name || !$root.klipperMacroGroupCollapsed(name, 'sidebar')">
           <button class="btn btn-block klipper-truncate"
-            data-bind="text: name, attr: { title: $root.macroTooltip($data) }, click: $root.executeKlipperMacro"></button>
+            data-bind="text: name, class: buttonStyle() != '' ? buttonStyle : '', attr: { title: $root.macroTooltip($data), style: $root.buttonColor($data) }, click: $root.executeKlipperMacro"></button>
         </div>
       </div>
       <!-- /ko -->
@@ -24,7 +24,7 @@
       <div class="klipper-macros"
         data-bind="foreach: macros, visible: !name || !$root.klipperMacroGroupCollapsed(name, 'sidebar')">
         <button class="btn btn-block klipper-truncate"
-          data-bind="text: name, attr: { title: $root.macroTooltip($data) }, click: $root.executeKlipperMacro"></button>
+          data-bind="text: name, class: buttonStyle() != '' ? buttonStyle : '', attr: { title: $root.macroTooltip($data), style: $root.buttonColor($data) }, click: $root.executeKlipperMacro"></button>
       </div>
       <!-- /ko -->
     </div>

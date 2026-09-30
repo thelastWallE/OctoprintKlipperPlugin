@@ -564,6 +564,8 @@ $(function () {
                 group: ko.observable(cur ? cur.group() : prefValue(pref, "group", "")),
                 sidebar: ko.observable(cur ? cur.sidebar() : prefValue(pref, "sidebar", false)),
                 tab: ko.observable(cur ? cur.tab() : prefValue(pref, "tab", true)),
+                buttonStyle: ko.observable(cur ? cur.buttonStyle() : prefValue(pref, "buttonStyle", "")),
+                buttonColor: ko.observable(cur ? cur.buttonColor() : prefValue(pref, "buttonColor", "")),
               };
             });
             // Apply the persisted/current display order (macros without an
@@ -593,6 +595,8 @@ $(function () {
                 group: ko.observable(""),
                 sidebar: ko.observable(false),
                 tab: ko.observable(true),
+                buttonStyle: ko.observable(""),
+                buttonColor: ko.observable(""),
               };
             });
           }

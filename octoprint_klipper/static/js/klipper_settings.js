@@ -501,6 +501,8 @@ $(function () {
           group: m.group(),
           sidebar: m.sidebar(),
           tab: m.tab(),
+          buttonStyle: m.buttonStyle(),
+          buttonColor: m.buttonColor(),
           // Persist the display order so reordering survives a re-parse.
           order: m.order !== undefined ? m.order : idx,
         };
