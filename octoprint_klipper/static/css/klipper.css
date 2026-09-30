@@ -517,12 +517,26 @@ div#settings_plugin_klipper div#macros label.control-label {
   border-top: 0 !important;
 }
 
-/* Collapsible macro group headers on the Klipper tab and sidebar */
+.klipper-macros {
+  margin: 2px 0 2px;
+}
+
+.klipper-macros + .klipper-macros {
+  margin-top: 12px;
+}
+
 .klipper-macro-group {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px;
+}
+
+/* Collapsible macro group headers on the Klipper tab and sidebar */
+.klipper-macro-group-name {
   margin: 4px 0 2px;
 }
 
-.klipper-macro-group a {
+.klipper-macro-group-name a {
   display: block;
   font-weight: bold;
   color: #333;
@@ -530,11 +544,11 @@ div#settings_plugin_klipper div#macros label.control-label {
   cursor: pointer;
 }
 
-.klipper-macro-group a:hover {
+.klipper-macro-group-name a:hover {
   color: #000;
 }
 
-.klipper-macro-group a i {
+.klipper-macro-group-name a i {
   margin-right: 4px;
 }
 
@@ -807,6 +821,13 @@ div#settings_plugin_klipper div#macros label.control-label {
 }
 
 .klipper-text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Truncate long macro names on the buttons with an ellipsis */
+.klipper-truncate {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

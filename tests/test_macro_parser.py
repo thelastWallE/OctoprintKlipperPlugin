@@ -159,6 +159,19 @@ class TestParseMacros:
         macros = KlipperMacroParser.parse_macros(cfg)
         assert macros[0]["gcode"] == "M117 Foo"
         assert "description" not in macros[0]["gcode"]
+        assert macros[0]["description"] == "A test macro"
+
+    def test_description_before_gcode(self, tmp_path):
+        cfg = _write(
+            tmp_path / "printer.cfg",
+            "[gcode_macro FOO]\n"
+            "description: A test macro\n"
+            "gcode:\n"
+            "    M117 Foo\n",
+        )
+        macros = KlipperMacroParser.parse_macros(cfg)
+        assert macros[0]["description"] == "A test macro"
+        assert macros[0]["gcode"] == "M117 Foo"
 
     def test_inline_gcode_value(self, tmp_path):
         cfg = _write(

@@ -1,24 +1,38 @@
 <!-- ko if: settings.settings.plugins.klipper.configuration.parse_macros -->
 <div class="control-group" data-bind="visible: hasPermKo('MACRO')">
   <div class="controls">
-    <div data-bind="foreach: klipperMacroGroups">
+    <!-- ko if: klipperMacrosLoaded -->
+    <!-- ko if: klipperMacros().length -->
+    <div data-bind="foreach: klipperMacroGroupsSidebar">
       <!-- ko if: name -->
       <div class="klipper-macro-group">
-        <a href="javascript:void(0)"
-          data-bind="click: function() { $root.toggleKlipperMacroGroup(name, 'sidebar') }">
-          <i class="icon-chevron-down"
-            data-bind="css: $root.klipperMacroGroupCollapsed(name, 'sidebar') ? 'icon-chevron-right' : 'icon-chevron-down'"></i>
-          <span data-bind="text: name"></span>
-        </a>
+        <div class="klipper-macro-group-name">
+          <a href="javascript:void(0)" data-bind="click: function() { $root.toggleKlipperMacroGroup(name, 'sidebar') }">
+            <i class="icon-chevron-down"
+              data-bind="css: $root.klipperMacroGroupCollapsed(name, 'sidebar') ? 'icon-chevron-right' : 'icon-chevron-down'"></i>
+            <span data-bind="text: name"></span>
+          </a>
+        </div>
+        <div class="klipper-macros"
+          data-bind="foreach: macros, visible: !name || !$root.klipperMacroGroupCollapsed(name, 'sidebar')">
+          <button class="btn btn-block klipper-truncate"
+            data-bind="text: name, attr: { title: $root.macroTooltip($data) }, click: $root.executeKlipperMacro"></button>
+        </div>
       </div>
       <!-- /ko -->
-      <div data-bind="foreach: macros, visible: !name || !$root.klipperMacroGroupCollapsed(name, 'sidebar')">
-        <!-- ko if: sidebar -->
-        <button class="btn btn-block"
-          data-bind="text: name, attr: { title: gcodePreview }, click: $root.executeKlipperMacro"></button>
-        <!-- /ko -->
+      <!-- ko ifnot: name -->
+      <div class="klipper-macros"
+        data-bind="foreach: macros, visible: !name || !$root.klipperMacroGroupCollapsed(name, 'sidebar')">
+        <button class="btn btn-block klipper-truncate"
+          data-bind="text: name, attr: { title: $root.macroTooltip($data) }, click: $root.executeKlipperMacro"></button>
       </div>
+      <!-- /ko -->
     </div>
+    <!-- /ko -->
+    <!-- ko ifnot: klipperMacros().length -->
+    <span class="help-block">{{ _("No macros found in printer.cfg.") }}</span>
+    <!-- /ko -->
+    <!-- /ko -->
   </div>
 </div>
 <!-- /ko -->

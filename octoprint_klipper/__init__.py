@@ -246,6 +246,10 @@ class KlipperPlugin(
                 show_macros_sidebar=True,
                 macros_sidebar_collapsed=False,
                 parsed_macros_sidebar_collapsed=False,
+                # Display order for macro groups (list of group names).
+                # Empty = alphabetical order.
+                macro_group_order=[],
+                parsed_macro_group_order=[],
                 parse_check=False,
                 parse_macros=False,
                 fontsize=12,
@@ -1383,13 +1387,17 @@ class KlipperPlugin(
     # persist the parsed macro preferences (group/sidebar/tab) directly to the
     # plugin settings. This is more reliable than relying on the frontend
     # settings save, which only sends changed data and can drop the dict.
-    @octoprint.plugin.BlueprintPlugin.route("/config/saveParsedMacros", methods=["POST"])
+    @octoprint.plugin.BlueprintPlugin.route(
+        "/config/saveParsedMacros", methods=["POST"]
+    )
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def save_parsed_macros(self):
         data = flask.request.json or {}
         prefs = data.get("parsedMacros", {})
         if not isinstance(prefs, dict):
-            flask.abort(400, description="Invalid request, parsedMacros must be an object")
+            flask.abort(
+                400, description="Invalid request, parsedMacros must be an object"
+            )
         self._settings.set(["parsedMacros"], prefs)
         self._settings.save()
         return flask.jsonify(status="success")

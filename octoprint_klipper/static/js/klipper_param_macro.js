@@ -24,12 +24,16 @@ $(function () {
     self.callerViewModel = undefined;
 
     var paramObjRegex = /{(.*?)}/g;
-    var keyValueRegex = /(\w*)\s*:\s*([\w\s°"|\.]*)/g;
+    // Value charset deliberately excludes "," (the entry separator) but
+    // allows "-", "/", "+", "%" and "." so values like "my-value",
+    // "path/to" or "190.5" parse correctly.
+    var keyValueRegex = /(\w*)\s*:\s*([\w\s°"|\.\-/+%]*)/g;
     // Klipper's runtime parameters used in macro bodies, e.g.
     // {params.LENGTH}, {params.LENGTH|float}, {rawparams.X}, {input.Y}. These
     // are collected via the dialog and sent as MACRONAME X=value arguments.
     // Only single-brace expressions match — {{ params.X }} (double braces) is
     // a plain Jinja2 expression and is not treated as a parameter.
+    // NOTE: keep in sync with _KLIPPER_PARAM_RE in KlipperMacroParser.py.
     var klipperParamRegex = /(?<!\{)\{(?:params|rawparams|input)\.(\w+)[^{}]*\}/g;
 
     self.process = function (macro, callerViewModel) {
@@ -89,8 +93,31 @@ $(function () {
         if (klipperNames.indexOf(km[1]) === -1) klipperNames.push(km[1]);
       }
 
+      // Plugin placeholders ({label:..., default:..., options:...}) are
+      // substituted into the gcode body before sending. Collect them too so a
+      // macro that mixes both styles doesn't silently drop one set.
+      var matches = self.macro.match(paramObjRegex) || [];
+      var params = [];
+      for (var i = 0; i < matches.length; i++) {
+        var obj = {};
+        var res = keyValueRegex.exec(matches[i]);
+        while (res != null) {
+          if ("options" == res[1]) {
+            obj["options"] = res[2].trim().split("|");
+          } else {
+            obj[res[1]] = res[2].trim();
+          }
+          res = keyValueRegex.exec(matches[i]);
+        }
+        if (!("label" in obj)) obj["label"] = "Input " + (i + 1);
+        if (!("unit" in obj)) obj["unit"] = "";
+        if ("default" in obj) obj["value"] = ko.observable(obj["default"]);
+        params.push(obj);
+      }
+
       if (klipperNames.length) {
         self.isKlipperParams = true;
+        // Klipper params first, then any plugin placeholders.
         var kparams = [];
         for (var i = 0; i < klipperNames.length; i++) {
           kparams.push({
@@ -100,40 +127,10 @@ $(function () {
             klipperParam: klipperNames[i],
           });
         }
-        self.parameters(kparams);
+        self.parameters(kparams.concat(params));
         return;
       }
 
-      var matches = self.macro.match(paramObjRegex);
-      var params = [];
-
-      for (var i = 0; i < matches.length; i++) {
-        var obj = {};
-        var res = keyValueRegex.exec(matches[i]);
-
-        while (res != null) {
-          if ("options" == res[1]) {
-            obj["options"] = res[2].trim().split("|");
-          } else {
-            obj[res[1]] = res[2].trim();
-          }
-          res = keyValueRegex.exec(matches[i]);
-        }
-
-        if (!("label" in obj)) {
-          obj["label"] = "Input " + (i + 1);
-        }
-
-        if (!("unit" in obj)) {
-          obj["unit"] = "";
-        }
-
-        if ("default" in obj) {
-          obj["value"] = ko.observable(obj["default"]);
-        }
-
-        params.push(obj);
-      }
       self.parameters(params);
     };
 
@@ -141,9 +138,12 @@ $(function () {
       if (self.isKlipperParams) {
         // Klipper runtime params: send the macro invocation with the collected
         // values as arguments, e.g. "SET_RETRACTIONLENGTH LENGTH=5". Klipper
-        // then evaluates {params.LENGTH} in the macro body.
+        // then evaluates {params.LENGTH} in the macro body. Plugin placeholders
+        // (no klipperParam) can't be combined with Klipper params in a single
+        // printer.cfg macro, so they are shown in the dialog but not sent.
         var args = [];
         _.each(self.parameters(), function (p) {
+          if (!p.klipperParam) return;
           var v = p.value();
           if (v !== undefined && v !== "") {
             args.push(p.klipperParam + "=" + v);
@@ -163,7 +163,7 @@ $(function () {
       }
       // Use .split to create an array of strings which is sent to
       // OctoPrint.control.sendGcode instead of a single string.
-      expanded = self.macro.replace(paramObjRegex, replaceParams);
+      var expanded = self.macro.replace(paramObjRegex, replaceParams);
       expanded = expanded.split(/\r\n|\r|\n/);
       self.callerViewModel._sendGcode(expanded, self.macroName());
     };

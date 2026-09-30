@@ -2,7 +2,8 @@
   <ul class="nav nav-pills" id="klipper-settings">
     <li><a href="#basic" data-toggle="tab" data-profile-type="klipper-basic">{{ _('Basic') }}</a></li>
     <li><a href="#macros" data-toggle="tab" data-profile-type="klipper-macros">{{ _('Macros') }}</a></li>
-    <li><a href="#parsedmacros" data-toggle="tab" data-profile-type="klipper-parsed-macros">{{ _('Klipper Macros') }}</a></li>
+    <li><a href="#parsedmacros" data-toggle="tab"
+        data-profile-type="klipper-parsed-macros">{{ _('Klipper Macros') }}</a></li>
     <li><a href="#level" data-toggle="tab" data-profile-type="klipper-bed">{{ _('Bed Leveling') }}</a></li>
     <li><a href="#update" data-toggle="tab" data-profile-type="klipper-update">{{ _('Klipper Update') }}</a></li>
   </ul>
@@ -334,6 +335,24 @@
             </div>
           </div>
         </div>
+        <div class="control-group">
+          <div class="control-label">{{ _('Groups') }}</div>
+          <div class="controls">
+            <div data-bind="foreach: macroGroups">
+              <div class="klipper-flex klipper-flex-row klipper-items-center klipper-gap-1">
+                <a href='#' data-bind='click: $parent.moveGroupUp' class="fa fa-chevron-up"></a>
+                <a href='#' data-bind='click: $parent.moveGroupDown' class="fa fa-chevron-down"></a>
+                <input type="text" class="input-block-level" data-bind="value: name, valueUpdate: 'afterkeydown'" />
+                <a href='#' data-bind='click: $parent.removeGroup' class="fa fa-trash-o"></a>
+              </div>
+            </div>
+            <div class="klipper-flex klipper-flex-row klipper-items-center klipper-gap-1">
+              <a href='#' data-bind='click: addGroup' title="{{ _('Add Group') }}" class="fa fa-plus-circle"></a>
+              {{ _('Add Group') }}
+            </div>
+            <span class="help-inline">{{ _('Groups are shown in this order on the Klipper tab and sidebar.') }}</span>
+          </div>
+        </div>
         <table class="table table-condensed klipper-macros-table">
           <thead>
             <tr>
@@ -349,8 +368,8 @@
                 <input type="text" class="input-block-level" data-bind="value: name, valueUpdate: 'afterkeydown'" />
               </td>
               <td>
-                <input type="text" class="input-block-level" data-bind="value: group, valueUpdate: 'afterkeydown'"
-                  title="{{ _('Group this macro under a collapsible heading, e.g. Tests or Calibration.') }}" />
+                <select class="input-block-level" data-bind="options: $parent.macroGroupOptions, value: group"
+                  title="{{ _('Group this macro under a collapsible heading, e.g. Tests or Calibration.') }}"></select>
               </td>
               <td class="klipper-text-center">
                 <div class="klipper-flex klipper-flex-row klipper-items-center klipper-justify-center klipper-gap-1">
@@ -476,6 +495,24 @@
         </div>
       </div>
       <div class="control-group">
+        <div class="control-label">{{ _('Groups') }}</div>
+        <div class="controls">
+          <div data-bind="foreach: parsedMacroGroups">
+            <div class="klipper-flex klipper-flex-row klipper-items-center klipper-gap-1">
+              <a href='#' data-bind='click: $parent.moveParsedGroupUp' class="fa fa-chevron-up"></a>
+              <a href='#' data-bind='click: $parent.moveParsedGroupDown' class="fa fa-chevron-down"></a>
+              <input type="text" class="input-block-level" data-bind="value: name, valueUpdate: 'afterkeydown'" />
+              <a href='#' data-bind='click: $parent.removeParsedGroup' class="fa fa-trash-o"></a>
+            </div>
+          </div>
+          <div class="klipper-flex klipper-flex-row klipper-items-center klipper-gap-1">
+            <a href='#' data-bind='click: addParsedGroup' title="{{ _('Add Group') }}" class="fa fa-plus-circle"></a>
+            {{ _('Add Group') }}
+          </div>
+          <span class="help-inline">{{ _('Groups are shown in this order on the Klipper tab and sidebar.') }}</span>
+        </div>
+      </div>
+      <div class="control-group">
         <div class="controls">
           <button type="button" class="btn btn-small" data-bind="click: refreshParsedMacros"
             title="{{ _('Re-parse the macros from the config files') }}">
@@ -492,12 +529,13 @@
             <th>{{ _('Group') }}</th>
             <th>{{ _('Klipper Tab') }}</th>
             <th>{{ _('Sidebar') }}</th>
+            <th>{{ _('Action') }}</th>
           </tr>
         </thead>
         <tbody data-bind="foreach: klipperViewModel.klipperMacros">
           <tr>
             <td class="klipper-w-50">
-              <span data-bind="text: name, attr: { title: gcodePreview }"></span>
+              <span data-bind="text: name, attr: { title: $root.klipperViewModel.macroTooltip($data) }"></span>
             </td>
             <td>
               <span data-bind="text: sourceName"></span>
@@ -511,14 +549,18 @@
               <!-- /ko -->
             </td>
             <td>
-              <input type="text" class="input-block-level" data-bind="value: group, valueUpdate: 'afterkeydown'"
-                title="{{ _('Group this macro under a collapsible heading, e.g. Tests or Calibration.') }}" />
+              <select class="input-block-level" data-bind="options: $parent.parsedMacroGroupOptions, value: group"
+                title="{{ _('Group this macro under a collapsible heading, e.g. Tests or Calibration.') }}"></select>
             </td>
             <td class="klipper-text-center">
               <input title="{{ _('Klipper Tab') }}" type="checkbox" data-bind="checked: tab" />
             </td>
             <td class="klipper-text-center">
               <input title="{{ _('Sidebar') }}" type="checkbox" data-bind="checked: sidebar" />
+            </td>
+            <td class="klipper-text-center">
+              <a href='#' data-bind='click: $parent.moveParsedMacroUp' class="fa fa-chevron-up"></a>
+              <a href='#' data-bind='click: $parent.moveParsedMacroDown' class="fa fa-chevron-down"></a>
             </td>
           </tr>
         </tbody>

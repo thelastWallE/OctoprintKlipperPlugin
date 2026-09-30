@@ -30,6 +30,134 @@ $(function () {
     self.servicefilePassword = ko.observable("");
     self.servicefilePasswordDialog = undefined;
 
+    // -- Macro group management ---------------------------------------------
+
+    // Read a list setting defensively (settings may not be loaded yet).
+    self._groupOrder = function (key) {
+      var setting = self.settings.settings.plugins.klipper.configuration[key];
+      return setting && typeof setting === "function" ? setting() : [];
+    };
+
+    // Editable group lists (each item is { name: ko.observable() }). These
+    // mirror the macro_group_order / parsed_macro_group_order settings so the
+    // names can be edited inline like the macro names. They are synced back to
+    // the settings on save.
+    self.macroGroups = ko.observableArray([]);
+    self.parsedMacroGroups = ko.observableArray([]);
+
+    self._syncGroupsFromSettings = function () {
+      self.macroGroups(
+        _.map(self._groupOrder("macro_group_order"), function (name) {
+          return { name: ko.observable(name) };
+        }),
+      );
+      self.parsedMacroGroups(
+        _.map(self._groupOrder("parsed_macro_group_order"), function (name) {
+          return { name: ko.observable(name) };
+        }),
+      );
+    };
+
+    self._syncGroupsToSettings = function () {
+      var order = self.settings.settings.plugins.klipper.configuration.macro_group_order;
+      var names = [];
+      _.each(self.macroGroups(), function (g) {
+        var n = String(g.name() || "").trim();
+        if (n && names.indexOf(n) === -1) names.push(n);
+      });
+      order(names);
+      var porder = self.settings.settings.plugins.klipper.configuration.parsed_macro_group_order;
+      var pnames = [];
+      _.each(self.parsedMacroGroups(), function (g) {
+        var n = String(g.name() || "").trim();
+        if (n && pnames.indexOf(n) === -1) pnames.push(n);
+      });
+      porder(pnames);
+    };
+
+    // Available options for the user-macro Group dropdown: "" (no group) + the
+    // configured groups + any legacy groups still used by macros.
+    self.macroGroupOptions = ko.pureComputed(function () {
+      var options = [""].concat(
+        _.map(self.macroGroups(), function (g) {
+          return g.name();
+        }),
+      );
+      _.each(self.settings.settings.plugins.klipper.macros(), function (m) {
+        var g = m.group ? (typeof m.group === "function" ? m.group() : m.group) : "";
+        if (g && options.indexOf(g) === -1) options.push(g);
+      });
+      return options;
+    });
+
+    // Available options for the parsed-macro Group dropdown.
+    self.parsedMacroGroupOptions = ko.pureComputed(function () {
+      var options = [""].concat(
+        _.map(self.parsedMacroGroups(), function (g) {
+          return g.name();
+        }),
+      );
+      _.each(self.klipperViewModel.klipperMacros(), function (m) {
+        var g = m.group();
+        if (g && options.indexOf(g) === -1) options.push(g);
+      });
+      return options;
+    });
+
+    // Add a new group with a unique default name (like the "Add Macro"
+    // button). The name is editable inline.
+    self.addGroup = function () {
+      var base = gettext("Group");
+      var names = _.map(self.macroGroups(), function (g) {
+        return g.name();
+      });
+      var name = base;
+      var i = 2;
+      while (names.indexOf(name) !== -1) {
+        name = base + " " + i;
+        i++;
+      }
+      self.macroGroups.push({ name: ko.observable(name) });
+    };
+
+    self.removeGroup = function (group) {
+      self.macroGroups.remove(group);
+    };
+
+    self.moveGroupUp = function (group) {
+      self.moveItemUp(self.macroGroups, group);
+    };
+
+    self.moveGroupDown = function (group) {
+      self.moveItemDown(self.macroGroups, group);
+    };
+
+    self.addParsedGroup = function () {
+      var base = gettext("Group");
+      var names = _.map(self.parsedMacroGroups(), function (g) {
+        return g.name();
+      });
+      var name = base;
+      var i = 2;
+      while (names.indexOf(name) !== -1) {
+        name = base + " " + i;
+        i++;
+      }
+      self.parsedMacroGroups.push({ name: ko.observable(name) });
+    };
+
+    self.removeParsedGroup = function (group) {
+      self.parsedMacroGroups.remove(group);
+    };
+
+    self.moveParsedGroupUp = function (group) {
+      self.moveItemUp(self.parsedMacroGroups, group);
+    };
+
+    self.moveParsedGroupDown = function (group) {
+      self.moveItemDown(self.parsedMacroGroups, group);
+    };
+
     var changeConfigPath = function () {
       self.settings.settings.plugins.klipper.configuration.config_path(self.configPath());
     };
@@ -63,6 +191,7 @@ $(function () {
       self.getConfigPath();
       self.getServerInfo();
       self.updateMacroList();
+      self._syncGroupsFromSettings();
       self.servicefilePasswordDialog = $("#klipper_servicefile_password_dialog");
       // Show a hint for the currently configured log path without a click
       self.checkLogPath();
@@ -242,6 +371,25 @@ $(function () {
       self.moveItemDown(self.settings.settings.plugins.klipper.macros, macro);
     };
 
+    // Reorder the parsed macros (from printer.cfg) in the settings table. The
+    // order is persisted via each macro's `order` field so it survives a
+    // re-parse and a settings save.
+    self.moveParsedMacroUp = function (macro) {
+      self.moveItemUp(self.klipperViewModel.klipperMacros, macro);
+      self._renumberParsedMacroOrder();
+    };
+
+    self.moveParsedMacroDown = function (macro) {
+      self.moveItemDown(self.klipperViewModel.klipperMacros, macro);
+      self._renumberParsedMacroOrder();
+    };
+
+    self._renumberParsedMacroOrder = function () {
+      _.each(self.klipperViewModel.klipperMacros(), function (m, idx) {
+        m.order = idx;
+      });
+    };
+
     self.addProbePoint = function () {
       self.settings.settings.plugins.klipper.probe.points.push({
         name: "point-#",
@@ -327,6 +475,7 @@ $(function () {
     };
 
     self.onSettingsBeforeSave = function () {
+      self._syncGroupsToSettings();
       self.saveMacroList();
       self.saveParsedMacros();
     };
@@ -345,11 +494,15 @@ $(function () {
       // otherwise we'd wipe any previously saved preferences.
       if (!macros || !macros.length) return;
       var prefs = {};
-      _.each(macros, function (m) {
-        prefs[m.name] = {
+      _.each(macros, function (m, idx) {
+        // Key by UPPERCASE name so prefs survive case changes in printer.cfg
+        // (Klipper macro names are case-insensitive).
+        prefs[m.name.toUpperCase()] = {
           group: m.group(),
           sidebar: m.sidebar(),
           tab: m.tab(),
+          // Persist the display order so reordering survives a re-parse.
+          order: m.order !== undefined ? m.order : idx,
         };
       });
       // Keep the settings tree in sync so the normal settings save also

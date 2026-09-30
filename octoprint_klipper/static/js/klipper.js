@@ -430,9 +430,7 @@ $(function () {
         self.showPopUp(
           "warning",
           gettext("Printer not connected"),
-          gettext(
-            "The printer is not connected, so the macro was not sent. The commands were logged below."
-          )
+          gettext("The printer is not connected, so the macro was not sent. The commands were logged below."),
         );
         return;
       }
@@ -483,6 +481,35 @@ $(function () {
       return preview;
     };
 
+    // Display name for a macro's source file: a path relative to the config
+    // directory when the file lives there (so two files with the same
+    // basename in different subfolders stay distinguishable), otherwise just
+    // the basename.
+    self._sourceDisplayName = function (source) {
+      if (!source) return "";
+      var configPath = "";
+      try {
+        configPath = self.settings.settings.plugins.klipper.configuration.config_path();
+      } catch (e) {
+        configPath = "";
+      }
+      if (configPath) {
+        var normSource = source.replace(/\\/g, "/");
+        var normConfig = configPath.replace(/\\/g, "/").replace(/\/+$/, "");
+        if (normSource.indexOf(normConfig + "/") === 0) {
+          return normSource.slice(normConfig.length + 1);
+        }
+      }
+      return source.split(/[\\/]/).pop();
+    };
+
+    // Tooltip for a parsed macro button: the macro's description when set,
+    // otherwise a preview of its gcode body.
+    self.macroTooltip = function (macro) {
+      if (macro && macro.description) return macro.description;
+      return macro ? macro.gcodePreview : "";
+    };
+
     self.loadKlipperMacros = function () {
       OctoPrint.plugins.klipper
         .getKlipperMacros()
@@ -505,46 +532,64 @@ $(function () {
               var v = pref[key];
               return typeof v === "function" ? v() : v !== undefined ? v : defaultValue;
             };
-            // Index the currently displayed macros by name so a re-parse keeps
-            // the user's current group/sidebar/tab values (including unsaved
-            // edits made in the settings tab) instead of resetting them.
+            // Klipper macro names are case-insensitive, so index both the
+            // currently displayed macros and the saved prefs by UPPERCASE name
+            // to keep prefs matching across case changes (e.g. "start_print"
+            // vs "START_PRINT").
             var current = {};
             _.each(self.klipperMacros(), function (m) {
-              current[m.name] = m;
+              current[m.name.toUpperCase()] = m;
+            });
+            var prefIndex = {};
+            _.each(prefs, function (value, key) {
+              prefIndex[key.toUpperCase()] = value;
             });
             merged = _.map(raw, function (m) {
-              var cur = current[m.name];
-              var pref = prefs[m.name];
+              var cur = current[m.name.toUpperCase()];
+              var pref = prefIndex[m.name.toUpperCase()];
               return {
                 name: m.name,
                 gcode: m.gcode,
+                description: m.description || "",
                 has_params: m.has_params,
                 source: m.source,
                 // Display info for the settings tab: the file the macro was
-                // parsed from (basename) and a preview of its gcode.
-                sourceName: m.source ? m.source.split(/[\\/]/).pop() : "",
+                // parsed from (relative to the config dir when possible) and a
+                // preview of its gcode.
+                sourceName: self._sourceDisplayName(m.source),
                 gcodePreview: self._gcodePreview(m.gcode),
+                // Display order: keep the current position when the macro is
+                // already shown, otherwise the persisted order from prefs.
+                order: cur ? cur.order : prefValue(pref, "order", undefined),
                 group: ko.observable(cur ? cur.group() : prefValue(pref, "group", "")),
                 sidebar: ko.observable(cur ? cur.sidebar() : prefValue(pref, "sidebar", false)),
                 tab: ko.observable(cur ? cur.tab() : prefValue(pref, "tab", true)),
               };
             });
+            // Apply the persisted/current display order (macros without an
+            // order keep their parse order).
+            merged.sort(function (a, b) {
+              var oa = a.order,
+                ob = b.order;
+              if (oa === undefined && ob === undefined) return 0;
+              if (oa === undefined) return 1;
+              if (ob === undefined) return -1;
+              return oa - ob;
+            });
           } catch (e) {
             // If merging the preferences fails for any reason, fall back to
             // the raw macros so parsing still works.
-            self.logMessage(
-              null,
-              "error",
-              gettext("Error:") + " " + _.escape(String((e && e.message) || e))
-            );
+            self.logMessage(null, "error", gettext("Error:") + " " + _.escape(String((e && e.message) || e)));
             merged = _.map(raw, function (m) {
               return {
                 name: m.name,
                 gcode: m.gcode,
+                description: m.description || "",
                 has_params: m.has_params,
                 source: m.source,
-                sourceName: m.source ? m.source.split(/[\\/]/).pop() : "",
+                sourceName: self._sourceDisplayName(m.source),
                 gcodePreview: self._gcodePreview(m.gcode),
+                order: undefined,
                 group: ko.observable(""),
                 sidebar: ko.observable(false),
                 tab: ko.observable(true),
@@ -576,26 +621,87 @@ $(function () {
       }
     };
 
+    // Order groups by the configured group-order list; groups not listed
+    // follow alphabetically. When the list is empty, fall back to alphabetical
+    // order. The "" group (no header) always sorts first.
+    self._orderGroups = function (groups, orderList) {
+      var order = orderList || [];
+      var byName = {};
+      _.each(groups, function (g) {
+        byName[g.name] = g;
+      });
+      var ordered = [];
+      _.each(order, function (name) {
+        if (byName[name]) {
+          ordered.push(byName[name]);
+          delete byName[name];
+        }
+      });
+      var rest = _.sortBy(_.values(byName), function (g) {
+        return g.name.toLowerCase();
+      });
+      return ordered.concat(rest);
+    };
+
     // Group the parsed Klipper macros by their (optional) group. Macros
     // without a group go into the "" group which is rendered without a
     // collapsible header.
     self.klipperMacroGroups = ko.pureComputed(function () {
       var groups = {};
-      var ordered = [];
       _.each(self.klipperMacros(), function (macro) {
         var groupName = macro.group();
         if (!groups[groupName]) {
           groups[groupName] = { name: groupName, macros: [] };
-          ordered.push(groups[groupName]);
         }
         groups[groupName].macros.push(macro);
       });
-      return ordered;
+      var orderSetting = self.settings.settings.plugins.klipper.configuration.parsed_macro_group_order;
+      var order = orderSetting && typeof orderSetting === "function" ? orderSetting() : [];
+      return self._orderGroups(_.values(groups), order);
     });
 
+    // Sidebar-specific grouping of the parsed macros: only macros with
+    // sidebar: true are included, and groups with no sidebar-visible macros
+    // are omitted. Ordered by the configured group order.
+    self.klipperMacroGroupsSidebar = ko.pureComputed(function () {
+      var groups = {};
+      _.each(self.klipperMacros(), function (macro) {
+        if (!macro.sidebar()) return;
+        var groupName = macro.group();
+        if (!groups[groupName]) {
+          groups[groupName] = { name: groupName, macros: [] };
+        }
+        groups[groupName].macros.push(macro);
+      });
+      var orderSetting = self.settings.settings.plugins.klipper.configuration.parsed_macro_group_order;
+      var order = orderSetting && typeof orderSetting === "function" ? orderSetting() : [];
+      return self._orderGroups(_.values(groups), order);
+    });
+
+    // Persist/restore the per-location group collapse state in localStorage so
+    // it survives a page reload. Wrapped in try/catch because localStorage may
+    // be unavailable (e.g. sandboxed iframes / private browsing).
+    self._loadCollapsedState = function (key) {
+      try {
+        var raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        return {};
+      }
+    };
+
+    self._saveCollapsedState = function (key, state) {
+      try {
+        localStorage.setItem(key, JSON.stringify(state));
+      } catch (e) {
+        // ignore — collapse state just won't persist
+      }
+    };
+
     // Collapse state for parsed-macro groups, tracked per location
-    // ("tab" / "sidebar") like the user-defined macro groups.
-    self.klipperMacroGroupsCollapsed = ko.observable({});
+    // ("tab" / "sidebar") like the user-defined macro groups. Persisted to
+    // localStorage so it survives a page reload.
+    self.klipperMacroGroupsCollapsed = ko.observable(self._loadCollapsedState("klipper.klipperMacroGroupsCollapsed"));
 
     self.toggleKlipperMacroGroup = function (name, location) {
       var collapsed = _.clone(self.klipperMacroGroupsCollapsed());
@@ -603,6 +709,7 @@ $(function () {
       loc[name] = !loc[name];
       collapsed[location] = loc;
       self.klipperMacroGroupsCollapsed(collapsed);
+      self._saveCollapsedState("klipper.klipperMacroGroupsCollapsed", collapsed);
     };
 
     self.klipperMacroGroupCollapsed = function (name, location) {
@@ -614,8 +721,9 @@ $(function () {
 
     // Collapse state is tracked per location ("tab" / "sidebar") so a user
     // can, e.g., expand a group on the sidebar while it stays collapsed on
-    // the main tab. Shape: { location: { groupName: bool } }.
-    self.macroGroupsCollapsed = ko.observable({});
+    // the main tab. Shape: { location: { groupName: bool } }. Persisted to
+    // localStorage so it survives a page reload.
+    self.macroGroupsCollapsed = ko.observable(self._loadCollapsedState("klipper.macroGroupsCollapsed"));
 
     self.toggleMacroGroup = function (name, location) {
       // Clone so the observable gets a new reference and notifies subscribers
@@ -625,6 +733,7 @@ $(function () {
       loc[name] = !loc[name];
       collapsed[location] = loc;
       self.macroGroupsCollapsed(collapsed);
+      self._saveCollapsedState("klipper.macroGroupsCollapsed", collapsed);
     };
 
     self.macroGroupCollapsed = function (name, location) {
@@ -637,7 +746,6 @@ $(function () {
     // collapsible header.
     self.macroGroups = ko.pureComputed(function () {
       var groups = {};
-      var ordered = [];
       _.each(self.settings.settings.plugins.klipper.macros(), function (macro) {
         var groupName = "";
         if (macro.group) {
@@ -645,11 +753,34 @@ $(function () {
         }
         if (!groups[groupName]) {
           groups[groupName] = { name: groupName, macros: [] };
-          ordered.push(groups[groupName]);
         }
         groups[groupName].macros.push(macro);
       });
-      return ordered;
+      var orderSetting = self.settings.settings.plugins.klipper.configuration.macro_group_order;
+      var order = orderSetting && typeof orderSetting === "function" ? orderSetting() : [];
+      return self._orderGroups(_.values(groups), order);
+    });
+
+    // Sidebar-specific grouping of the user-defined macros: only macros with
+    // sidebar: true are included, and groups with no sidebar-visible macros
+    // are omitted. Ordered by the configured group order.
+    self.macroGroupsSidebar = ko.pureComputed(function () {
+      var groups = {};
+      _.each(self.settings.settings.plugins.klipper.macros(), function (macro) {
+        var show = macro.sidebar ? (typeof macro.sidebar === "function" ? macro.sidebar() : macro.sidebar) : false;
+        if (!show) return;
+        var groupName = "";
+        if (macro.group) {
+          groupName = typeof macro.group === "function" ? macro.group() : macro.group;
+        }
+        if (!groups[groupName]) {
+          groups[groupName] = { name: groupName, macros: [] };
+        }
+        groups[groupName].macros.push(macro);
+      });
+      var orderSetting = self.settings.settings.plugins.klipper.configuration.macro_group_order;
+      var order = orderSetting && typeof orderSetting === "function" ? orderSetting() : [];
+      return self._orderGroups(_.values(groups), order);
     });
 
     self.navbarClicked = function () {

@@ -1,3 +1,12 @@
+2026-09-30: add dedicated group management — create, rename, reorder and delete macro groups with an "Add Group" button; the macro Group fields are now dropdowns populated from the groups
+2026-09-30: add a group ordering setting for the user-defined and parsed macro groups (empty = alphabetical)
+2026-09-30: add sidebar-specific macro group computeds (macroGroupsSidebar / klipperMacroGroupsSidebar) that pre-filter to sidebar-visible macros
+2026-09-30: frame macro groups with a border and header on the main tab and sidebar
+2026-09-30: truncate long macro names on the buttons with an ellipsis (klipper-truncate)
+2026-09-30: persist the group collapse state across page reloads
+2026-09-30: show a macro's description as a tooltip on its button
+2026-09-30: show the source file relative to the config directory for parsed macros
+2026-09-30: sort macro groups alphabetically by default
 2026-09-27: detect Klipper runtime parameters ({params.X}, {rawparams.X}, {input.X}) in parsed macros and open the parameter dialog — values are sent as MACRONAME X=value arguments
 2026-09-27: allow macro buttons to be clicked without a connected printer — when not connected the gcode is logged and a hint toast is shown instead of failing silently
 2026-09-27: deliver parsed macro preferences via the getKlipperMacros API response — ko.mapping flattens nested dict values in the settings tree to empty objects, so the frontend can't read parsedMacros from there

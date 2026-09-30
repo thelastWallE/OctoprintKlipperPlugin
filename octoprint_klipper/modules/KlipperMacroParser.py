@@ -30,6 +30,7 @@ _PARAM_PLACEHOLDER_RE = re.compile(
 # dialog and sent as MACRONAME X=value arguments. Only single-brace
 # expressions match — {{ params.X }} (double braces) is a plain Jinja2
 # expression and is not treated as a parameter.
+# NOTE: keep in sync with klipperParamRegex in klipper_param_macro.js.
 _KLIPPER_PARAM_RE = re.compile(
     r"(?<!\{)\{[^{}]*\b(?:params|rawparams|input)\.(\w+)[^{}]*\}"
 )
@@ -162,6 +163,7 @@ def _parse_macro_section(lines, section_name, source_file):
     """Extract a macro dict from a ``[gcode_macro NAME]`` section's lines."""
     name = section_name.strip()
     gcode_lines = []
+    description = ""
     in_gcode = False
     for _line_no, line in lines:
         if in_gcode:
@@ -170,17 +172,22 @@ def _parse_macro_section(lines, section_name, source_file):
             if line.startswith((" ", "\t")):
                 gcode_lines.append(line.strip())
                 continue
-            break
+            in_gcode = False
         m = _KEY_VALUE_RE.match(line)
-        if m and m.group(1).strip().lower() == "gcode":
-            in_gcode = True
+        if m:
+            key = m.group(1).strip().lower()
             value = m.group(2).strip()
-            if value:
-                gcode_lines.append(value)
+            if key == "gcode":
+                in_gcode = True
+                if value:
+                    gcode_lines.append(value)
+            elif key == "description" and not description:
+                description = value
     gcode = "\n".join(gcode_lines)
     return dict(
         name=name,
         gcode=gcode,
+        description=description,
         has_params=bool(
             _PARAM_PLACEHOLDER_RE.search(gcode) or _KLIPPER_PARAM_RE.search(gcode)
         ),

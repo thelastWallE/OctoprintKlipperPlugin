@@ -1090,6 +1090,14 @@ msgstr "Der Makros-Bereich wird beim Laden der Seite eingeklappt. Zum Verwenden 
 msgid "Group"
 msgstr "Gruppe"
 
+#: octoprint_klipper/templates/klipper_settings.jinja2:218
+msgid "Add Group"
+msgstr "Gruppe hinzufügen"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:218
+msgid "Groups"
+msgstr "Gruppen"
+
 #: octoprint_klipper/templates/klipper_settings.jinja2:193
 msgid "Group this macro under a collapsible heading, e.g. Tests or Calibration."
 msgstr "Gruppiere dieses Makro unter einer einklappbaren Überschrift, z.B. Tests oder Kalibrierung."
