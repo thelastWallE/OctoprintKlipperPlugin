@@ -473,6 +473,15 @@ div#settings_plugin_klipper div#macros label.control-label {
   vertical-align: middle;
 }
 
+/* The Group column should be wide enough to show the group names and grow
+   dynamically with the longest option. input-block-level forces width:100%,
+   which fills a cell sized to the select's tiny intrinsic width — so let the
+   select size to its content with a sensible minimum instead. */
+#settings_plugin_klipper .klipper-macros-table td select[data-bind*="GroupOptions"] {
+  width: auto;
+  min-width: 120px;
+}
+
 /* Align the Klipper Tab / Sidebar checkboxes with their labels: Bootstrap
    gives checkboxes a margin-top that shifts them down inside the flex row */
 #settings_plugin_klipper .klipper-macros-table input[type="checkbox"] {
@@ -870,9 +879,9 @@ div#settings_plugin_klipper div#macros label.control-label {
 
 #settings_plugin_klipper .klipper-macros-table .klipper-button-style-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 2fr 1fr 1fr;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* Bootstrap's clearfix adds ::before/::after (display: table) which would
