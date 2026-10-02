@@ -525,9 +525,10 @@ div#settings_plugin_klipper div#macros label.control-label {
 }
 
 .klipper-macro-group {
-  border: 1px solid #ccc;
+  border: 1px solid hsl(0, 0%, 0%, 0.3);
   border-radius: 4px;
   padding: 2px;
+  background-color: hsl(0, 0%, 0%, 0.1);
 }
 
 /* Collapsible macro group headers on the Klipper tab and sidebar */
