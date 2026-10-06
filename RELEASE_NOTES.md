@@ -22,22 +22,6 @@ This release is a major update that brings OctoKlipper up to date with the **new
 - **Colored short status** — the sidebar short status now uses colors for better readability.
 - **Config versioning plan** — a design document for keeping the last 5 versions of every config plus a revert button (coming in a follow-up).
 
-## 🧩 Macros & Groups
-
-A big rework of the macro system: macros parsed from `printer.cfg` (and its `[include]`d files) can now be grouped, ordered, and shown on the Klipper tab and/or a dedicated sidebar panel.
-
-- **Parsed printer.cfg macros** — gcode macros are parsed out of `printer.cfg` and its `[include]`d files (recursively, with cycle protection) and shown as clickable buttons.
-- **Dedicated sidebar panels** — separate "Macros" and "Klipper Macros" panels, placed directly below the connection panel.
-- **Dedicated "Klipper Macros" settings tab** — assign each parsed macro to a group and choose where it is shown (Klipper tab / sidebar).
-- **Group management** — create, rename, reorder and delete groups with an "Add Group" button; the macro Group fields are dropdowns populated from your groups.
-- **Group ordering** — control the display order of the user-defined and parsed macro groups (empty = alphabetical).
-- **Collapsible groups** — groups are collapsible on the tab and sidebar, and the collapse state is remembered across reloads.
-- **Klipper runtime parameters** — macros using `{params.X}`, `{rawparams.X}` or `{input.X}` open a parameter dialog and are sent as `MACRONAME X=value` arguments.
-- **Offline macro execution** — macro buttons can be clicked without a connected printer; the commands are logged and a hint is shown instead of failing silently.
-- **Description tooltips** — a macro's `description:` is shown as a tooltip on its button.
-- **Bordered group containers** — groups are visually framed with a border and header on the tab and sidebar.
-- **Truncated macro names** — long macro names are truncated with an ellipsis on the buttons.
-
 ## 🎨 UI improvements
 
 - **Macros settings reworked** — the macro list is now a proper table with an _Add Macro_ footer row, a live button preview that shows the macro name as you type, and a style selector that clears the custom color. The example command box is pinned to the bottom of the tab.

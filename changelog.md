@@ -1,3 +1,7 @@
+2026-10-06: make the previously hardcoded settings strings translatable — macro button style options (Default/Danger/Success/Warning/Info), restart-type options, log filter tooltips, the editor dialog title, the probes table headers and the Refresh file list tooltip
+2026-10-06: complete the Spanish and French translations (397/397 strings each, up from 53) and translate the newly extracted strings in German (397/397)
+2026-10-06: refresh the gettext template from the current source — 397 strings (was 311, missing 113 in-use strings and carrying 24 dead ones)
+2026-10-06: fix babel.cfg for Jinja2 3.x — jinja2.ext.autoescape and jinja2.ext.with_ were removed, so babel_extract/babel_refresh failed outright; also ignore vendored static/js/lib (the minified Monaco bundle produced bogus matches)
 2026-09-30: add dedicated group management — create, rename, reorder and delete macro groups with an "Add Group" button; the macro Group fields are now dropdowns populated from the groups
 2026-09-30: add a group ordering setting for the user-defined and parsed macro groups (empty = alphabetical)
 2026-09-30: add sidebar-specific macro group computeds (macroGroupsSidebar / klipperMacroGroupsSidebar) that pre-filter to sidebar-visible macros

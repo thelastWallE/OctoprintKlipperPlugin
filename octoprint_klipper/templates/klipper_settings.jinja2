@@ -241,9 +241,9 @@
             title="{{ _('The type of restart that is used if you want to restart klipper.') }}">{{ _('The type of restart that is used on the dialogs:') }}
             <div class="klipper-reset-row">
               <select data-bind="value: settings.settings.plugins.klipper.configuration.reload_used">
-                <option value="HOST">Restart Host(klippy)</option>
-                <option value="FIRMWARE">Restart Firmware on printer</option>
-                <option value="SYSTEMCOMMAND">Restart klipper service with system command</option>
+                <option value="HOST">{{ _('Restart Host(klippy)') }}</option>
+                <option value="FIRMWARE">{{ _('Restart Firmware on printer') }}</option>
+                <option value="SYSTEMCOMMAND">{{ _('Restart klipper service with system command') }}</option>
               </select>
               <button type="button" class="btn btn-mini klipper-reset-btn"
                 data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'reload_used') }"
@@ -403,11 +403,11 @@
                       </div>
                       <label title="{{ _('The style of the button.') }}">{{ _('Style') }}
                         <select data-bind="value: buttonStyle, event: { change: function() { buttonColor(''); } }">
-                          <option value="">Default</option>
-                          <option value="btn-danger">Danger</option>
-                          <option value="btn-success">Success</option>
-                          <option value="btn-warning">Warning</option>
-                          <option value="btn-info">Info</option>
+                          <option value="">{{ _('Default') }}</option>
+                          <option value="btn-danger">{{ _('Danger') }}</option>
+                          <option value="btn-success">{{ _('Success') }}</option>
+                          <option value="btn-warning">{{ _('Warning') }}</option>
+                          <option value="btn-info">{{ _('Info') }}</option>
                         </select>
                       </label>
                       <label>{{ _('Color') }}
@@ -514,10 +514,12 @@
         </div>
       </div>
       <div class="control-group">
+        <label class="control-label"
+          for="klipper-reparse-macros">{{ _('Re-parse the macros from the config files') }}</label>
         <div class="controls">
-          <button type="button" class="btn btn-small" data-bind="click: refreshParsedMacros"
-            title="{{ _('Re-parse the macros from the config files') }}">
-            <i class="icon-refresh"></i> {{ _('Refresh') }}
+          <button id="klipper-reparse-macros" type="button" class="btn btn-small"
+            data-bind="click: refreshParsedMacros">
+            <i class="icon-refresh"></i> {{ _('Re-parse') }}
           </button>
         </div>
       </div>
@@ -583,11 +585,11 @@
                     </div>
                     <label title="{{ _('The style of the button.') }}">{{ _('Style') }}
                       <select data-bind="value: buttonStyle, event: { change: function() { buttonColor(''); } }">
-                        <option value="">Default</option>
-                        <option value="btn-danger">Danger</option>
-                        <option value="btn-success">Success</option>
-                        <option value="btn-warning">Warning</option>
-                        <option value="btn-info">Info</option>
+                        <option value="">{{ _('Default') }}</option>
+                        <option value="btn-danger">{{ _('Danger') }}</option>
+                        <option value="btn-success">{{ _('Success') }}</option>
+                        <option value="btn-warning">{{ _('Warning') }}</option>
+                        <option value="btn-info">{{ _('Info') }}</option>
                       </select>
                     </label>
                     <label>{{ _('Color') }}
@@ -649,7 +651,7 @@
             <div class="input-append">
               <input type="text" class="input-block-level span3"
                 data-bind="value: settings.settings.plugins.klipper.probe.speed_z" />
-              <span class="add-on">mm/min</span>
+              <span class="add-on">{{ _('mm/min') }}</span>
             </div>
             <button type="button" class="btn btn-mini klipper-reset-btn"
               data-bind="click: function() { klipperViewModel.resetSetting('probe', 'speed_z') }"
@@ -664,7 +666,7 @@
             <div class="input-append">
               <input type="text" class="input-block-level span3"
                 data-bind="value: settings.settings.plugins.klipper.probe.speed_xy" />
-              <span class="add-on">mm/min</span>
+              <span class="add-on">{{ _('mm/min') }}</span>
             </div>
             <button type="button" class="btn btn-mini klipper-reset-btn"
               data-bind="click: function() { klipperViewModel.resetSetting('probe', 'speed_xy') }"
@@ -676,9 +678,9 @@
         <h5>{{ _('Probe Points') }}</h5>
         <div class="controls">
           <div class="row-fluid">
-            <div class="span3">name</div>
-            <div class="span3">x(mm)</div>
-            <div class="span3">y(mm)</div>
+            <div class="span3">{{ _('name') }}</div>
+            <div class="span3">{{ _('x(mm)') }}</div>
+            <div class="span3">{{ _('y(mm)') }}</div>
             <div class="span3"> </div>
           </div>
         </div>
@@ -892,14 +894,14 @@
             <input type="text" class="span12" data-bind="value: regex">
           </div>
           <div class="span2">
-            <a title="Remove Filter" class="btn btn-danger" data-bind="click: $parent.removeLogFilter"><i
+            <a title="{{ _('Remove Filter') }}" class="btn btn-danger" data-bind="click: $parent.removeLogFilter"><i
                 class="far fa-trash-alt"></i></a>
           </div>
         </div>
       </div>
       <div class="row-fluid">
         <div class="offset10 span2">
-          <a title="Add Filter" class="btn btn-primary" data-bind="click: addLogFilter"><i class="fas fa-plus"></i></a>
+          <a title="{{ _('Add Filter') }}" class="btn btn-primary" data-bind="click: addLogFilter"><i class="fas fa-plus"></i></a>
         </div>
       </div>
     </form>
