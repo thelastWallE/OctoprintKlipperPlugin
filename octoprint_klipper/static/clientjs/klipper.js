@@ -36,6 +36,19 @@
     return this.base.simpleApiCommand("klipper", "getKlipperMacros", {}, opts);
   };
 
+  OctoKlipperClient.prototype.getSaveVariables = function (opts) {
+    return this.base.simpleApiCommand("klipper", "getSaveVariables", {}, opts);
+  };
+
+  OctoKlipperClient.prototype.saveVariable = function (name, value, opts) {
+    return this.base.simpleApiCommand(
+      "klipper",
+      "saveVariable",
+      { name: name, value: value },
+      opts
+    );
+  };
+
   OctoKlipperClient.prototype.saveParsedMacros = function (parsedMacros, opts) {
     return this.base.postJson(
       this.url + "config/saveParsedMacros",
@@ -157,6 +170,15 @@
 
   OctoKlipperClient.prototype.createFolder = function (location, name, path, opts) {
     var data = { foldername: name };
+    if (path !== undefined && path !== "") {
+      data.path = path;
+    }
+
+    return this.base.postForm(this.resourceForLocation(location), data, opts);
+  };
+
+  OctoKlipperClient.prototype.createFile = function (location, name, path, opts) {
+    var data = { filename: name };
     if (path !== undefined && path !== "") {
       data.path = path;
     }

@@ -67,6 +67,18 @@ $(function () {
       );
     });
 
+    self.addFileDialog = undefined;
+    self.addFileName = ko.observable(undefined);
+    self.addingFile = ko.observable(false);
+    self.enableAddFile = ko.pureComputed(function () {
+      return (
+        self.loginState.hasPermission(self.access.permissions.FILES_UPLOAD) &&
+        self.addFileName() &&
+        self.addFileName().trim() !== "" &&
+        !self.addingFile()
+      );
+    });
+
     self.isLoading = ko.observable(false);
 
     self.isLoadActionPossible = ko.pureComputed(function () {
@@ -491,6 +503,15 @@ $(function () {
       }
     };
 
+    self.showAddFileDialog = function () {
+      if (!self.loginState.hasPermission(self.access.permissions.FILES_UPLOAD)) return;
+
+      if (self.addFileDialog) {
+        self.addFileName("");
+        self.addFileDialog.modal("show");
+      }
+    };
+
     self.addFolder = function () {
       if (!self.loginState.hasPermission(self.access.permissions.FILES_UPLOAD)) return;
 
@@ -517,6 +538,47 @@ $(function () {
         })
         .fail(function () {
           self.addingFolder(false);
+        })
+        .always(function () {
+          self.ignoreUpdatedFilesEvent = false;
+        });
+    };
+
+    self.addFile = function () {
+      if (!self.loginState.hasPermission(self.access.permissions.FILES_UPLOAD)) return;
+
+      var name = self.addFileName();
+
+      self.ignoreUpdatedFilesEvent = true;
+      self.addingFile(true);
+      OctoPrint.plugins.klipper
+        .createFile(self.klipperViewModel.storageLocation, name, self.currentPath())
+        .done(function (data) {
+          self
+            .requestData({
+              focus: {
+                path: data.file.path,
+                location: data.file.origin,
+              },
+            })
+            .done(function () {
+              self.addFileDialog.modal("hide");
+            })
+            .always(function () {
+              self.addingFile(false);
+            });
+        })
+        .fail(function (response) {
+          self.addingFile(false);
+          self.klipperViewModel.consoleMessage(
+            "error",
+            "createFile failed: " + _.escape(response.responseText),
+          );
+          self.klipperViewModel.showPopUp(
+            "error",
+            gettext("Create File"),
+            gettext("Could not create the file."),
+          );
         })
         .always(function () {
           self.ignoreUpdatedFilesEvent = false;
@@ -813,6 +875,17 @@ $(function () {
         e.preventDefault();
         if (self.enableAddFolder()) {
           self.addFolder();
+        }
+      });
+
+      self.addFileDialog = $("#klipper_add_file_dialog");
+      self.addFileDialog.on("shown", function () {
+        $("input", self.addFileDialog).focus();
+      });
+      $("form", self.addFileDialog).on("submit", function (e) {
+        e.preventDefault();
+        if (self.enableAddFile()) {
+          self.addFile();
         }
       });
 

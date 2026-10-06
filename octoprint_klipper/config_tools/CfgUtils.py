@@ -48,6 +48,11 @@ def list_config_files(self, path_type):
     )
 
     for f in cfg_files:
+        # The recursive glob also yields directories (the data folder itself,
+        # archive/, current/, ...). Only files are real backups — directories
+        # can't be previewed, downloaded or restored, so skip them.
+        if not os.path.isfile(f):
+            continue
         # Relative path without a leading separator so it can be used in
         # URLs/routes (a leading "/" or "\\" breaks <path:filename> matching).
         url = os.path.relpath(f, data_folder).replace(os.sep, "/")
@@ -57,6 +62,10 @@ def list_config_files(self, path_type):
         files.append(
             dict(
                 name=url,
+                # Top-level area the file lives in ("current" duplicates vs.
+                # versioned snapshots under "archive"/"configs"). An empty
+                # string for files directly in the data folder.
+                area=url.split("/", 1)[0] if "/" in url else "",
                 file=f,
                 bytes=filesize,
                 mdate=time.strftime("%d.%m.%Y %H:%M", filemdate),
@@ -220,6 +229,31 @@ def _find_key_line(content, section, key):
         elif in_section and pattern.match(line):
             return i
     return None
+
+
+def safe_config_subdir(config_path, relative_dir):
+    """Clamp a client-supplied relative directory to the configured config path.
+
+    Used for the config editor's ``CurrentFile`` value when resolving
+    ``[include ...]`` directives: the returned directory is guaranteed to be
+    ``config_path`` or one of its subdirectories. A value that would escape
+    (via ``..`` or an absolute path) falls back to ``config_path`` itself.
+
+    Returns:
+        str: the realpath of ``config_path/relative_dir`` when it stays inside
+        ``config_path``, otherwise the realpath of ``config_path``.
+    """
+    base = (os.path.realpath(os.path.expanduser(config_path)) if config_path else "")
+    if not base or not relative_dir:
+        return base
+    target = os.path.realpath(os.path.join(base, relative_dir))
+    try:
+        if os.path.commonpath([base, target]) == base:
+            return target
+    except ValueError:
+        # Incomparable paths (e.g. different drives on Windows).
+        pass
+    return base
 
 
 def check_config(self, data, base_dir=None):

@@ -1,0 +1,184 @@
+# -*- coding: utf-8 -*-
+"""Read and edit Klipper's ``[save_variables]`` variables.
+
+Klipper stores persistent variables in a file configured via the
+``[save_variables] filename:`` option in printer.cfg (see
+https://www.klipper3d.org/Config_Reference.html#save_variables). Variables are
+written as ``<name> = <python literal repr>`` lines and are exposed to gcode
+macros through ``printer.save_variables.variables.<name>``. This module is pure
+logic (no OctoPrint dependencies) so it can be unit tested directly.
+"""
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import ast
+import os
+import re
+
+# Matches the [save_variables] section header (section name may not be
+# suffixed).
+_SAVE_VARIABLES_SECTION_RE = re.compile(r"^\s*\[save_variables\]\s*$", re.IGNORECASE)
+
+# Generic INI section header, used to leave the [save_variables] section.
+_SECTION_RE = re.compile(r"^\s*\[([^\]]+)\]\s*$")
+
+# Matches "key: value" or "key = value" config lines.
+_KEY_VALUE_RE = re.compile(r"^\s*([^:#\s][^:]*?)\s*[:=]\s*(.*)$")
+
+# Matches macro access to the loaded variables dict,
+# e.g. printer.save_variables.variables.cleaning_pos_x
+_VARIABLES_ACCESS_RE = re.compile(
+    r"printer\.save_variables\.variables\.([A-Za-z_][A-Za-z0-9_]*)"
+)
+
+# Matches a SAVE_VARIABLE gcode command,
+# e.g. SAVE_VARIABLE VARIABLE=filament_id VALUE=42
+_SAVE_VARIABLE_RE = re.compile(
+    r"SAVE_VARIABLE\s+VARIABLE\s*=\s*([A-Za-z_][A-Za-z0-9_]*)", re.IGNORECASE
+)
+
+_VARIABLE_NAME_RE = re.compile(r"^[a-z_][a-z0-9_]*$")
+
+
+def _iter_config_lines(content):
+    """Yield non-empty, non-comment lines (leading whitespace preserved)."""
+    for raw in content.splitlines():
+        line = _strip_comment(raw)
+        if line.strip():
+            yield line
+
+
+def _strip_comment(line):
+    """Remove a trailing ``#`` or ``;`` comment from a config line."""
+    for marker in ("#", ";"):
+        idx = line.find(marker)
+        if idx != -1:
+            line = line[:idx]
+    return line.rstrip()
+
+
+def _read_file(path):
+    """Read a file as text, tolerating encoding issues."""
+    for encoding in ("utf-8", "latin-1"):
+        try:
+            with open(path, "r", encoding=encoding) as f:
+                return f.read()
+        except (IOError, UnicodeDecodeError):
+            continue
+    return None
+
+
+def find_variables_filename(baseconfig_path):
+    """Resolve the ``[save_variables] filename:`` option from a config file.
+
+    Args:
+        baseconfig_path (str): absolute path to the base config (printer.cfg).
+
+    Returns:
+        str or None: the expanded, normalized absolute path to the variables
+        file, or ``None`` when no ``[save_variables]`` section (with a
+        ``filename`` option) is present or the base config is unreadable.
+    """
+    if not baseconfig_path or not os.path.isfile(baseconfig_path):
+        return None
+    content = _read_file(baseconfig_path)
+    if content is None:
+        return None
+
+    in_section = False
+    for line in _iter_config_lines(content):
+        if _SAVE_VARIABLES_SECTION_RE.match(line):
+            in_section = True
+            continue
+        if in_section and _SECTION_RE.match(line):
+            break  # left the [save_variables] section
+        if not in_section:
+            continue
+        m = _KEY_VALUE_RE.match(line)
+        if not m:
+            continue
+        if m.group(1).strip().lower() != "filename":
+            continue
+        filename = m.group(2).strip().strip('"').strip("'")
+        if not filename:
+            return None
+        filename = os.path.expandvars(os.path.expanduser(filename))
+        if not os.path.isabs(filename):
+            filename = os.path.join(os.path.dirname(baseconfig_path), filename)
+        return os.path.normpath(filename)
+    return None
+
+
+def read_variables(path):
+    """Read a Klipper save_variables file into an ordered dict.
+
+    Args:
+        path (str): path to the variables file.
+
+    Returns:
+        dict or None: ``{name: value}`` where each value is the parsed Python
+        literal (the raw string kept when the literal cannot be parsed), or
+        ``None`` when the file does not exist.
+    """
+    if not path or not os.path.isfile(path):
+        return None
+    content = _read_file(path)
+    if content is None:
+        return None
+
+    variables = {}
+    for line in _iter_config_lines(content):
+        if _SECTION_RE.match(line):
+            continue
+        m = _KEY_VALUE_RE.match(line)
+        if not m:
+            continue
+        key = m.group(1).strip()
+        value = m.group(2).strip()
+        if not key:
+            continue
+        try:
+            variables[key] = ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            variables[key] = value
+    return variables
+
+
+def serialize_variables(variables):
+    """Serialize a variables dict in Klipper's ``name = repr(value)`` format."""
+    lines = ["# save_variables", "# This file is regenerated by Klipper / OctoKlipper."]
+    for key, value in variables.items():
+        lines.append("{} = {!r}".format(key, value))
+    return "\n".join(lines) + "\n"
+
+
+def extract_variable_names(text):
+    """Collect the save_variables names referenced by a macro body.
+
+    Detects both ``printer.save_variables.variables.<name>`` template access
+    and ``SAVE_VARIABLE VARIABLE=<name>`` commands.
+
+    Returns:
+        list: sorted, de-duplicated variable names.
+    """
+    names = set()
+    for regex in (_VARIABLES_ACCESS_RE, _SAVE_VARIABLE_RE):
+        for m in regex.finditer(text or ""):
+            names.add(m.group(1))
+    return sorted(names)
+
+
+def is_valid_variable_name(name):
+    """Klipper requires save_variable names to be lowercase identifiers."""
+    return bool(name) and bool(_VARIABLE_NAME_RE.match(name))
+
+
+def is_valid_literal(text):
+    """Return True when ``text`` is a safe, parseable Python literal."""
+    if not isinstance(text, str) or not text.strip():
+        return False
+    try:
+        ast.literal_eval(text)
+    except (ValueError, SyntaxError):
+        return False
+    return True

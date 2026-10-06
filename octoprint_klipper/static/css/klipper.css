@@ -247,6 +247,25 @@ div#klipper_backups_dialog div.modal-body textarea {
   width: 100%;
 }
 
+/* Long backup filenames/paths wrap instead of being cut off. */
+#klipper_backups_dialog th.klipper_baks_name,
+#klipper_backups_dialog td.klipper_baks_name {
+  min-width: 140px;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Keep the action icons on one line so the name column gets the rest. */
+#klipper_backups_dialog td.klipper_baks_action {
+  white-space: nowrap;
+}
+
+/* Dedicated "Current Configs" section in the backups dialog. */
+#klipper_backups_dialog .klipper-backups-section {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
 /* UIcustomizer fix */
 body.UICResponsiveMode #settings_dialog_content {
   height: calc(100% - 60px);

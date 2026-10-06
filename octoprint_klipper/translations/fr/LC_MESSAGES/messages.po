@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OctoKlipper 0.4.1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-06 03:09+0200\n"
+"POT-Creation-Date: 2026-10-07 01:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -14,51 +14,63 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: octoprint_klipper/__init__.py:165
+#: octoprint_klipper/__init__.py:167
 msgid "Allows to config klipper"
 msgstr "Permet de configurer Klipper"
 
-#: octoprint_klipper/__init__.py:173
+#: octoprint_klipper/__init__.py:175
 msgid "Allows to list klipper files"
 msgstr "Permet de lister les fichiers Klipper"
 
-#: octoprint_klipper/__init__.py:181
+#: octoprint_klipper/__init__.py:183
 msgid "Allows to use klipper macros"
 msgstr "Permet d'utiliser les macros Klipper"
 
-#: octoprint_klipper/__init__.py:601
+#: octoprint_klipper/__init__.py:617
 msgid "Help for configuring OctoPrint to use Klipper"
 msgstr "Aide pour configurer OctoPrint afin d'utiliser Klipper"
 
-#: octoprint_klipper/__init__.py:1814
+#: octoprint_klipper/__init__.py:801
+msgid "Invalid variable name"
+msgstr "Nom de variable invalide"
+
+#: octoprint_klipper/__init__.py:806
+msgid "Value must be a valid Python literal"
+msgstr "La valeur doit être un littéral Python valide"
+
+#: octoprint_klipper/__init__.py:815 octoprint_klipper/static/js/klipper.js:474
+msgid "Printer not connected"
+msgstr "Imprimante non connectée"
+
+#: octoprint_klipper/__init__.py:2030
 msgid "Restart Klipper"
 msgstr "Redémarrer Klipper"
 
-#: octoprint_klipper/__init__.py:1821
+#: octoprint_klipper/__init__.py:2037
 msgid "You are about to restart Klipper!"
 msgstr "Vous êtes sur le point de redémarrer Klipper !"
 
-#: octoprint_klipper/__init__.py:1823
+#: octoprint_klipper/__init__.py:2039
 msgid "This will stop ongoing prints!"
 msgstr "Cela arrêtera les impressions en cours !"
 
-#: octoprint_klipper/config_tools/CfgUtils.py:89
+#: octoprint_klipper/config_tools/CfgUtils.py:98
 msgid "Error: Klipper config file not found at:"
 msgstr "Erreur : fichier de configuration Klipper introuvable à l'emplacement :"
 
-#: octoprint_klipper/config_tools/CfgUtils.py:92
+#: octoprint_klipper/config_tools/CfgUtils.py:101
 msgid "IOError:"
 msgstr "Erreur d'E/S :"
 
-#: octoprint_klipper/config_tools/CfgUtils.py:99
+#: octoprint_klipper/config_tools/CfgUtils.py:108
 msgid "Decode Error:"
 msgstr "Erreur de décodage :"
 
-#: octoprint_klipper/config_tools/CfgUtils.py:103
+#: octoprint_klipper/config_tools/CfgUtils.py:112
 msgid "Please convert your config files to utf-8!"
 msgstr "Veuillez convertir vos fichiers de configuration en utf-8 !"
 
-#: octoprint_klipper/config_tools/CfgUtils.py:106
+#: octoprint_klipper/config_tools/CfgUtils.py:115
 msgid ""
 "Or you can also paste your config \n"
 "into the Editor and save it."
@@ -66,23 +78,23 @@ msgstr ""
 "Vous pouvez aussi coller votre configuration\n"
 "dans l'éditeur et l'enregistrer."
 
-#: octoprint_klipper/config_tools/CfgUtils.py:113
+#: octoprint_klipper/config_tools/CfgUtils.py:122
 msgid "File not found: "
 msgstr "Fichier introuvable : "
 
-#: octoprint_klipper/config_tools/CfgUtils.py:198
+#: octoprint_klipper/config_tools/CfgUtils.py:207
 msgid "Klipper config file saved!"
 msgstr "Fichier de configuration Klipper enregistré !"
 
-#: octoprint_klipper/config_tools/CfgUtils.py:290
+#: octoprint_klipper/config_tools/CfgUtils.py:324
 msgid "Included file not found: "
 msgstr "Fichier inclus introuvable : "
 
-#: octoprint_klipper/config_tools/CfgUtils.py:292
+#: octoprint_klipper/config_tools/CfgUtils.py:326
 msgid "via"
 msgstr "via"
 
-#: octoprint_klipper/config_tools/CfgUtils.py:464
+#: octoprint_klipper/config_tools/CfgUtils.py:498
 #, python-brace-format
 msgid "Klipper config file copied to {}"
 msgstr "Fichier de configuration Klipper copié vers {}"
@@ -143,9 +155,9 @@ msgstr "Recherche de mises à jour..."
 
 #: octoprint_klipper/static/js/klipper.js:337
 #: octoprint_klipper/static/js/klipper.js:341
-#: octoprint_klipper/static/js/klipper.js:652
-#: octoprint_klipper/static/js/klipper.js:677
-#: octoprint_klipper/static/js/klipper.js:1879
+#: octoprint_klipper/static/js/klipper.js:661
+#: octoprint_klipper/static/js/klipper.js:687
+#: octoprint_klipper/static/js/klipper.js:1908
 msgid "Error:"
 msgstr "Erreur :"
 
@@ -157,15 +169,11 @@ msgstr "Recherche des mises à jour d'OctoKlipper..."
 msgid "OctoKlipper Update Check Finished"
 msgstr "Recherche des mises à jour d'OctoKlipper terminée"
 
-#: octoprint_klipper/static/js/klipper.js:459
+#: octoprint_klipper/static/js/klipper.js:467
 msgid "Execute Macro: "
 msgstr "Exécuter la macro : "
 
-#: octoprint_klipper/static/js/klipper.js:466
-msgid "Printer not connected"
-msgstr "Imprimante non connectée"
-
-#: octoprint_klipper/static/js/klipper.js:467
+#: octoprint_klipper/static/js/klipper.js:475
 msgid ""
 "The printer is not connected, so the macro was not sent. The commands "
 "were logged below."
@@ -173,50 +181,50 @@ msgstr ""
 "L'imprimante n'est pas connectée, la macro n'a donc pas été envoyée. Les "
 "commandes ont été journalisées ci-dessous."
 
-#: octoprint_klipper/static/js/klipper.js:925
+#: octoprint_klipper/static/js/klipper.js:935
 msgid "Error!"
 msgstr "Erreur !"
 
-#: octoprint_klipper/static/js/klipper.js:928
+#: octoprint_klipper/static/js/klipper.js:938
 msgid "Done!"
 msgstr "Terminé !"
 
-#: octoprint_klipper/static/js/klipper.js:951
-#: octoprint_klipper/static/js/klipper.js:1130
+#: octoprint_klipper/static/js/klipper.js:961
+#: octoprint_klipper/static/js/klipper.js:1138
 msgid "No Messages"
 msgstr "Aucun message"
 
-#: octoprint_klipper/static/js/klipper.js:1092
+#: octoprint_klipper/static/js/klipper.js:1100
 msgid "Install: "
 msgstr "Installer : "
 
-#: octoprint_klipper/static/js/klipper.js:1100
+#: octoprint_klipper/static/js/klipper.js:1108
 msgid "Klipper installed successfully."
 msgstr "Klipper a été installé avec succès."
 
-#: octoprint_klipper/static/js/klipper.js:1103
+#: octoprint_klipper/static/js/klipper.js:1111
 msgid "Klipper install failed: "
 msgstr "Échec de l'installation de Klipper : "
 
-#: octoprint_klipper/static/js/klipper.js:1121
+#: octoprint_klipper/static/js/klipper.js:1129
 #: octoprint_klipper/templates/klipper_sidebar.jinja2:22
 msgid "Go to OctoKlipper Tab"
 msgstr "Aller à l'onglet OctoKlipper"
 
-#: octoprint_klipper/static/js/klipper.js:1171
+#: octoprint_klipper/static/js/klipper.js:1179
 msgid "Could not read klippy.log"
 msgstr "Impossible de lire klippy.log"
 
-#: octoprint_klipper/static/js/klipper.js:1227
+#: octoprint_klipper/static/js/klipper.js:1256
 msgid "Pause"
 msgstr "Pause"
 
-#: octoprint_klipper/static/js/klipper.js:1227
+#: octoprint_klipper/static/js/klipper.js:1256
 #: octoprint_klipper/templates/klipper_leveling_dialog.jinja2:35
 msgid "Start"
 msgstr "Démarrer"
 
-#: octoprint_klipper/static/js/klipper.js:1396
+#: octoprint_klipper/static/js/klipper.js:1425
 #, python-format
 msgid ""
 "showing %(displayed)d lines (%(filtered)d of %(total)d total lines "
@@ -225,61 +233,61 @@ msgstr ""
 "affichage de %(displayed)d lignes (%(filtered)d sur %(total)d lignes au "
 "total filtrées)"
 
-#: octoprint_klipper/static/js/klipper.js:1402
+#: octoprint_klipper/static/js/klipper.js:1431
 #, python-format
 msgid "showing %(displayed)d lines"
 msgstr "affichage de %(displayed)d lignes"
 
-#: octoprint_klipper/static/js/klipper.js:1499
+#: octoprint_klipper/static/js/klipper.js:1528
 msgid "Settings reset"
 msgstr "Paramètres réinitialisés"
 
-#: octoprint_klipper/static/js/klipper.js:1500
+#: octoprint_klipper/static/js/klipper.js:1529
 msgid "All OctoKlipper settings have been reset to their defaults."
 msgstr ""
 "Tous les paramètres d'OctoKlipper ont été réinitialisés à leurs valeurs "
 "par défaut."
 
-#: octoprint_klipper/static/js/klipper.js:1504
+#: octoprint_klipper/static/js/klipper.js:1533
 msgid "Reset failed"
 msgstr "Échec de la réinitialisation"
 
-#: octoprint_klipper/static/js/klipper.js:1543
+#: octoprint_klipper/static/js/klipper.js:1572
 msgid "Restarted Klipper"
 msgstr "Klipper redémarré"
 
-#: octoprint_klipper/static/js/klipper.js:1546
-#: octoprint_klipper/static/js/klipper.js:1551
+#: octoprint_klipper/static/js/klipper.js:1575
+#: octoprint_klipper/static/js/klipper.js:1580
 msgid "Restarting Klipper failed"
 msgstr "Échec du redémarrage de Klipper"
 
-#: octoprint_klipper/static/js/klipper.js:1565
-#: octoprint_klipper/static/js/klipper.js:1829
+#: octoprint_klipper/static/js/klipper.js:1594
+#: octoprint_klipper/static/js/klipper.js:1858
 msgid "All ongoing Prints will be stopped!"
 msgstr "Toutes les impressions en cours seront arrêtées !"
 
-#: octoprint_klipper/static/js/klipper.js:1567
+#: octoprint_klipper/static/js/klipper.js:1596
 msgid "Command to be used: "
 msgstr "Commande à utiliser : "
 
-#: octoprint_klipper/static/js/klipper.js:1572
+#: octoprint_klipper/static/js/klipper.js:1601
 msgid "Restart Klipper?"
 msgstr "Redémarrer Klipper ?"
 
-#: octoprint_klipper/static/js/klipper.js:1574
+#: octoprint_klipper/static/js/klipper.js:1603
 #: octoprint_klipper/templates/klipper_tab_main.jinja2:123
 msgid "Restart"
 msgstr "Redémarrer"
 
-#: octoprint_klipper/static/js/klipper.js:1574
+#: octoprint_klipper/static/js/klipper.js:1603
 msgid "Restart and don't ask this again."
 msgstr "Redémarrer et ne plus poser cette question."
 
-#: octoprint_klipper/static/js/klipper.js:1607
+#: octoprint_klipper/static/js/klipper.js:1636
 msgid "Unsecured connection"
 msgstr "Connexion non sécurisée"
 
-#: octoprint_klipper/static/js/klipper.js:1610
+#: octoprint_klipper/static/js/klipper.js:1639
 msgid ""
 "Your connection to OctoPrint is not encrypted (no HTTPS) and not "
 "localhost. The sudo password would be transmitted in plain text."
@@ -287,50 +295,50 @@ msgstr ""
 "Votre connexion à OctoPrint n'est pas chiffrée (pas de HTTPS) et n'est "
 "pas localhost. Le mot de passe sudo serait transmis en clair."
 
-#: octoprint_klipper/static/js/klipper.js:1614
+#: octoprint_klipper/static/js/klipper.js:1643
 msgid "Send password anyway"
 msgstr "Envoyer quand même le mot de passe"
 
-#: octoprint_klipper/static/js/klipper.js:1635
+#: octoprint_klipper/static/js/klipper.js:1664
 msgid "Can't install while printing"
 msgstr "Impossible d'installer pendant l'impression"
 
-#: octoprint_klipper/static/js/klipper.js:1636
+#: octoprint_klipper/static/js/klipper.js:1665
 msgid ""
 "A print job is currently in progress. Installing will be prevented until "
 "it is done."
 msgstr "Une impression est en cours. L'installation sera bloquée jusqu'à sa fin."
 
-#: octoprint_klipper/static/js/klipper.js:1644
-#: octoprint_klipper/templates/klipper_settings.jinja2:759
+#: octoprint_klipper/static/js/klipper.js:1673
+#: octoprint_klipper/templates/klipper_settings.jinja2:801
 msgid "Install Klipper"
 msgstr "Installer Klipper"
 
-#: octoprint_klipper/static/js/klipper.js:1670
+#: octoprint_klipper/static/js/klipper.js:1699
 msgid "Installing Klipper..."
 msgstr "Installation de Klipper..."
 
-#: octoprint_klipper/static/js/klipper.js:1671
+#: octoprint_klipper/static/js/klipper.js:1700
 msgid "Now installing Klipper, please wait. This can take several minutes."
 msgstr ""
 "Installation de Klipper en cours, veuillez patienter. Cela peut prendre "
 "plusieurs minutes."
 
-#: octoprint_klipper/static/js/klipper.js:1705
+#: octoprint_klipper/static/js/klipper.js:1734
 msgid "Can't update while printing"
 msgstr "Impossible de mettre à jour pendant l'impression"
 
-#: octoprint_klipper/static/js/klipper.js:1706
+#: octoprint_klipper/static/js/klipper.js:1735
 msgid ""
 "A print job is currently in progress. Updating will be prevented until it"
 " is done."
 msgstr "Une impression est en cours. La mise à jour sera bloquée jusqu'à sa fin."
 
-#: octoprint_klipper/static/js/klipper.js:1715
+#: octoprint_klipper/static/js/klipper.js:1744
 msgid "Can't update while throttled"
 msgstr "Impossible de mettre à jour en cas de limitation"
 
-#: octoprint_klipper/static/js/klipper.js:1716
+#: octoprint_klipper/static/js/klipper.js:1745
 msgid ""
 "Your system is currently throttled. OctoPrint refuses to run updates "
 "while in this state due to possible stability issues."
@@ -338,69 +346,70 @@ msgstr ""
 "Votre système est actuellement limité. OctoPrint refuse d'exécuter des "
 "mises à jour dans cet état en raison de possibles problèmes de stabilité."
 
-#: octoprint_klipper/static/js/klipper.js:1764
+#: octoprint_klipper/static/js/klipper.js:1793
 msgid "Updating..."
 msgstr "Mise à jour..."
 
-#: octoprint_klipper/static/js/klipper.js:1765
+#: octoprint_klipper/static/js/klipper.js:1794
 msgid "Now updating, please wait."
 msgstr "Mise à jour en cours, veuillez patienter."
 
-#: octoprint_klipper/static/js/klipper.js:1794
+#: octoprint_klipper/static/js/klipper.js:1823
 #: octoprint_klipper/templates/klipper_settings.jinja2:8
 msgid "Klipper Update"
 msgstr "Mise à jour de Klipper"
 
-#: octoprint_klipper/static/js/klipper.js:1797
+#: octoprint_klipper/static/js/klipper.js:1826
 msgid "You have uncommitted changes."
 msgstr "Vous avez des modifications non validées."
 
-#: octoprint_klipper/static/js/klipper.js:1798
+#: octoprint_klipper/static/js/klipper.js:1827
 msgid "Would you like to stash them and update?"
 msgstr "Voulez-vous les remiser et mettre à jour ?"
 
-#: octoprint_klipper/static/js/klipper.js:1800
+#: octoprint_klipper/static/js/klipper.js:1829
 msgid "Stash and Update"
 msgstr "Remiser et mettre à jour"
 
-#: octoprint_klipper/static/js/klipper.js:1800
+#: octoprint_klipper/static/js/klipper.js:1829
 #: octoprint_klipper/templates/dialogs/configs.jinja2:18
-#: octoprint_klipper/templates/dialogs/configs.jinja2:56
-#: octoprint_klipper/templates/dialogs/configs.jinja2:84
-#: octoprint_klipper/templates/dialogs/configs.jinja2:110
-#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:147
-#: octoprint_klipper/templates/klipper_settings.jinja2:867
+#: octoprint_klipper/templates/dialogs/configs.jinja2:43
+#: octoprint_klipper/templates/dialogs/configs.jinja2:81
+#: octoprint_klipper/templates/dialogs/configs.jinja2:109
+#: octoprint_klipper/templates/dialogs/configs.jinja2:135
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:174
+#: octoprint_klipper/templates/klipper_settings.jinja2:909
 msgid "Cancel"
 msgstr "Annuler"
 
-#: octoprint_klipper/static/js/klipper.js:1832
+#: octoprint_klipper/static/js/klipper.js:1861
 msgid "Update Klipper?"
 msgstr "Mettre à jour Klipper ?"
 
-#: octoprint_klipper/static/js/klipper.js:1834
+#: octoprint_klipper/static/js/klipper.js:1863
 msgid "Update"
 msgstr "Mettre à jour"
 
-#: octoprint_klipper/static/js/klipper.js:1869
+#: octoprint_klipper/static/js/klipper.js:1898
 msgid "Copied"
 msgstr "Copié"
 
-#: octoprint_klipper/static/js/klipper.js:1875
-#: octoprint_klipper/static/js/klipper.js:1883
-#: octoprint_klipper/templates/klipper_settings.jinja2:456
+#: octoprint_klipper/static/js/klipper.js:1904
+#: octoprint_klipper/static/js/klipper.js:1912
+#: octoprint_klipper/templates/klipper_settings.jinja2:486
 msgid "Copy to Clipboard"
 msgstr "Copier dans le presse-papiers"
 
-#: octoprint_klipper/static/js/klipper_backup.js:130
+#: octoprint_klipper/static/js/klipper_backup.js:144
 msgid "Servicefile"
 msgstr "Fichier de service"
 
-#: octoprint_klipper/static/js/klipper_backup.js:130
+#: octoprint_klipper/static/js/klipper_backup.js:144
 msgid "Config"
 msgstr "Configuration"
 
-#: octoprint_klipper/static/js/klipper_backup.js:144
-#: octoprint_klipper/static/js/klipper_backup.js:164
+#: octoprint_klipper/static/js/klipper_backup.js:158
+#: octoprint_klipper/static/js/klipper_backup.js:178
 #, python-format
 msgid ""
 "Failed to retrieve config %(name)s.</p><p>Please consult octoprint.log "
@@ -409,13 +418,13 @@ msgstr ""
 "Échec de la récupération de la configuration %(name)s.</p><p>Consultez "
 "octoprint.log pour plus de détails.</p>"
 
-#: octoprint_klipper/static/js/klipper_backup.js:149
-#: octoprint_klipper/static/js/klipper_backup.js:169
+#: octoprint_klipper/static/js/klipper_backup.js:163
+#: octoprint_klipper/static/js/klipper_backup.js:183
 msgid "Could not retrieve config"
 msgstr "Impossible de récupérer la configuration"
 
-#: octoprint_klipper/static/js/klipper_backup.js:189
-#: octoprint_klipper/static/js/klipper_backup.js:209
+#: octoprint_klipper/static/js/klipper_backup.js:203
+#: octoprint_klipper/static/js/klipper_backup.js:223
 #, python-format
 msgid ""
 "Failed to remove config %(name)s.</p><p>Please consult octoprint.log for "
@@ -424,19 +433,19 @@ msgstr ""
 "Échec de la suppression de la configuration %(name)s.</p><p>Consultez "
 "octoprint.log pour plus de détails.</p>"
 
-#: octoprint_klipper/static/js/klipper_backup.js:196
-#: octoprint_klipper/static/js/klipper_backup.js:214
+#: octoprint_klipper/static/js/klipper_backup.js:210
+#: octoprint_klipper/static/js/klipper_backup.js:228
 msgid "Could not remove config"
 msgstr "Impossible de supprimer la configuration"
 
-#: octoprint_klipper/static/js/klipper_backup.js:223
+#: octoprint_klipper/static/js/klipper_backup.js:237
 #, python-format
 msgid "You are about to delete backed up config file \"%(name)s\"."
 msgstr ""
 "Vous êtes sur le point de supprimer le fichier de configuration "
 "sauvegardé « %(name)s »."
 
-#: octoprint_klipper/static/js/klipper_backup.js:243
+#: octoprint_klipper/static/js/klipper_backup.js:257
 msgid ""
 "This will overwrite the Klipper servicefile (/etc/default/klipper) and "
 "restart Klipper."
@@ -444,23 +453,23 @@ msgstr ""
 "Cela écrasera le fichier de service Klipper (/etc/default/klipper) et "
 "redémarrera Klipper."
 
-#: octoprint_klipper/static/js/klipper_backup.js:251
+#: octoprint_klipper/static/js/klipper_backup.js:265
 msgid "This will overwrite any file with the same name on the configpath."
 msgstr ""
 "Cela écrasera tout fichier portant le même nom dans le chemin de "
 "configuration."
 
-#: octoprint_klipper/static/js/klipper_backup.js:259
+#: octoprint_klipper/static/js/klipper_backup.js:273
 msgid "Are you sure you want to restore now?"
 msgstr "Voulez-vous vraiment restaurer maintenant ?"
 
-#: octoprint_klipper/static/js/klipper_backup.js:261
+#: octoprint_klipper/static/js/klipper_backup.js:275
 #: octoprint_klipper/static/js/klipper_editor.js:281
 msgid "Proceed"
 msgstr "Continuer"
 
-#: octoprint_klipper/static/js/klipper_backup.js:287
-#: octoprint_klipper/static/js/klipper_backup.js:320
+#: octoprint_klipper/static/js/klipper_backup.js:301
+#: octoprint_klipper/static/js/klipper_backup.js:334
 #, python-format
 msgid ""
 "Failed to restore config %(name)s.</p><p>Please consult octoprint.log for"
@@ -469,82 +478,82 @@ msgstr ""
 "Échec de la restauration de la configuration %(name)s.</p><p>Consultez "
 "octoprint.log pour plus de détails.</p>"
 
-#: octoprint_klipper/static/js/klipper_backup.js:292
-#: octoprint_klipper/static/js/klipper_backup.js:325
+#: octoprint_klipper/static/js/klipper_backup.js:306
+#: octoprint_klipper/static/js/klipper_backup.js:339
 msgid "Could not restore config"
 msgstr "Impossible de restaurer la configuration"
 
-#: octoprint_klipper/static/js/klipper_backup.js:303
+#: octoprint_klipper/static/js/klipper_backup.js:317
 msgid "Restore Servicefile"
 msgstr "Restaurer le fichier de service"
 
-#: octoprint_klipper/static/js/klipper_backup.js:304
+#: octoprint_klipper/static/js/klipper_backup.js:318
 msgid "Servicefile restored."
 msgstr "Fichier de service restauré."
 
-#: octoprint_klipper/static/js/klipper_backup.js:310
+#: octoprint_klipper/static/js/klipper_backup.js:324
 msgid "Restore Config"
 msgstr "Restaurer la configuration"
 
-#: octoprint_klipper/static/js/klipper_backup.js:310
+#: octoprint_klipper/static/js/klipper_backup.js:324
 msgid "Config restored."
 msgstr "Configuration restaurée."
 
-#: octoprint_klipper/static/js/klipper_backup.js:370
+#: octoprint_klipper/static/js/klipper_backup.js:384
 #, python-format
 msgid "You are about to restore %(count)d backed up config files."
 msgstr ""
 "Vous êtes sur le point de restaurer %(count)d fichiers de configuration "
 "sauvegardés."
 
-#: octoprint_klipper/static/js/klipper_backup.js:385
+#: octoprint_klipper/static/js/klipper_backup.js:399
 #, python-format
 msgid "You are about to delete %(count)d backed up config files."
 msgstr ""
 "Vous êtes sur le point de supprimer %(count)d fichiers de configuration "
 "sauvegardés."
 
-#: octoprint_klipper/static/js/klipper_backup.js:395
+#: octoprint_klipper/static/js/klipper_backup.js:409
 msgid "Restoring klipper config files"
 msgstr "Restauration des fichiers de configuration Klipper"
 
-#: octoprint_klipper/static/js/klipper_backup.js:397
+#: octoprint_klipper/static/js/klipper_backup.js:411
 #, python-format
 msgid "Restoring %(count)d backed up config files..."
 msgstr "Restauration de %(count)d fichiers de configuration sauvegardés..."
 
-#: octoprint_klipper/static/js/klipper_backup.js:414
+#: octoprint_klipper/static/js/klipper_backup.js:428
 #, python-format
 msgid "Password required for %(filename)s, continuing..."
 msgstr "Mot de passe requis pour %(filename)s, poursuite..."
 
-#: octoprint_klipper/static/js/klipper_backup.js:424
-#: octoprint_klipper/static/js/klipper_backup.js:447
+#: octoprint_klipper/static/js/klipper_backup.js:438
+#: octoprint_klipper/static/js/klipper_backup.js:461
 #, python-format
 msgid "Restoring of %(filename)s failed, continuing..."
 msgstr "Échec de la restauration de %(filename)s, poursuite..."
 
-#: octoprint_klipper/static/js/klipper_backup.js:431
+#: octoprint_klipper/static/js/klipper_backup.js:445
 #, python-format
 msgid "Restored %(filename)s..."
 msgstr "%(filename)s restauré..."
 
-#: octoprint_klipper/static/js/klipper_backup.js:483
+#: octoprint_klipper/static/js/klipper_backup.js:497
 msgid "Deleting backup files"
 msgstr "Suppression des fichiers de sauvegarde"
 
-#: octoprint_klipper/static/js/klipper_backup.js:484
+#: octoprint_klipper/static/js/klipper_backup.js:498
 #, python-format
 msgid "Deleting %(count)d backed up files..."
 msgstr "Suppression de %(count)d fichiers sauvegardés..."
 
-#: octoprint_klipper/static/js/klipper_backup.js:494
-#: octoprint_klipper/static/js/klipper_backup.js:506
+#: octoprint_klipper/static/js/klipper_backup.js:508
+#: octoprint_klipper/static/js/klipper_backup.js:520
 #, python-format
 msgid "Deleting of %(filename)s failed, continuing..."
 msgstr "Échec de la suppression de %(filename)s, poursuite..."
 
-#: octoprint_klipper/static/js/klipper_backup.js:499
+#: octoprint_klipper/static/js/klipper_backup.js:513
 #, python-format
 msgid "Deleted %(filename)s..."
 msgstr "%(filename)s supprimé..."
@@ -564,8 +573,9 @@ msgstr "Voulez-vous vraiment le fermer ?"
 
 #: octoprint_klipper/static/js/klipper_editor.js:179
 #: octoprint_klipper/templates/klipper_graph_dialog.jinja2:27
-#: octoprint_klipper/templates/klipper_settings.jinja2:847
-#: octoprint_klipper/templates/klipper_settings.jinja2:910
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:51
+#: octoprint_klipper/templates/klipper_settings.jinja2:889
+#: octoprint_klipper/templates/klipper_settings.jinja2:952
 msgid "Close"
 msgstr "Fermer"
 
@@ -574,7 +584,7 @@ msgid "Do not close"
 msgstr "Ne pas fermer"
 
 #: octoprint_klipper/static/js/klipper_editor.js:179
-#: octoprint_klipper/templates/klipper_editor.jinja2:169
+#: octoprint_klipper/templates/klipper_editor.jinja2:172
 msgid "Save & Close"
 msgstr "Enregistrer et fermer"
 
@@ -639,7 +649,7 @@ msgstr "Configuration erronée non enregistrée !"
 #: octoprint_klipper/static/js/klipper_editor.js:920
 #: octoprint_klipper/static/js/klipper_editor.js:956
 #: octoprint_klipper/static/js/klipper_editor.js:965
-#: octoprint_klipper/templates/klipper_editor.jinja2:171
+#: octoprint_klipper/templates/klipper_editor.jinja2:174
 msgid "Save Config"
 msgstr "Enregistrer la configuration"
 
@@ -730,16 +740,25 @@ msgstr "Ne pas écraser"
 msgid "File not saved!"
 msgstr "Fichier non enregistré !"
 
-#: octoprint_klipper/static/js/klipper_files.js:209
+#: octoprint_klipper/static/js/klipper_files.js:221
 msgid "Only show config files"
 msgstr "Afficher uniquement les fichiers de configuration"
 
-#: octoprint_klipper/static/js/klipper_files.js:219
+#: octoprint_klipper/static/js/klipper_files.js:231
 #, python-format
 msgid "Only show %(type)s files"
 msgstr "Afficher uniquement les fichiers %(type)s"
 
-#: octoprint_klipper/static/js/klipper_files.js:578
+#: octoprint_klipper/static/js/klipper_files.js:615
+#: octoprint_klipper/templates/dialogs/configs.jinja2:29
+msgid "Create File"
+msgstr "Créer un fichier"
+
+#: octoprint_klipper/static/js/klipper_files.js:616
+msgid "Could not create the file."
+msgstr "Impossible de créer le fichier."
+
+#: octoprint_klipper/static/js/klipper_files.js:640
 #, python-format
 msgid ""
 "You are about to delete the folder \"%(folder)s\" which still contains "
@@ -748,24 +767,24 @@ msgstr ""
 "Vous êtes sur le point de supprimer le dossier « %(folder)s » qui "
 "contient encore des fichiers et/ou des sous-dossiers."
 
-#: octoprint_klipper/static/js/klipper_files.js:653
+#: octoprint_klipper/static/js/klipper_files.js:715
 msgid "Unable to move file or folder"
 msgstr "Impossible de déplacer le fichier ou le dossier"
 
-#: octoprint_klipper/static/js/klipper_files.js:657
+#: octoprint_klipper/static/js/klipper_files.js:719
 msgid "to"
 msgstr "vers"
 
-#: octoprint_klipper/static/js/klipper_files.js:953
+#: octoprint_klipper/static/js/klipper_files.js:1026
 #, python-format
 msgid "File already exists: %(name)s"
 msgstr "Le fichier existe déjà : %(name)s"
 
-#: octoprint_klipper/static/js/klipper_files.js:1011
+#: octoprint_klipper/static/js/klipper_files.js:1084
 msgid "Refreshing list ..."
 msgstr "Actualisation de la liste ..."
 
-#: octoprint_klipper/static/js/klipper_files.js:1032
+#: octoprint_klipper/static/js/klipper_files.js:1105
 #, python-format
 msgid ""
 "Could not upload the file. Make sure that it is a readable, valid file "
@@ -774,49 +793,69 @@ msgstr ""
 "Impossible de téléverser le fichier. Assurez-vous qu'il s'agit d'un "
 "fichier lisible et valide avec l'une de ces extensions : %(extensions)s"
 
-#: octoprint_klipper/static/js/klipper_files.js:1059
+#: octoprint_klipper/static/js/klipper_files.js:1132
 msgid "Saving ..."
 msgstr "Enregistrement ..."
 
-#: octoprint_klipper/static/js/klipper_files.js:1059
+#: octoprint_klipper/static/js/klipper_files.js:1132
 msgid "Uploading ..."
 msgstr "Téléversement ..."
 
+#: octoprint_klipper/static/js/klipper_save_variables.js:75
+msgid "Failed to load the save variables."
+msgstr "Impossible de charger les variables enregistrées."
+
+#: octoprint_klipper/static/js/klipper_save_variables.js:91
+#: octoprint_klipper/static/js/klipper_save_variables.js:99
+#: octoprint_klipper/static/js/klipper_save_variables.js:110
+msgid "Save Variable"
+msgstr "Enregistrer la variable"
+
+#: octoprint_klipper/static/js/klipper_save_variables.js:94
+#: octoprint_klipper/static/js/klipper_save_variables.js:110
+msgid "Could not save variable"
+msgstr "Impossible d'enregistrer la variable"
+
+#: octoprint_klipper/static/js/klipper_save_variables.js:100
+#, python-format
+msgid "Variable %(name)s saved."
+msgstr "Variable %(name)s enregistrée."
+
 #: octoprint_klipper/static/js/klipper_settings.js:132
 #: octoprint_klipper/static/js/klipper_settings.js:158
-#: octoprint_klipper/templates/klipper_settings.jinja2:360
-#: octoprint_klipper/templates/klipper_settings.jinja2:532
+#: octoprint_klipper/templates/klipper_settings.jinja2:390
+#: octoprint_klipper/templates/klipper_settings.jinja2:574
 msgid "Group"
 msgstr "Groupe"
 
-#: octoprint_klipper/static/js/klipper_settings.js:274
 #: octoprint_klipper/static/js/klipper_settings.js:280
-#: octoprint_klipper/static/js/klipper_settings.js:285
-#: octoprint_klipper/templates/klipper_settings.jinja2:158
+#: octoprint_klipper/static/js/klipper_settings.js:286
+#: octoprint_klipper/static/js/klipper_settings.js:291
+#: octoprint_klipper/templates/klipper_settings.jinja2:173
 msgid "Modify Servicefile"
 msgstr "Modifier le fichier de service"
 
-#: octoprint_klipper/static/js/klipper_settings.js:274
+#: octoprint_klipper/static/js/klipper_settings.js:280
 msgid "Servicefile modified."
 msgstr "Fichier de service modifié."
 
-#: octoprint_klipper/static/js/klipper_settings.js:309
-#: octoprint_klipper/static/js/klipper_settings.js:313
-#: octoprint_klipper/static/js/klipper_settings.js:317
-#: octoprint_klipper/templates/klipper_settings.jinja2:275
+#: octoprint_klipper/static/js/klipper_settings.js:315
+#: octoprint_klipper/static/js/klipper_settings.js:319
+#: octoprint_klipper/static/js/klipper_settings.js:323
+#: octoprint_klipper/templates/klipper_settings.jinja2:305
 msgid "Backup all configs"
 msgstr "Sauvegarder toutes les configurations"
 
-#: octoprint_klipper/static/js/klipper_settings.js:310
+#: octoprint_klipper/static/js/klipper_settings.js:316
 #, python-format
 msgid "%(copied)d configs copied."
 msgstr "%(copied)d configurations copiées."
 
-#: octoprint_klipper/static/js/klipper_settings.js:478
+#: octoprint_klipper/static/js/klipper_settings.js:534
 msgid "Changes"
 msgstr "Modifications"
 
-#: octoprint_klipper/static/js/klipper_settings.js:478
+#: octoprint_klipper/static/js/klipper_settings.js:534
 msgid "Don't forget to save your changes!"
 msgstr "N'oubliez pas d'enregistrer vos modifications !"
 
@@ -875,13 +914,16 @@ msgid "Sort by file size"
 msgstr "Trier par taille de fichier"
 
 #: octoprint_klipper/templates/klipper_backups_dialog.jinja2:72
-#: octoprint_klipper/templates/klipper_settings.jinja2:359
-#: octoprint_klipper/templates/klipper_settings.jinja2:529
-#: octoprint_klipper/templates/klipper_settings.jinja2:881
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:123
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:29
+#: octoprint_klipper/templates/klipper_settings.jinja2:389
+#: octoprint_klipper/templates/klipper_settings.jinja2:571
+#: octoprint_klipper/templates/klipper_settings.jinja2:923
 msgid "Name"
 msgstr "Nom"
 
 #: octoprint_klipper/templates/klipper_backups_dialog.jinja2:73
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:124
 #: octoprint_klipper/templates/klipper_editor.jinja2:79
 #: octoprint_klipper/templates/klipper_editor.jinja2:94
 #: octoprint_klipper/templates/klipper_editor.jinja2:115
@@ -889,8 +931,10 @@ msgid "Size"
 msgstr "Taille"
 
 #: octoprint_klipper/templates/klipper_backups_dialog.jinja2:74
-#: octoprint_klipper/templates/klipper_settings.jinja2:362
-#: octoprint_klipper/templates/klipper_settings.jinja2:534
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:125
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:32
+#: octoprint_klipper/templates/klipper_settings.jinja2:392
+#: octoprint_klipper/templates/klipper_settings.jinja2:576
 msgid "Action"
 msgstr "Action"
 
@@ -903,38 +947,57 @@ msgid "Restore"
 msgstr "Restaurer"
 
 #: octoprint_klipper/templates/klipper_backups_dialog.jinja2:95
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:139
 #: octoprint_klipper/templates/klipper_editor.jinja2:81
 #: octoprint_klipper/templates/klipper_editor.jinja2:98
 msgid "Download"
 msgstr "Télécharger"
 
 #: octoprint_klipper/templates/klipper_backups_dialog.jinja2:98
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:136
 msgid "Preview"
 msgstr "Aperçu"
 
-#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:126
-#: octoprint_klipper/templates/klipper_settings.jinja2:821
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:119
+msgid "Current Configs"
+msgstr "Configurations actuelles"
+
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:131
+msgid "Current"
+msgstr "Actuelle"
+
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:145
+msgid ""
+"These are the current config duplicates OctoPrint keeps in its backup. "
+"They can be previewed and downloaded, but not restored or deleted here."
+msgstr ""
+"Ce sont les doublons de configuration actuels qu'OctoPrint conserve dans "
+"sa sauvegarde. Ils peuvent être consultés et téléchargés, mais ni "
+"restaurés ni supprimés ici."
+
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:153
+#: octoprint_klipper/templates/klipper_settings.jinja2:863
 msgid "Donate"
 msgstr "Faire un don"
 
-#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:134
-#: octoprint_klipper/templates/klipper_settings.jinja2:854
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:161
+#: octoprint_klipper/templates/klipper_settings.jinja2:896
 msgid "Sudo password required"
 msgstr "Mot de passe sudo requis"
 
-#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:138
-#: octoprint_klipper/templates/klipper_settings.jinja2:858
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:165
+#: octoprint_klipper/templates/klipper_settings.jinja2:900
 msgid "Sudo password:"
 msgstr "Mot de passe sudo :"
 
-#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:141
-#: octoprint_klipper/templates/klipper_settings.jinja2:837
-#: octoprint_klipper/templates/klipper_settings.jinja2:861
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:168
+#: octoprint_klipper/templates/klipper_settings.jinja2:879
+#: octoprint_klipper/templates/klipper_settings.jinja2:903
 msgid "Only needed if passwordless sudo is not configured"
 msgstr "Nécessaire uniquement si sudo sans mot de passe n'est pas configuré"
 
-#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:146
-#: octoprint_klipper/templates/klipper_settings.jinja2:866
+#: octoprint_klipper/templates/klipper_backups_dialog.jinja2:173
+#: octoprint_klipper/templates/klipper_settings.jinja2:908
 msgid "Apply"
 msgstr "Appliquer"
 
@@ -977,7 +1040,7 @@ msgstr "Interne"
 msgid "Uploaded"
 msgstr "Téléversé"
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:60
+#: octoprint_klipper/templates/dialogs/configs.jinja2:85
 #: octoprint_klipper/templates/klipper_editor.jinja2:82
 #: octoprint_klipper/templates/klipper_editor.jinja2:101
 #: octoprint_klipper/templates/klipper_editor.jinja2:117
@@ -999,42 +1062,47 @@ msgstr "Charger"
 msgid "Create folder..."
 msgstr "Créer un dossier..."
 
-#: octoprint_klipper/templates/klipper_editor.jinja2:135
+#: octoprint_klipper/templates/klipper_editor.jinja2:130
+msgid "Create file..."
+msgstr "Créer un fichier..."
+
+#: octoprint_klipper/templates/klipper_editor.jinja2:138
 msgid "Upload"
 msgstr "Téléverser"
 
-#: octoprint_klipper/templates/klipper_editor.jinja2:157
+#: octoprint_klipper/templates/klipper_editor.jinja2:160
 msgid "Filename"
 msgstr "Nom du fichier"
 
-#: octoprint_klipper/templates/klipper_editor.jinja2:161
-#: octoprint_klipper/templates/klipper_editor.jinja2:162
+#: octoprint_klipper/templates/klipper_editor.jinja2:164
+#: octoprint_klipper/templates/klipper_editor.jinja2:165
 msgid "Reload from file"
 msgstr "Recharger depuis le fichier"
 
-#: octoprint_klipper/templates/klipper_editor.jinja2:164
-#: octoprint_klipper/templates/klipper_editor.jinja2:165
+#: octoprint_klipper/templates/klipper_editor.jinja2:167
+#: octoprint_klipper/templates/klipper_editor.jinja2:168
 msgid "Check Syntax"
 msgstr "Vérifier la syntaxe"
 
-#: octoprint_klipper/templates/klipper_editor.jinja2:168
+#: octoprint_klipper/templates/klipper_editor.jinja2:171
 msgid "Save Config and Close"
 msgstr "Enregistrer la configuration et fermer"
 
-#: octoprint_klipper/templates/klipper_editor.jinja2:172
+#: octoprint_klipper/templates/klipper_editor.jinja2:175
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:42
 msgid "Save"
 msgstr "Enregistrer"
 
-#: octoprint_klipper/templates/klipper_editor.jinja2:177
-#: octoprint_klipper/templates/klipper_editor.jinja2:179
+#: octoprint_klipper/templates/klipper_editor.jinja2:180
+#: octoprint_klipper/templates/klipper_editor.jinja2:182
 msgid "Check parsing on save"
 msgstr "Vérifier l'analyse lors de l'enregistrement"
 
-#: octoprint_klipper/templates/klipper_editor.jinja2:181
+#: octoprint_klipper/templates/klipper_editor.jinja2:184
 msgid "Restart klipper on editor save?"
 msgstr "Redémarrer Klipper lors de l'enregistrement dans l'éditeur ?"
 
-#: octoprint_klipper/templates/klipper_editor.jinja2:183
+#: octoprint_klipper/templates/klipper_editor.jinja2:186
 msgid "Restart Klipper on save"
 msgstr "Redémarrer Klipper lors de l'enregistrement"
 
@@ -1063,7 +1131,7 @@ msgid "Depending on the size of the log file this might take a while."
 msgstr "Selon la taille du fichier journal, cela peut prendre un certain temps."
 
 #: octoprint_klipper/templates/klipper_klipper_macros_sidebar.jinja2:33
-#: octoprint_klipper/templates/klipper_tab_main.jinja2:242
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:246
 msgid "No macros found in printer.cfg."
 msgstr "Aucune macro trouvée dans printer.cfg."
 
@@ -1125,7 +1193,7 @@ msgid "Heater / Extruder Name (from config file)"
 msgstr "Nom du chauffage / extrudeur (d'après le fichier de configuration)"
 
 #: octoprint_klipper/templates/klipper_pid_tuning_dialog.jinja2:13
-#: octoprint_klipper/templates/klipper_settings.jinja2:681
+#: octoprint_klipper/templates/klipper_settings.jinja2:723
 msgid "name"
 msgstr "nom"
 
@@ -1141,17 +1209,54 @@ msgstr "Le résultat du cycle de réglage est indiqué dans le journal des messa
 msgid "Start Tuning"
 msgstr "Démarrer le réglage"
 
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:5
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:165
+msgid "Save Variables"
+msgstr "Enregistrer les variables"
+
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:9
+msgid ""
+"The [save_variables] section with a filename option is not configured in "
+"your printer.cfg."
+msgstr ""
+"La section [save_variables] avec une option filename n'est pas configurée"
+" dans votre printer.cfg."
+
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:14
+msgid "Variable file:"
+msgstr "Fichier de variables :"
+
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:19
+msgid "Reload the variables from disk"
+msgstr "Recharger les variables depuis le disque"
+
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:20
+msgid "Refresh"
+msgstr "Actualiser"
+
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:30
+msgid "Value"
+msgstr "Valeur"
+
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:31
+msgid "Used by"
+msgstr "Utilisé par"
+
+#: octoprint_klipper/templates/klipper_save_variables_dialog.jinja2:48
+msgid "No variables stored yet."
+msgstr "Aucune variable enregistrée pour l'instant."
+
 #: octoprint_klipper/templates/klipper_settings.jinja2:3
 msgid "Basic"
 msgstr "Basique"
 
 #: octoprint_klipper/templates/klipper_settings.jinja2:4
-#: octoprint_klipper/templates/klipper_tab_main.jinja2:167
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:171
 msgid "Macros"
 msgstr "Macros"
 
 #: octoprint_klipper/templates/klipper_settings.jinja2:6
-#: octoprint_klipper/templates/klipper_tab_main.jinja2:204
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:208
 msgid "Klipper Macros"
 msgstr "Macros Klipper"
 
@@ -1174,25 +1279,26 @@ msgstr "Port série"
 #: octoprint_klipper/templates/klipper_settings.jinja2:124
 #: octoprint_klipper/templates/klipper_settings.jinja2:136
 #: octoprint_klipper/templates/klipper_settings.jinja2:147
-#: octoprint_klipper/templates/klipper_settings.jinja2:175
-#: octoprint_klipper/templates/klipper_settings.jinja2:187
-#: octoprint_klipper/templates/klipper_settings.jinja2:215
-#: octoprint_klipper/templates/klipper_settings.jinja2:224
-#: octoprint_klipper/templates/klipper_settings.jinja2:233
-#: octoprint_klipper/templates/klipper_settings.jinja2:250
-#: octoprint_klipper/templates/klipper_settings.jinja2:261
-#: octoprint_klipper/templates/klipper_settings.jinja2:289
-#: octoprint_klipper/templates/klipper_settings.jinja2:297
-#: octoprint_klipper/templates/klipper_settings.jinja2:320
-#: octoprint_klipper/templates/klipper_settings.jinja2:334
-#: octoprint_klipper/templates/klipper_settings.jinja2:480
-#: octoprint_klipper/templates/klipper_settings.jinja2:494
-#: octoprint_klipper/templates/klipper_settings.jinja2:626
-#: octoprint_klipper/templates/klipper_settings.jinja2:642
-#: octoprint_klipper/templates/klipper_settings.jinja2:658
-#: octoprint_klipper/templates/klipper_settings.jinja2:673
-#: octoprint_klipper/templates/klipper_settings.jinja2:747
-#: octoprint_klipper/templates/klipper_settings.jinja2:805
+#: octoprint_klipper/templates/klipper_settings.jinja2:190
+#: octoprint_klipper/templates/klipper_settings.jinja2:217
+#: octoprint_klipper/templates/klipper_settings.jinja2:245
+#: octoprint_klipper/templates/klipper_settings.jinja2:254
+#: octoprint_klipper/templates/klipper_settings.jinja2:263
+#: octoprint_klipper/templates/klipper_settings.jinja2:280
+#: octoprint_klipper/templates/klipper_settings.jinja2:291
+#: octoprint_klipper/templates/klipper_settings.jinja2:319
+#: octoprint_klipper/templates/klipper_settings.jinja2:327
+#: octoprint_klipper/templates/klipper_settings.jinja2:350
+#: octoprint_klipper/templates/klipper_settings.jinja2:364
+#: octoprint_klipper/templates/klipper_settings.jinja2:510
+#: octoprint_klipper/templates/klipper_settings.jinja2:524
+#: octoprint_klipper/templates/klipper_settings.jinja2:536
+#: octoprint_klipper/templates/klipper_settings.jinja2:668
+#: octoprint_klipper/templates/klipper_settings.jinja2:684
+#: octoprint_klipper/templates/klipper_settings.jinja2:700
+#: octoprint_klipper/templates/klipper_settings.jinja2:715
+#: octoprint_klipper/templates/klipper_settings.jinja2:789
+#: octoprint_klipper/templates/klipper_settings.jinja2:847
 msgid "Reset to default"
 msgstr "Rétablir les valeurs par défaut"
 
@@ -1286,23 +1392,42 @@ msgstr "Répertoire Klipper"
 msgid "Klipper Config Directory"
 msgstr "Répertoire de configuration Klipper"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:150
+#: octoprint_klipper/templates/klipper_settings.jinja2:151
+msgid "Check the config directory on the server"
+msgstr "Vérifier le répertoire de configuration sur le serveur"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:153
+#: octoprint_klipper/templates/klipper_settings.jinja2:196
+#: octoprint_klipper/templates/klipper_settings.jinja2:223
+msgid "Check path"
+msgstr "Vérifier le chemin"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:160
+#: octoprint_klipper/templates/klipper_settings.jinja2:203
+msgid "Resolves to:"
+msgstr "Résout à :"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:162
+msgid "Directory not found!"
+msgstr "Dossier introuvable !"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:165
 msgid "Only point this to a path containing config files!"
 msgstr "Indiquez uniquement un chemin contenant des fichiers de configuration !"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:152
+#: octoprint_klipper/templates/klipper_settings.jinja2:167
 msgid "OctoPrint will sanitize the path and filenames"
 msgstr "OctoPrint assainira le chemin et les noms de fichiers"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:156
+#: octoprint_klipper/templates/klipper_settings.jinja2:171
 msgid " You need to also modify the servicefile for Klipper."
 msgstr " Vous devez également modifier le fichier de service de Klipper."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:159
+#: octoprint_klipper/templates/klipper_settings.jinja2:174
 msgid "Modify Klipper Servicefile"
 msgstr "Modifier le fichier de service de Klipper"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:167
+#: octoprint_klipper/templates/klipper_settings.jinja2:182
 msgid ""
 "The filename of the base config that Klipper is loading. (default is "
 "printer.cfg)"
@@ -1310,133 +1435,134 @@ msgstr ""
 "Le nom du fichier de configuration de base que Klipper charge. (par "
 "défaut printer.cfg)"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:168
+#: octoprint_klipper/templates/klipper_settings.jinja2:183
 msgid "Klipper Base Config Filename"
 msgstr "Nom du fichier de configuration de base de Klipper"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:180
-msgid "Klipper Log Path"
-msgstr "Chemin du journal Klipper"
+#: octoprint_klipper/templates/klipper_settings.jinja2:194
+msgid "Check the base config file on the server"
+msgstr "Vérifier le fichier de configuration de base sur le serveur"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:191
-msgid "Check the log path on the server"
-msgstr "Vérifiez le chemin du journal sur le serveur"
-
-#: octoprint_klipper/templates/klipper_settings.jinja2:193
-msgid "Check path"
-msgstr "Vérifier le chemin"
-
-#: octoprint_klipper/templates/klipper_settings.jinja2:200
-msgid "Will load:"
-msgstr "Chargera :"
-
-#: octoprint_klipper/templates/klipper_settings.jinja2:202
+#: octoprint_klipper/templates/klipper_settings.jinja2:205
+#: octoprint_klipper/templates/klipper_settings.jinja2:232
 #: octoprint_klipper/templates/klipper_tab_main.jinja2:76
 msgid "File not found!"
 msgstr "Fichier introuvable !"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:207
+#: octoprint_klipper/templates/klipper_settings.jinja2:210
+msgid "Klipper Log Path"
+msgstr "Chemin du journal Klipper"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:221
+msgid "Check the log path on the server"
+msgstr "Vérifiez le chemin du journal sur le serveur"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:230
+msgid "Will load:"
+msgstr "Chargera :"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:237
 msgid "Configuration Restart GCode Command"
 msgstr "Commande GCode de redémarrage de la configuration"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:209
+#: octoprint_klipper/templates/klipper_settings.jinja2:239
 msgid "Klipper Restart Host GCODE:"
 msgstr "GCODE de redémarrage de l'hôte Klipper :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:218
+#: octoprint_klipper/templates/klipper_settings.jinja2:248
 msgid "Klipper Restart Firmware GCODE:"
 msgstr "GCODE de redémarrage du micrologiciel Klipper :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:227
+#: octoprint_klipper/templates/klipper_settings.jinja2:257
 msgid "Restart Host system command"
 msgstr "Commande système de redémarrage de l'hôte"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:227
+#: octoprint_klipper/templates/klipper_settings.jinja2:257
 msgid "Restart Host system command:"
 msgstr "Commande système de redémarrage de l'hôte :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:236
+#: octoprint_klipper/templates/klipper_settings.jinja2:266
 msgid "System command for restarting the klipper service."
 msgstr "Commande système pour redémarrer le service Klipper."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:241
+#: octoprint_klipper/templates/klipper_settings.jinja2:271
 msgid "The type of restart that is used if you want to restart klipper."
 msgstr "Le type de redémarrage utilisé si vous voulez redémarrer Klipper."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:241
+#: octoprint_klipper/templates/klipper_settings.jinja2:271
 msgid "The type of restart that is used on the dialogs:"
 msgstr "Le type de redémarrage utilisé dans les boîtes de dialogue :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:244
+#: octoprint_klipper/templates/klipper_settings.jinja2:274
 msgid "Restart Host(klippy)"
 msgstr "Redémarrer l'hôte (klippy)"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:245
+#: octoprint_klipper/templates/klipper_settings.jinja2:275
 msgid "Restart Firmware on printer"
 msgstr "Redémarrer le micrologiciel sur l'imprimante"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:246
+#: octoprint_klipper/templates/klipper_settings.jinja2:276
 msgid "Restart klipper service with system command"
 msgstr "Redémarrer le service Klipper avec une commande système"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:254
+#: octoprint_klipper/templates/klipper_settings.jinja2:284
 msgid "Show Confirmation before restarting Klipper?"
 msgstr "Afficher une confirmation avant de redémarrer Klipper ?"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:257
+#: octoprint_klipper/templates/klipper_settings.jinja2:287
 msgid "Confirmation before restarting Klipper?"
 msgstr "Confirmation avant de redémarrer Klipper ?"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:267
+#: octoprint_klipper/templates/klipper_settings.jinja2:297
 msgid "Config Backup"
 msgstr "Sauvegarde de la configuration"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:270
-#: octoprint_klipper/templates/klipper_settings.jinja2:271
+#: octoprint_klipper/templates/klipper_settings.jinja2:300
+#: octoprint_klipper/templates/klipper_settings.jinja2:301
 msgid "Show Backups"
 msgstr "Afficher les sauvegardes"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:274
+#: octoprint_klipper/templates/klipper_settings.jinja2:304
 msgid "Copy all config files to the OctoPrint backup"
 msgstr "Copier tous les fichiers de configuration dans la sauvegarde OctoPrint"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:280
+#: octoprint_klipper/templates/klipper_settings.jinja2:310
 msgid "Development Options"
 msgstr "Options de développement"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:283
-#: octoprint_klipper/templates/klipper_settings.jinja2:286
+#: octoprint_klipper/templates/klipper_settings.jinja2:313
+#: octoprint_klipper/templates/klipper_settings.jinja2:316
 msgid "Enable debug logging"
 msgstr "Activer la journalisation de débogage"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:292
-#: octoprint_klipper/templates/klipper_settings.jinja2:294
+#: octoprint_klipper/templates/klipper_settings.jinja2:322
+#: octoprint_klipper/templates/klipper_settings.jinja2:324
 msgid "Enable debugging"
 msgstr "Activer le débogage"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:307
+#: octoprint_klipper/templates/klipper_settings.jinja2:337
 msgid "These macros are only meant to be used in OctoPrint."
 msgstr "Ces macros sont destinées à être utilisées uniquement dans OctoPrint."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:308
+#: octoprint_klipper/templates/klipper_settings.jinja2:338
 msgid "They are not the ones that can be defined in the printer.cfg."
 msgstr "Ce ne sont pas celles qui peuvent être définies dans printer.cfg."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:312
-#: octoprint_klipper/templates/klipper_settings.jinja2:315
+#: octoprint_klipper/templates/klipper_settings.jinja2:342
+#: octoprint_klipper/templates/klipper_settings.jinja2:345
 msgid "Show Macros on the sidebar"
 msgstr "Afficher les macros dans la barre latérale"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:317
+#: octoprint_klipper/templates/klipper_settings.jinja2:347
 msgid "Shows the macros in their own panel on the sidebar."
 msgstr "Affiche les macros dans leur propre panneau dans la barre latérale."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:325
-#: octoprint_klipper/templates/klipper_settings.jinja2:328
+#: octoprint_klipper/templates/klipper_settings.jinja2:355
+#: octoprint_klipper/templates/klipper_settings.jinja2:358
 msgid "Collapse Macros panel by default"
 msgstr "Réduire le panneau des macros par défaut"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:331
+#: octoprint_klipper/templates/klipper_settings.jinja2:361
 msgid ""
 "The macros panel is collapsed on page load. Expand it with the header to "
 "use it."
@@ -1444,107 +1570,107 @@ msgstr ""
 "Le panneau des macros est réduit au chargement de la page. Développez-le "
 "avec l'en-tête pour l'utiliser."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:339
-#: octoprint_klipper/templates/klipper_settings.jinja2:499
+#: octoprint_klipper/templates/klipper_settings.jinja2:369
+#: octoprint_klipper/templates/klipper_settings.jinja2:541
 msgid "Groups"
 msgstr "Groupes"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:350
-#: octoprint_klipper/templates/klipper_settings.jinja2:351
-#: octoprint_klipper/templates/klipper_settings.jinja2:510
-#: octoprint_klipper/templates/klipper_settings.jinja2:511
+#: octoprint_klipper/templates/klipper_settings.jinja2:380
+#: octoprint_klipper/templates/klipper_settings.jinja2:381
+#: octoprint_klipper/templates/klipper_settings.jinja2:552
+#: octoprint_klipper/templates/klipper_settings.jinja2:553
 msgid "Add Group"
 msgstr "Ajouter un groupe"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:353
-#: octoprint_klipper/templates/klipper_settings.jinja2:513
+#: octoprint_klipper/templates/klipper_settings.jinja2:383
+#: octoprint_klipper/templates/klipper_settings.jinja2:555
 msgid "Groups are shown in this order on the Klipper tab and sidebar."
 msgstr ""
 "Les groupes sont affichés dans cet ordre dans l'onglet Klipper et la "
 "barre latérale."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:361
-#: octoprint_klipper/templates/klipper_settings.jinja2:533
+#: octoprint_klipper/templates/klipper_settings.jinja2:391
+#: octoprint_klipper/templates/klipper_settings.jinja2:575
 msgid "Add macro button to:"
 msgstr "Ajouter le bouton de macro à :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:373
-#: octoprint_klipper/templates/klipper_settings.jinja2:556
+#: octoprint_klipper/templates/klipper_settings.jinja2:403
+#: octoprint_klipper/templates/klipper_settings.jinja2:598
 msgid "Group this macro under a collapsible heading, e.g. Tests or Calibration."
 msgstr ""
 "Regroupez cette macro sous un titre repliable, par ex. Tests ou "
 "Étalonnage."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:377
-#: octoprint_klipper/templates/klipper_settings.jinja2:378
-#: octoprint_klipper/templates/klipper_settings.jinja2:560
-#: octoprint_klipper/templates/klipper_settings.jinja2:561
+#: octoprint_klipper/templates/klipper_settings.jinja2:407
+#: octoprint_klipper/templates/klipper_settings.jinja2:408
+#: octoprint_klipper/templates/klipper_settings.jinja2:602
+#: octoprint_klipper/templates/klipper_settings.jinja2:603
 msgid "Klipper Tab"
 msgstr "Onglet Klipper"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:383
-#: octoprint_klipper/templates/klipper_settings.jinja2:384
-#: octoprint_klipper/templates/klipper_settings.jinja2:566
-#: octoprint_klipper/templates/klipper_settings.jinja2:567
+#: octoprint_klipper/templates/klipper_settings.jinja2:413
+#: octoprint_klipper/templates/klipper_settings.jinja2:414
+#: octoprint_klipper/templates/klipper_settings.jinja2:608
+#: octoprint_klipper/templates/klipper_settings.jinja2:609
 msgid "Sidebar"
 msgstr "Barre latérale"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:396
-#: octoprint_klipper/templates/klipper_settings.jinja2:578
+#: octoprint_klipper/templates/klipper_settings.jinja2:426
+#: octoprint_klipper/templates/klipper_settings.jinja2:620
 msgid "Button Style"
 msgstr "Style du bouton"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:404
-#: octoprint_klipper/templates/klipper_settings.jinja2:586
+#: octoprint_klipper/templates/klipper_settings.jinja2:434
+#: octoprint_klipper/templates/klipper_settings.jinja2:628
 msgid "The style of the button."
 msgstr "Le style du bouton."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:404
-#: octoprint_klipper/templates/klipper_settings.jinja2:586
+#: octoprint_klipper/templates/klipper_settings.jinja2:434
+#: octoprint_klipper/templates/klipper_settings.jinja2:628
 msgid "Style"
 msgstr "Style"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:406
-#: octoprint_klipper/templates/klipper_settings.jinja2:588
+#: octoprint_klipper/templates/klipper_settings.jinja2:436
+#: octoprint_klipper/templates/klipper_settings.jinja2:630
 msgid "Default"
 msgstr "Par défaut"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:407
-#: octoprint_klipper/templates/klipper_settings.jinja2:589
+#: octoprint_klipper/templates/klipper_settings.jinja2:437
+#: octoprint_klipper/templates/klipper_settings.jinja2:631
 msgid "Danger"
 msgstr "Danger"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:408
-#: octoprint_klipper/templates/klipper_settings.jinja2:590
+#: octoprint_klipper/templates/klipper_settings.jinja2:438
+#: octoprint_klipper/templates/klipper_settings.jinja2:632
 msgid "Success"
 msgstr "Succès"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:409
-#: octoprint_klipper/templates/klipper_settings.jinja2:591
+#: octoprint_klipper/templates/klipper_settings.jinja2:439
+#: octoprint_klipper/templates/klipper_settings.jinja2:633
 msgid "Warning"
 msgstr "Avertissement"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:410
-#: octoprint_klipper/templates/klipper_settings.jinja2:592
+#: octoprint_klipper/templates/klipper_settings.jinja2:440
+#: octoprint_klipper/templates/klipper_settings.jinja2:634
 msgid "Info"
 msgstr "Info"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:413
-#: octoprint_klipper/templates/klipper_settings.jinja2:595
+#: octoprint_klipper/templates/klipper_settings.jinja2:443
+#: octoprint_klipper/templates/klipper_settings.jinja2:637
 msgid "Color"
 msgstr "Couleur"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:424
-#: octoprint_klipper/templates/klipper_settings.jinja2:448
+#: octoprint_klipper/templates/klipper_settings.jinja2:454
+#: octoprint_klipper/templates/klipper_settings.jinja2:478
 msgid "Command"
 msgstr "Commande"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:436
-#: octoprint_klipper/templates/klipper_settings.jinja2:437
+#: octoprint_klipper/templates/klipper_settings.jinja2:466
+#: octoprint_klipper/templates/klipper_settings.jinja2:467
 msgid "Add Macro"
 msgstr "Ajouter une macro"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:445
+#: octoprint_klipper/templates/klipper_settings.jinja2:475
 msgid ""
 "To show a dialog that asks for parameters you can write your macro like "
 "in the following example:"
@@ -1552,22 +1678,22 @@ msgstr ""
 "Pour afficher une boîte de dialogue demandant des paramètres, vous pouvez"
 " écrire votre macro comme dans l'exemple suivant :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:466
+#: octoprint_klipper/templates/klipper_settings.jinja2:496
 msgid "These macros are parsed from your printer.cfg and its [include]d files."
 msgstr ""
 "Ces macros sont extraites de votre printer.cfg et de ses fichiers "
 "[include]és."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:467
+#: octoprint_klipper/templates/klipper_settings.jinja2:497
 msgid "Assign them to groups and choose where they are shown."
 msgstr "Attribuez-les à des groupes et choisissez où elles sont affichées."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:471
-#: octoprint_klipper/templates/klipper_settings.jinja2:474
+#: octoprint_klipper/templates/klipper_settings.jinja2:501
+#: octoprint_klipper/templates/klipper_settings.jinja2:504
 msgid "Parse macros from printer.cfg"
 msgstr "Extraire les macros de printer.cfg"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:477
+#: octoprint_klipper/templates/klipper_settings.jinja2:507
 msgid ""
 "Collects gcode macros from the baseconfig and its [include]d files and "
 "shows them as clickable buttons on the Klipper tab."
@@ -1576,12 +1702,12 @@ msgstr ""
 "[include]és et les affiche sous forme de boutons cliquables dans l'onglet"
 " Klipper."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:485
-#: octoprint_klipper/templates/klipper_settings.jinja2:488
+#: octoprint_klipper/templates/klipper_settings.jinja2:515
+#: octoprint_klipper/templates/klipper_settings.jinja2:518
 msgid "Collapse Klipper Macros panel by default"
 msgstr "Réduire le panneau des macros Klipper par défaut"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:491
+#: octoprint_klipper/templates/klipper_settings.jinja2:521
 msgid ""
 "The Klipper Macros panel is collapsed on page load. Expand it with the "
 "header to use it."
@@ -1589,33 +1715,38 @@ msgstr ""
 "Le panneau des macros Klipper est réduit au chargement de la page. "
 "Développez-le avec l'en-tête pour l'utiliser."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:518
+#: octoprint_klipper/templates/klipper_settings.jinja2:529
+#: octoprint_klipper/templates/klipper_settings.jinja2:532
+msgid "Show Klipper Macros panel on the sidebar"
+msgstr "Afficher le panneau des macros Klipper dans la barre latérale"
+
+#: octoprint_klipper/templates/klipper_settings.jinja2:560
 msgid "Re-parse the macros from the config files"
 msgstr "Réextraire les macros des fichiers de configuration"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:522
+#: octoprint_klipper/templates/klipper_settings.jinja2:564
 msgid "Re-parse"
 msgstr "Réextraire"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:530
+#: octoprint_klipper/templates/klipper_settings.jinja2:572
 msgid "Source"
 msgstr "Source"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:531
+#: octoprint_klipper/templates/klipper_settings.jinja2:573
 msgid "Params"
 msgstr "Paramètres"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:548
+#: octoprint_klipper/templates/klipper_settings.jinja2:590
 msgid "This macro has parameters and opens a dialog when run."
 msgstr ""
 "Cette macro a des paramètres et ouvre une boîte de dialogue lors de son "
 "exécution."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:551
+#: octoprint_klipper/templates/klipper_settings.jinja2:593
 msgid "This macro has no parameters."
 msgstr "Cette macro n'a aucun paramètre."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:612
+#: octoprint_klipper/templates/klipper_settings.jinja2:654
 msgid ""
 "This feature assists in manually leveling your print bed by moving the "
 "head to the defined points in sequence. If you use a piece of paper for "
@@ -1626,149 +1757,149 @@ msgstr ""
 "feuille de papier pour le nivellement, réglez « Hauteur de palpage » sur "
 "l'épaisseur du papier, par ex. « 0.1 »."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:616
+#: octoprint_klipper/templates/klipper_settings.jinja2:658
 msgid "Probe Height"
 msgstr "Hauteur de palpage"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:628
+#: octoprint_klipper/templates/klipper_settings.jinja2:670
 msgid "Z-height to probe at"
 msgstr "Hauteur Z de palpage"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:632
+#: octoprint_klipper/templates/klipper_settings.jinja2:674
 msgid "Probe Lift"
 msgstr "Élévation de palpage"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:644
+#: octoprint_klipper/templates/klipper_settings.jinja2:686
 msgid "Lift Head by this amount before moving."
 msgstr "Relever la tête de cette valeur avant tout déplacement."
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:648
+#: octoprint_klipper/templates/klipper_settings.jinja2:690
 msgid "Probe Feedrate Z"
 msgstr "Vitesse d'avance de palpage Z"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:654
-#: octoprint_klipper/templates/klipper_settings.jinja2:669
+#: octoprint_klipper/templates/klipper_settings.jinja2:696
+#: octoprint_klipper/templates/klipper_settings.jinja2:711
 msgid "mm/min"
 msgstr "mm/min"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:663
+#: octoprint_klipper/templates/klipper_settings.jinja2:705
 msgid "Feedrate X/Y"
 msgstr "Vitesse d'avance X/Y"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:678
+#: octoprint_klipper/templates/klipper_settings.jinja2:720
 msgid "Probe Points"
 msgstr "Points de palpage"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:682
+#: octoprint_klipper/templates/klipper_settings.jinja2:724
 msgid "x(mm)"
 msgstr "x(mm)"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:683
+#: octoprint_klipper/templates/klipper_settings.jinja2:725
 msgid "y(mm)"
 msgstr "y(mm)"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:705
-#: octoprint_klipper/templates/klipper_settings.jinja2:706
+#: octoprint_klipper/templates/klipper_settings.jinja2:747
+#: octoprint_klipper/templates/klipper_settings.jinja2:748
 msgid "Add Point"
 msgstr "Ajouter un point"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:714
+#: octoprint_klipper/templates/klipper_settings.jinja2:756
 msgid "Updates"
 msgstr "Mises à jour"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:716
+#: octoprint_klipper/templates/klipper_settings.jinja2:758
 msgid "Installed Host Version:"
 msgstr "Version de l'hôte installée :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:718
+#: octoprint_klipper/templates/klipper_settings.jinja2:760
 msgid "Version of the Klipper host"
 msgstr "Version de l'hôte Klipper"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:723
+#: octoprint_klipper/templates/klipper_settings.jinja2:765
 msgid "Available Host Version:"
 msgstr "Version de l'hôte disponible :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:726
+#: octoprint_klipper/templates/klipper_settings.jinja2:768
 msgid "Version of the available Klipper host"
 msgstr "Version de l'hôte Klipper disponible"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:729
+#: octoprint_klipper/templates/klipper_settings.jinja2:771
 msgid "Release date of the available Klipper host"
 msgstr "Date de publication de l'hôte Klipper disponible"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:735
+#: octoprint_klipper/templates/klipper_settings.jinja2:777
 msgid "Url to Repository of Klipper:"
 msgstr "URL du dépôt de Klipper :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:742
-#: octoprint_klipper/templates/klipper_settings.jinja2:799
+#: octoprint_klipper/templates/klipper_settings.jinja2:784
+#: octoprint_klipper/templates/klipper_settings.jinja2:841
 msgid "Check for Update"
 msgstr "Rechercher une mise à jour"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:758
+#: octoprint_klipper/templates/klipper_settings.jinja2:800
 msgid "This will clone and install the Klipper host software"
 msgstr "Cela va cloner et installer le logiciel hôte Klipper"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:768
+#: octoprint_klipper/templates/klipper_settings.jinja2:810
 msgid "This will cause the host software to update and perform an internal reset"
 msgstr ""
 "Cela amènera le logiciel hôte à se mettre à jour et à effectuer une "
 "réinitialisation interne"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:769
+#: octoprint_klipper/templates/klipper_settings.jinja2:811
 msgid "Update Host"
 msgstr "Mettre à jour l'hôte"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:775
+#: octoprint_klipper/templates/klipper_settings.jinja2:817
 msgid "Installed OctoKlipper Version:"
 msgstr "Version d'OctoKlipper installée :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:778
+#: octoprint_klipper/templates/klipper_settings.jinja2:820
 msgid "Version of the OctoKlipper Plugin"
 msgstr "Version du greffon OctoKlipper"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:783
+#: octoprint_klipper/templates/klipper_settings.jinja2:825
 msgid "Available OctoKlipper Version:"
 msgstr "Version d'OctoKlipper disponible :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:786
+#: octoprint_klipper/templates/klipper_settings.jinja2:828
 msgid "Version of the available OctoKlipper Plugin"
 msgstr "Version du greffon OctoKlipper disponible"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:792
+#: octoprint_klipper/templates/klipper_settings.jinja2:834
 msgid "Url to Repository of OctoKlipper:"
 msgstr "URL du dépôt d'OctoKlipper :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:816
+#: octoprint_klipper/templates/klipper_settings.jinja2:858
 msgid "Reset all OctoKlipper settings to their defaults"
 msgstr "Réinitialiser tous les paramètres d'OctoKlipper à leurs valeurs par défaut"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:817
+#: octoprint_klipper/templates/klipper_settings.jinja2:859
 msgid "Reset all settings"
 msgstr "Réinitialiser tous les paramètres"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:833
+#: octoprint_klipper/templates/klipper_settings.jinja2:875
 msgid "Sudo password (optional):"
 msgstr "Mot de passe sudo (facultatif) :"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:845
+#: octoprint_klipper/templates/klipper_settings.jinja2:887
 msgid "Start Install"
 msgstr "Démarrer l'installation"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:877
+#: octoprint_klipper/templates/klipper_settings.jinja2:919
 #: octoprint_klipper/templates/klipper_tab_main.jinja2:49
 msgid "Log Filters"
 msgstr "Filtres de journal"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:884
+#: octoprint_klipper/templates/klipper_settings.jinja2:926
 msgid "RegExp"
 msgstr "Expression régulière"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:897
+#: octoprint_klipper/templates/klipper_settings.jinja2:939
 msgid "Remove Filter"
 msgstr "Supprimer le filtre"
 
-#: octoprint_klipper/templates/klipper_settings.jinja2:904
+#: octoprint_klipper/templates/klipper_settings.jinja2:946
 msgid "Add Filter"
 msgstr "Ajouter un filtre"
 
@@ -1909,6 +2040,10 @@ msgstr ""
 msgid "Analyze Klipper Log"
 msgstr "Analyser le journal Klipper"
 
+#: octoprint_klipper/templates/klipper_tab_main.jinja2:164
+msgid "View and edit the Klipper save_variables."
+msgstr "Afficher et modifier les variables enregistrées de Klipper."
+
 #: octoprint_klipper/templates/dialogs/configs.jinja2:4
 msgid "Create Folder"
 msgstr "Créer un dossier"
@@ -1922,36 +2057,45 @@ msgid "Folder name"
 msgstr "Nom du dossier"
 
 #: octoprint_klipper/templates/dialogs/configs.jinja2:22
+#: octoprint_klipper/templates/dialogs/configs.jinja2:47
 msgid "Create"
 msgstr "Créer"
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:29
+#: octoprint_klipper/templates/dialogs/configs.jinja2:32
+msgid "Please specify the name of the file to create in the current folder."
+msgstr "Veuillez indiquer le nom du fichier à créer dans le dossier actuel."
+
+#: octoprint_klipper/templates/dialogs/configs.jinja2:35
+msgid "File name"
+msgstr "Nom du fichier"
+
+#: octoprint_klipper/templates/dialogs/configs.jinja2:54
 msgid "Move File or Folder"
 msgstr "Déplacer un fichier ou un dossier"
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:34
+#: octoprint_klipper/templates/dialogs/configs.jinja2:59
 msgid "Select destination folder for "
 msgstr "Sélectionnez le dossier de destination pour "
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:35
-#: octoprint_klipper/templates/dialogs/configs.jinja2:44
+#: octoprint_klipper/templates/dialogs/configs.jinja2:60
+#: octoprint_klipper/templates/dialogs/configs.jinja2:69
 msgid "Currently:"
 msgstr "Actuellement :"
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:44
+#: octoprint_klipper/templates/dialogs/configs.jinja2:69
 msgid "Set destination filename "
 msgstr "Définissez le nom du fichier de destination "
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:50
+#: octoprint_klipper/templates/dialogs/configs.jinja2:75
 msgid "File/Folder will be moved to: "
 msgstr "Le fichier/dossier sera déplacé vers : "
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:67
-#: octoprint_klipper/templates/dialogs/configs.jinja2:78
+#: octoprint_klipper/templates/dialogs/configs.jinja2:92
+#: octoprint_klipper/templates/dialogs/configs.jinja2:103
 msgid "File already exists"
 msgstr "Le fichier existe déjà"
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:71
+#: octoprint_klipper/templates/dialogs/configs.jinja2:96
 msgid ""
 "If you want to rename the file, you may do so below. A collision free "
 "suggestion has already been made."
@@ -1959,25 +2103,25 @@ msgstr ""
 "Si vous souhaitez renommer le fichier, vous pouvez le faire ci-dessous. "
 "Une suggestion sans conflit a déjà été proposée."
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:75
-#: octoprint_klipper/templates/dialogs/configs.jinja2:101
+#: octoprint_klipper/templates/dialogs/configs.jinja2:100
+#: octoprint_klipper/templates/dialogs/configs.jinja2:126
 msgid "Rename to"
 msgstr "Renommer en"
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:85
+#: octoprint_klipper/templates/dialogs/configs.jinja2:110
 msgid "Upload (rename)"
 msgstr "Téléverser (renommer)"
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:86
+#: octoprint_klipper/templates/dialogs/configs.jinja2:111
 msgid "Upload (overwrite)"
 msgstr "Téléverser (écraser)"
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:93
-#: octoprint_klipper/templates/dialogs/configs.jinja2:104
+#: octoprint_klipper/templates/dialogs/configs.jinja2:118
+#: octoprint_klipper/templates/dialogs/configs.jinja2:129
 msgid "File changed externally"
 msgstr "Fichier modifié en externe"
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:97
+#: octoprint_klipper/templates/dialogs/configs.jinja2:122
 msgid ""
 "The file you are trying to upload has been changed externally. If you "
 "want to upload the file anyway, you may do so below. A collision free "
@@ -1987,11 +2131,11 @@ msgstr ""
 "vous souhaitez le téléverser quand même, vous pouvez le faire ci-dessous."
 " Une suggestion sans conflit a déjà été proposée."
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:111
+#: octoprint_klipper/templates/dialogs/configs.jinja2:136
 msgid "Save (rename)"
 msgstr "Enregistrer (renommer)"
 
-#: octoprint_klipper/templates/dialogs/configs.jinja2:112
+#: octoprint_klipper/templates/dialogs/configs.jinja2:137
 msgid "Save (overwrite)"
 msgstr "Enregistrer (écraser)"
 

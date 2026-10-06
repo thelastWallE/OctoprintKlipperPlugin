@@ -146,6 +146,21 @@
               data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'config_path') }"
               title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
           </div>
+          <div class="klipper-reset-row">
+            <button type="button" class="btn btn-small" data-bind="click: checkConfigPath, enable: !configPathChecking()"
+              title="{{ _('Check the config directory on the server') }}">
+              <i class="icon-ok" data-bind="css: configPathChecking() ? 'klipper-spin' : ''"></i>
+              {{ _('Check path') }}
+            </button>
+          </div>
+          <span class="klippy-log-path-resolved"
+            data-bind="css: { 'klippy-log-path-resolved-missing': !configPathExists() }">
+            <i class="icon-{{ 'ok' if resolved_config_path_exists else 'warning-sign' }}"
+              data-bind="attr: { 'class': configPathExists() ? 'icon-ok' : 'icon-warning-sign' }"></i>
+            {{ _('Resolves to:') }}
+            <code data-bind="text: configPathResolved"></code>
+            <span data-bind="visible: !configPathExists()">&mdash; {{ _('Directory not found!') }}</span>
+          </span>
           <span
             class="klipper-help-inline klipper-danger klipper-flex-grow">{{ _('Only point this to a path containing config files!') }}</span>
           <span
@@ -174,6 +189,21 @@
               data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'baseconfig') }"
               title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
           </div>
+          <div class="klipper-reset-row">
+            <button type="button" class="btn btn-small" data-bind="click: checkBaseConfig, enable: !baseConfigChecking()"
+              title="{{ _('Check the base config file on the server') }}">
+              <i class="icon-ok" data-bind="css: baseConfigChecking() ? 'klipper-spin' : ''"></i>
+              {{ _('Check path') }}
+            </button>
+          </div>
+          <span class="klippy-log-path-resolved"
+            data-bind="css: { 'klippy-log-path-resolved-missing': !baseConfigExists() }">
+            <i class="icon-{{ 'ok' if resolved_baseconfig_exists else 'warning-sign' }}"
+              data-bind="attr: { 'class': baseConfigExists() ? 'icon-ok' : 'icon-warning-sign' }"></i>
+            {{ _('Resolves to:') }}
+            <code data-bind="text: baseConfigResolved"></code>
+            <span data-bind="visible: !baseConfigExists()">&mdash; {{ _('File not found!') }}</span>
+          </span>
         </div>
       </div>
       <div class="control-group">
@@ -491,6 +521,18 @@
               class="klipper-help-inline">{{ _('The Klipper Macros panel is collapsed on page load. Expand it with the header to use it.') }}</span>
             <button type="button" class="btn btn-mini klipper-reset-btn"
               data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'parsed_macros_sidebar_collapsed') }"
+              title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="control-label">{{ _('Show Klipper Macros panel on the sidebar') }}</div>
+        <div class="controls">
+          <div class="klipper-reset-row">
+            <input class="controls-checkbox" title="{{ _('Show Klipper Macros panel on the sidebar') }}" type="checkbox"
+              data-bind="checked: settings.settings.plugins.klipper.configuration.show_parsed_macros_sidebar" />
+            <button type="button" class="btn btn-mini klipper-reset-btn"
+              data-bind="click: function() { klipperViewModel.resetSetting('configuration', 'show_parsed_macros_sidebar') }"
               title="{{ _('Reset to default') }}"><i class="icon-undo"></i></button>
           </div>
         </div>

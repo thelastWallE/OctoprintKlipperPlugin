@@ -28,13 +28,6 @@ $(function () {
     // allows "-", "/", "+", "%" and "." so values like "my-value",
     // "path/to" or "190.5" parse correctly.
     var keyValueRegex = /(\w*)\s*:\s*([\w\s°"|\.\-/+%]*)/g;
-    // Klipper's runtime parameters used in macro bodies, e.g.
-    // {params.LENGTH}, {params.LENGTH|float}, {rawparams.X}, {input.Y}. These
-    // are collected via the dialog and sent as MACRONAME X=value arguments.
-    // Only single-brace expressions match — {{ params.X }} (double braces) is
-    // a plain Jinja2 expression and is not treated as a parameter.
-    // NOTE: keep in sync with _KLIPPER_PARAM_RE in KlipperMacroParser.py.
-    var klipperParamRegex = /(?<!\{)\{(?:params|rawparams|input)\.(\w+)[^{}]*\}/g;
 
     self.process = function (macro, callerViewModel) {
       self.macro = macro.macro();
@@ -66,9 +59,9 @@ $(function () {
           obj["unit"] = "";
         }
 
-        if ("default" in obj) {
-          obj["value"] = ko.observable(obj["default"]);
-        }
+        // Always provide a value observable (defaulting to "") so the dialog
+        // binding and the substitution below never hit a missing value.
+        obj["value"] = ko.observable("default" in obj ? obj["default"] : "");
 
         params.push(obj);
       }
@@ -85,13 +78,11 @@ $(function () {
       self.isKlipperParams = false;
 
       // Klipper runtime parameters ({params.X}, {rawparams.X}, {input.X}) are
-      // collected via the dialog and sent as MACRONAME X=value arguments.
-      var klipperNames = [];
-      var km;
-      klipperParamRegex.lastIndex = 0;
-      while ((km = klipperParamRegex.exec(self.macro)) !== null) {
-        if (klipperNames.indexOf(km[1]) === -1) klipperNames.push(km[1]);
-      }
+      // collected via the dialog and sent as MACRONAME X=value arguments. The
+      // names come from the backend (klipper_params) — the single source of
+      // truth for this detection, so the frontend no longer carries a second,
+      // drifted regex.
+      var klipperNames = (macro.klipper_params || []).slice();
 
       // Plugin placeholders ({label:..., default:..., options:...}) are
       // substituted into the gcode body before sending. Collect them too so a
@@ -111,7 +102,9 @@ $(function () {
         }
         if (!("label" in obj)) obj["label"] = "Input " + (i + 1);
         if (!("unit" in obj)) obj["unit"] = "";
-        if ("default" in obj) obj["value"] = ko.observable(obj["default"]);
+        // Always provide a value observable so the dialog binding and the
+        // substitution below never hit a missing value.
+        obj["value"] = ko.observable("default" in obj ? obj["default"] : "");
         params.push(obj);
       }
 

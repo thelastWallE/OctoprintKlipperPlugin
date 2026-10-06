@@ -1,0 +1,53 @@
+<div id="klipper_save_variables_dialog" class="modal hide fade" tabindex="-1" role="dialog"
+  aria-labelledby="klipper_save_variables_dialog_label" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h3>{{ _('Save Variables') }}</h3>
+  </div>
+  <div class="modal-body">
+    <!-- ko ifnot: configured -->
+    <span class="help-block">{{ _('The [save_variables] section with a filename option is not configured in your printer.cfg.') }}</span>
+    <!-- /ko -->
+    <!-- ko if: configured -->
+    <span class="klippy-log-path-resolved" data-bind="css: { 'klippy-log-path-resolved-missing': !exists() }">
+      <i class="icon-ok" data-bind="attr: { 'class': exists() ? 'icon-ok' : 'icon-warning-sign' }"></i>
+      {{ _('Variable file:') }} <code data-bind="text: path"></code>
+    </span>
+    <!-- /ko -->
+    <div class="klipper-btn-group" style="margin-top: 8px;">
+      <button class="btn btn-small" data-bind="click: loadVariables"
+        title="{{ _('Reload the variables from disk') }}">
+        <i class="icon-refresh" data-bind="css: { 'klipper-spin': loading() }"></i>{{ _('Refresh') }}
+      </button>
+    </div>
+    <div class="klipper-danger" style="margin-top: 6px;" data-bind="visible: loadError">
+      <span data-bind="text: loadError"></span>
+    </div>
+    <table class="table table-striped table-condensed" style="margin-top: 8px;">
+      <thead>
+        <tr>
+          <th>{{ _('Name') }}</th>
+          <th>{{ _('Value') }}</th>
+          <th>{{ _('Used by') }}</th>
+          <th>{{ _('Action') }}</th>
+        </tr>
+      </thead>
+      <tbody data-bind="foreach: variables">
+        <tr>
+          <td><code data-bind="text: name"></code></td>
+          <td><input type="text" class="input-block-level" data-bind="value: value" /></td>
+          <td><span data-bind="text: usedBy"></span></td>
+          <td>
+            <button class="btn btn-small" data-bind="click: function () { $root.saveVariable($data); }, enable: !saving()">
+              <i class="icon-ok"></i> {{ _('Save') }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <span class="help-block" data-bind="visible: !variables().length">{{ _('No variables stored yet.') }}</span>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal">{{ _('Close') }}</button>
+  </div>
+</div>

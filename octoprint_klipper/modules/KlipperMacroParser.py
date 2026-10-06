@@ -191,6 +191,11 @@ def _parse_macro_section(lines, section_name, source_file):
         has_params=bool(
             _PARAM_PLACEHOLDER_RE.search(gcode) or _KLIPPER_PARAM_RE.search(gcode)
         ),
+        # Klipper runtime parameter names ({params.X}, {rawparams.X},
+        # {input.X}), deduplicated in order of appearance. The frontend builds
+        # its parameter dialog from these instead of re-deriving them with a
+        # second, drifted regex.
+        klipper_params=list(dict.fromkeys(_KLIPPER_PARAM_RE.findall(gcode))),
         source=source_file,
     )
 
@@ -202,7 +207,7 @@ def parse_macros(baseconfig_path):
     (recursively, with cycle protection). Includes are resolved relative to
     the directory of the file that contains the directive (matching Klipper).
     Returns a list of macro dicts with keys: ``name``, ``gcode``,
-    ``has_params``, ``source``.
+    ``has_params``, ``klipper_params``, ``source``.
 
     Args:
         baseconfig_path (str): absolute path to the base config (printer.cfg).

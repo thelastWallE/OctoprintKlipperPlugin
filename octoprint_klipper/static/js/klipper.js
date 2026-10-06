@@ -408,6 +408,14 @@ $(function () {
       });
     };
 
+    self.showSaveVariablesDialog = function () {
+      var dialog = $("#klipper_save_variables_dialog");
+      dialog.modal({
+        show: "true",
+        backdrop: "static",
+      });
+    };
+
     self.showGraphDialog = function () {
       var dialog = $("#klipper_graph_dialog");
       dialog.modal({
@@ -552,6 +560,7 @@ $(function () {
                 gcode: m.gcode,
                 description: m.description || "",
                 has_params: m.has_params,
+                klipper_params: m.klipper_params || [],
                 source: m.source,
                 // Display info for the settings tab: the file the macro was
                 // parsed from (relative to the config dir when possible) and a
@@ -588,6 +597,7 @@ $(function () {
                 gcode: m.gcode,
                 description: m.description || "",
                 has_params: m.has_params,
+                klipper_params: m.klipper_params || [],
                 source: m.source,
                 sourceName: self._sourceDisplayName(m.source),
                 gcodePreview: self._gcodePreview(m.gcode),
@@ -868,7 +878,7 @@ $(function () {
       }
       if (!self._parsedMacrosSidebarVisibilitySubscribed) {
         self._parsedMacrosSidebarVisibilitySubscribed = true;
-        self.settings.settings.plugins.klipper.configuration.show_macros_sidebar.subscribe(function () {
+        self.settings.settings.plugins.klipper.configuration.show_parsed_macros_sidebar.subscribe(function () {
           self._applyParsedMacrosSidebarVisibility();
         });
       }
@@ -893,13 +903,12 @@ $(function () {
     };
 
     // Show/hide the dedicated "Klipper Macros" sidebar panel based on the
-    // "Show Macros on the sidebar" setting (same as the "Macros" panel). Its
-    // content is additionally gated on "Parse macros from printer.cfg" in the
-    // template.
+    // "Show Klipper Macros panel on the sidebar" setting. Its content is
+    // additionally gated on "Parse macros from printer.cfg" in the template.
     self._applyParsedMacrosSidebarVisibility = function () {
       var wrapper = $("#sidebar_plugin_klipper_parsed_macros_wrapper");
       if (!wrapper.length) return;
-      if (self.settings.settings.plugins.klipper.configuration.show_macros_sidebar()) {
+      if (self.settings.settings.plugins.klipper.configuration.show_parsed_macros_sidebar()) {
         wrapper.show();
       } else {
         wrapper.hide();
@@ -1056,11 +1065,9 @@ $(function () {
         });
     };
 
-    // Check a given log directory on the server and report the resolved
-    // klippy.log path + whether it exists. Used by the settings "Check"
-    // button so the hint updates with the value currently in the field
-    // (not just the saved value at page load).
-    self.checkKlippyLogPath = function (logPath) {
+    // POST a command to the plugin's simple API and return a deferred
+    // promise.
+    self._simpleApiCommand = function (command, data) {
       var deferred = $.Deferred();
       var settings = {
         crossDomain: true,
@@ -1070,10 +1077,7 @@ $(function () {
         contentType: "application/json; charset=UTF-8",
         processData: false,
         dataType: "json",
-        data: JSON.stringify({
-          command: "checkKlipperLogPath",
-          logPath: logPath || "",
-        }),
+        data: JSON.stringify($.extend({ command: command }, data || {})),
       };
 
       $.ajax(settings)
@@ -1084,6 +1088,26 @@ $(function () {
           deferred.reject(xhr);
         });
       return deferred.promise();
+    };
+
+    // Check a given log directory on the server and report the resolved
+    // klippy.log path + whether it exists. Used by the settings "Check"
+    // button so the hint updates with the value currently in the field
+    // (not just the saved value at page load).
+    self.checkKlippyLogPath = function (logPath) {
+      return self._simpleApiCommand("checkKlipperLogPath", { logPath: logPath || "" });
+    };
+
+    // Check a given config directory on the server and report the resolved
+    // absolute path + whether it exists (mirrors the klippy log path check).
+    self.checkKlipperConfigPath = function (configPath) {
+      return self._simpleApiCommand("checkKlipperConfigPath", { configPath: configPath || "" });
+    };
+
+    // Check a given base config file on the server and report the resolved
+    // absolute path + whether it exists (mirrors the klippy log path check).
+    self.checkKlipperBaseConfig = function (baseconfig) {
+      return self._simpleApiCommand("checkKlipperBaseConfig", { baseconfig: baseconfig || "" });
     };
 
     self._startKlippyLogPolling = function () {

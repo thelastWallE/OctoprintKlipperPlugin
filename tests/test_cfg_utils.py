@@ -81,6 +81,34 @@ class TestGetCfg:
         assert result["data"]["body"]["file"] == str(cfg)
 
 
+class TestSafeConfigSubdir:
+    """The helper clamps a client-supplied relative file dir to the
+    configured config path so request bodies cannot point the include check at
+    arbitrary directories."""
+
+    def test_subdir_stays_within_config_path(self, tmp_path):
+        base = os.path.realpath(str(tmp_path / "configs"))
+        assert CfgUtils.safe_config_subdir(base, "sub") == os.path.join(base, "sub")
+
+    def test_root_file_resolves_to_config_path(self, tmp_path):
+        base = os.path.realpath(str(tmp_path / "configs"))
+        assert CfgUtils.safe_config_subdir(base, ".") == base
+
+    def test_empty_relative_dir_returns_config_path(self, tmp_path):
+        base = os.path.realpath(str(tmp_path / "configs"))
+        assert CfgUtils.safe_config_subdir(base, "") == base
+
+    def test_escape_via_parent_resolves_to_config_path(self, tmp_path):
+        base = os.path.realpath(str(tmp_path / "configs"))
+        escaped = os.path.join("..", "..", "etc")
+        assert CfgUtils.safe_config_subdir(base, escaped) == base
+
+    def test_absolute_relative_dir_resolves_to_config_path(self, tmp_path):
+        base = os.path.realpath(str(tmp_path / "configs"))
+        elsewhere = os.path.realpath(str(tmp_path / "elsewhere"))
+        assert CfgUtils.safe_config_subdir(base, elsewhere) == base
+
+
 class TestCopyCfgToBackup:
     def test_backup_with_trailing_separator_config_path(self, plugin_self, tmp_path):
         # config_path ends with a separator, as in the real settings
@@ -252,6 +280,56 @@ class TestCopyAllConfigsToCurrent:
 
 
 class TestListConfigFiles:
+    def test_directories_are_not_listed(self, plugin_self, tmp_path):
+        from unittest import mock
+
+        data_dir = tmp_path / "data"
+        archive_dir = data_dir / "archive"
+        archive_dir.mkdir(parents=True)
+        (archive_dir / "printer.cfg").write_text("[probe]\n", encoding="utf-8")
+        # A stray folder next to archive/ should not appear as a backup entry
+        # (folders can't be previewed, downloaded or restored).
+        (data_dir / "configs").mkdir()
+        (data_dir / "configs" / "printer.cfg.1").write_text(
+            "[probe]\n", encoding="utf-8"
+        )
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        with mock.patch("flask.url_for", return_value="/"):
+            result = CfgUtils.list_config_files(plugin_self, "backup")
+
+        names = {f["name"] for f in result["data"]["files"]}
+        # Directory entries themselves are excluded ...
+        assert "configs" not in names
+        assert "archive" not in names
+        # ... while the files inside them are still listed.
+        assert "configs/printer.cfg.1" in names
+        assert "archive/printer.cfg" in names
+
+    def test_entries_are_tagged_with_area(self, plugin_self, tmp_path):
+        from unittest import mock
+
+        data_dir = tmp_path / "data"
+        (data_dir / "archive").mkdir(parents=True)
+        (data_dir / "archive" / "printer.cfg").write_text("[probe]\n", encoding="utf-8")
+        (data_dir / "configs").mkdir()
+        (data_dir / "configs" / "printer.cfg.1").write_text(
+            "[probe]\n", encoding="utf-8"
+        )
+        (data_dir / "current").mkdir()
+        (data_dir / "current" / "printer.cfg").write_text(
+            "[probe]\n", encoding="utf-8"
+        )
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        with mock.patch("flask.url_for", return_value="/"):
+            result = CfgUtils.list_config_files(plugin_self, "backup")
+
+        areas = {f["name"]: f["area"] for f in result["data"]["files"]}
+        assert areas["current/printer.cfg"] == "current"
+        assert areas["archive/printer.cfg"] == "archive"
+        assert areas["configs/printer.cfg.1"] == "configs"
+
     def test_backup_name_has_no_leading_separator(self, plugin_self, tmp_path):
         from unittest import mock
 

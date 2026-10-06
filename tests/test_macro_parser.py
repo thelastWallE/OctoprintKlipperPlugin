@@ -330,3 +330,53 @@ class TestFindMissingIncludes:
         assert len(errors) == 1
         assert errors[0]["include"] == "missing.cfg"
         assert errors[0]["chain"] == ["a.cfg"]
+
+
+class TestKlipperParamCollection:
+    """The parser must expose the Klipper runtime parameter names so the
+    frontend can build the parameter dialog from the backend's data instead of
+    re-deriving them with a second (drifted) regex."""
+
+    def test_collects_and_deduplicates_klipper_param_names(self, tmp_path):
+        cfg = _write(
+            tmp_path / "printer.cfg",
+            "[gcode_macro PARAMS]\n"
+            "gcode:\n"
+            "    SET X={params.LENGTH} Y={params.LENGTH} Z={rawparams.X}\n",
+        )
+        macros = KlipperMacroParser.parse_macros(cfg)
+        assert macros[0]["klipper_params"] == ["LENGTH", "X"]
+
+    def test_collects_klipper_param_with_space_after_brace(self, tmp_path):
+        # "{ params.LENGTH }" is valid Klipper syntax and must be detected
+        # (the old frontend regex required the key immediately after "{").
+        cfg = _write(
+            tmp_path / "printer.cfg",
+            "[gcode_macro PARAMS]\n"
+            "gcode:\n"
+            "    SET X={ params.LENGTH }\n",
+        )
+        macros = KlipperMacroParser.parse_macros(cfg)
+        assert macros[0]["has_params"] is True
+        assert macros[0]["klipper_params"] == ["LENGTH"]
+
+    def test_double_brace_is_not_a_klipper_param(self, tmp_path):
+        cfg = _write(
+            tmp_path / "printer.cfg",
+            "[gcode_macro PARAMS]\n"
+            "gcode:\n"
+            "    M117 {{ params.MSG|default('hi') }}\n",
+        )
+        macros = KlipperMacroParser.parse_macros(cfg)
+        assert macros[0]["klipper_params"] == []
+
+    def test_plugin_placeholder_has_no_klipper_params(self, tmp_path):
+        cfg = _write(
+            tmp_path / "printer.cfg",
+            "[gcode_macro PLACEHOLDER]\n"
+            "gcode:\n"
+            "    PID_CALIBRATE HEATER={label:Heater, default:extruder}\n",
+        )
+        macros = KlipperMacroParser.parse_macros(cfg)
+        assert macros[0]["has_params"] is True
+        assert macros[0]["klipper_params"] == []

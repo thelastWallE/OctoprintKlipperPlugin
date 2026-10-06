@@ -23,6 +23,11 @@ $(function () {
 
     self.markedForFileRestore = ko.observableArray([]);
 
+    // Live "current" duplicates (current/ in the plugin data folder). These
+    // are the files OctoPrint backs up; they are shown in their own section
+    // and can be previewed/downloaded but not restored or deleted.
+    self.currentFiles = ko.observableArray([]);
+
     self.cfgContent = ko.observable();
 
     // Sudo password prompt for restoring servicefile backups
@@ -88,7 +93,11 @@ $(function () {
                 "(" + (parseInt(response.data.files[file].bytes) / 1024).toFixed(2) + " KB)";
               // old from backend: size=" ({:.1f} KB)".format(filesize / 1000.0),
             }
-            self.backups.updateItems(response.data.files);
+            var all = response.data.files || [];
+            // Live duplicates (current/) get their own section; everything else
+            // (archive/, configs/, ...) stays in the versioned backups list.
+            self.currentFiles(_.filter(all, function (f) { return f.area === "current"; }));
+            self.backups.updateItems(_.filter(all, function (f) { return f.area !== "current"; }));
             self.backups.resetPage();
           } else {
             self.klipperViewModel.consoleMessage("error", "listBakFiles failed");

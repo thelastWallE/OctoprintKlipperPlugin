@@ -195,6 +195,10 @@ $(function () {
       self.servicefilePasswordDialog = $("#klipper_servicefile_password_dialog");
       // Show a hint for the currently configured log path without a click
       self.checkLogPath();
+      // Same for the config directory and base config file (reuses the log
+      // path check pattern)
+      self.checkConfigPath();
+      self.checkBaseConfig();
       // Load the parsed printer.cfg macros so the "Klipper Macros" settings
       // tab can show/configure them.
       self.klipperViewModel.loadKlipperMacros();
@@ -312,6 +316,52 @@ $(function () {
         })
         .always(function () {
           self.logPathChecking(false);
+        });
+    };
+
+    // Same pattern for the "Klipper Config Directory" field: resolve the value
+    // currently in the field and report whether the directory exists.
+    self.configPathResolved = ko.observable("");
+    self.configPathExists = ko.observable(false);
+    self.configPathChecking = ko.observable(false);
+    self.checkConfigPath = function () {
+      var configPath = self.configPath();
+      self.configPathChecking(true);
+      self.klipperViewModel
+        .checkKlipperConfigPath(configPath)
+        .done(function (response) {
+          self.configPathResolved(response["path"] || "");
+          self.configPathExists(response["exists"] === true);
+        })
+        .fail(function () {
+          self.configPathResolved(configPath);
+          self.configPathExists(false);
+        })
+        .always(function () {
+          self.configPathChecking(false);
+        });
+    };
+
+    // Same pattern for the "Klipper Base Config Filename" field: resolve the
+    // value currently in the field and report whether the file exists.
+    self.baseConfigResolved = ko.observable("");
+    self.baseConfigExists = ko.observable(false);
+    self.baseConfigChecking = ko.observable(false);
+    self.checkBaseConfig = function () {
+      var baseconfig = self.settings.settings.plugins.klipper.configuration.baseconfig();
+      self.baseConfigChecking(true);
+      self.klipperViewModel
+        .checkKlipperBaseConfig(baseconfig)
+        .done(function (response) {
+          self.baseConfigResolved(response["path"] || "");
+          self.baseConfigExists(response["exists"] === true);
+        })
+        .fail(function () {
+          self.baseConfigResolved(baseconfig);
+          self.baseConfigExists(false);
+        })
+        .always(function () {
+          self.baseConfigChecking(false);
         });
     };
 

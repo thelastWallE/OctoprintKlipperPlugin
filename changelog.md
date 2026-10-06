@@ -1,3 +1,16 @@
+2026-10-07: add a "Create file..." button to the config editor file browser (next to "Create folder...") — creates an empty config file in the currently open folder (a missing extension gets ".cfg" appended); backed by a new "filename" branch on the storage POST route
+2026-10-07: add a "Save Variables" dialog (Klipper tab > Tools) that reads the [save_variables] file configured in printer.cfg, shows the current variable values, highlights which parsed macros use each variable, and lets you update values via SAVE_VARIABLE gcode (validated name + Python literal)
+2026-10-06: let long backup filenames wrap in the Backups dialog instead of being cut off; keep the action icons on one line
+2026-10-06: show the live "current" config duplicates in a dedicated "Current Configs" section of the Backups dialog (preview/download only) instead of mixing them with the versioned backups
+2026-10-06: exclude directories from the Backups list — the recursive glob also returned folder entries (data folder, archive/, current/, configs/) which could not be previewed, downloaded or restored; only files are listed now
+2026-10-06: add a "Check path" button + resolved-path hint to the "Klipper Config Directory" and "Klipper Base Config Filename" settings, reusing the klippy log path check pattern (new simple API commands `checkKlipperConfigPath` / `checkKlipperBaseConfig`)
+2026-10-06: fix a crash in the macro parameter dialog when a placeholder has no `default:` — every parameter now always gets a `value` observable
+2026-10-06: let the backend provide the Klipper runtime parameter names (`klipper_params`) so the frontend no longer carries a second, drifted regex (fixes `{ params.X }` not being recognized)
+2026-10-06: honour the "Parse macros from printer.cfg" setting server-side — the config tree is only walked when parsing is enabled
+2026-10-06: clamp `/checkConfig` include resolution to the configured config directory (a crafted `CurrentFile` can no longer point it elsewhere)
+2026-10-06: validate the shape and size of `/config/saveParsedMacros` payloads
+2026-10-06: demote the sidebar template-sorting debug logging from INFO to DEBUG (it ran on every page render)
+2026-10-06: add a separate "Show Klipper Macros panel on the sidebar" setting so the two sidebar panels can be toggled independently
 2026-10-06: make the previously hardcoded settings strings translatable — macro button style options (Default/Danger/Success/Warning/Info), restart-type options, log filter tooltips, the editor dialog title, the probes table headers and the Refresh file list tooltip
 2026-10-06: complete the Spanish and French translations (397/397 strings each, up from 53) and translate the newly extracted strings in German (397/397)
 2026-10-06: refresh the gettext template from the current source — 397 strings (was 311, missing 113 in-use strings and carrying 24 dead ones)

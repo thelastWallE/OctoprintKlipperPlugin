@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import glob
+import io
 import logging
 import os
 import threading
@@ -59,6 +60,7 @@ from octoprint_klipper.config_tools import CfgUtils as cfg_utils
 
 from .modules import KlipperLogAnalyzer
 from .modules import KlipperMacroParser
+from .modules import SaveVariables
 
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5Mb
 _FILE_DESTINATION = "klipper_configs"
@@ -244,6 +246,7 @@ class KlipperPlugin(
                 shortStatus_navbar=True,
                 shortStatus_sidebar=True,
                 show_macros_sidebar=True,
+                show_parsed_macros_sidebar=True,
                 macros_sidebar_collapsed=False,
                 parsed_macros_sidebar_collapsed=False,
                 # Display order for macro groups (list of group names).
@@ -371,6 +374,12 @@ class KlipperPlugin(
                 custom_bindings=True,
             ),
             dict(
+                type="generic",
+                name="Save Variables",
+                template="klipper_save_variables_dialog.jinja2",
+                custom_bindings=True,
+            ),
+            dict(
                 type="tab",
                 name="Klipper",
                 template="klipper_tab_main.jinja2",
@@ -434,6 +443,8 @@ class KlipperPlugin(
     def get_template_vars(self):
         defaults = self.get_settings_defaults()
         resolved_logpath = os.path.join(self._resolve_logpath(), "klippy.log")
+        resolved_config_path = self._resolve_config_path()
+        resolved_baseconfig = self._resolve_baseconfig()
         return {
             "max_upload_size": MAX_UPLOAD_SIZE,
             "max_upload_size_str": get_formatted_size(MAX_UPLOAD_SIZE),
@@ -443,6 +454,10 @@ class KlipperPlugin(
             ],
             "resolved_klippy_log_path": resolved_logpath,
             "resolved_klippy_log_exists": os.path.isfile(resolved_logpath),
+            "resolved_config_path": resolved_config_path,
+            "resolved_config_path_exists": os.path.isdir(resolved_config_path),
+            "resolved_baseconfig": resolved_baseconfig,
+            "resolved_baseconfig_exists": os.path.isfile(resolved_baseconfig),
         }
 
     # -- Asset Plugin
@@ -461,6 +476,7 @@ class KlipperPlugin(
                 "js/klipper_backup.js",
                 "js/klipper_editor.js",
                 "js/klipper_files.js",
+                "js/klipper_save_variables.js",
             ],
             clientjs=["clientjs/klipper.js"],
             css=["css/klipper.css"],
@@ -616,7 +632,11 @@ class KlipperPlugin(
             getStats=["logFile"],
             getKlipperLogTail=["numLines"],
             checkKlipperLogPath=["logPath"],
+            checkKlipperConfigPath=["configPath"],
+            checkKlipperBaseConfig=["baseconfig"],
             getKlipperMacros=[],
+            getSaveVariables=[],
+            saveVariable=["name", "value"],
         )
 
     def _resolve_logpath(self, logpath=None):
@@ -636,6 +656,37 @@ class KlipperPlugin(
         if os.name == "nt" and logpath in ("/tmp/", "/tmp"):
             logpath = tempfile.gettempdir()
         return os.path.normpath(logpath)
+
+    def _resolve_config_path(self, config_path=None):
+        """Resolve the Klipper config directory to an absolute path.
+
+        Args:
+            config_path (str, optional): path to resolve; defaults to the
+                configured ``configuration/config_path`` setting.
+
+        Expands ``~`` and environment variables and normalizes the result.
+        """
+        if config_path is None:
+            config_path = self._settings.get(["configuration", "config_path"]) or ""
+        config_path = os.path.expandvars(os.path.expanduser(config_path))
+        return os.path.normpath(config_path)
+
+    def _resolve_baseconfig(self, baseconfig=None):
+        """Resolve the Klipper base config filename to an absolute path.
+
+        Args:
+            baseconfig (str, optional): path to resolve; defaults to the
+                configured ``configuration/baseconfig`` setting.
+
+        The baseconfig setting is a full path (e.g. ``~/printer.cfg``), so this
+        expands ``~`` and environment variables and normalizes the result.
+        """
+        if baseconfig is None:
+            baseconfig = (
+                self._settings.get(["configuration", "baseconfig"]) or ""
+            )
+        baseconfig = os.path.expandvars(os.path.expanduser(baseconfig))
+        return os.path.normpath(baseconfig)
 
     def on_api_command(self, command, data):
         if command == "listLogFiles":
@@ -676,7 +727,30 @@ class KlipperPlugin(
                 path=klippy_log,
                 exists=os.path.isfile(klippy_log),
             )
+        elif command == "checkKlipperConfigPath":
+            # An empty/absent value means "use the saved setting". Reports
+            # whether the resolved config directory exists.
+            config_path = data.get("configPath") or None
+            resolved = self._resolve_config_path(config_path)
+            return flask.jsonify(
+                path=resolved,
+                exists=os.path.isdir(resolved),
+            )
+        elif command == "checkKlipperBaseConfig":
+            # An empty/absent value means "use the saved setting". Reports
+            # whether the resolved base config file exists.
+            baseconfig = data.get("baseconfig") or None
+            resolved = self._resolve_baseconfig(baseconfig)
+            return flask.jsonify(
+                path=resolved,
+                exists=os.path.isfile(resolved),
+            )
         elif command == "getKlipperMacros":
+            # Honour the "Parse macros from printer.cfg" setting server-side
+            # so the config tree (and its includes) is only walked when
+            # parsing is enabled.
+            if not self._settings.get_boolean(["configuration", "parse_macros"]):
+                return flask.jsonify(macros=[], parsedMacros={})
             # Parse gcode macros out of the baseconfig (printer.cfg) and any
             # files it includes via [include ...] directives.
             baseconfig = os.path.expanduser(
@@ -691,6 +765,59 @@ class KlipperPlugin(
                 macros=macros,
                 parsedMacros=self._settings.get(["parsedMacros"]) or {},
             )
+        elif command == "getSaveVariables":
+            # Resolve the [save_variables] file from the base config and read
+            # the current variable values. Also report which parsed macros
+            # reference each variable.
+            baseconfig = os.path.expanduser(
+                self._settings.get(["configuration", "baseconfig"])
+            )
+            filename = SaveVariables.find_variables_filename(baseconfig)
+            variables = (
+                SaveVariables.read_variables(filename) if filename else None
+            )
+            used_by = {}
+            for macro in KlipperMacroParser.parse_macros(baseconfig):
+                for name in SaveVariables.extract_variable_names(
+                    macro.get("gcode", "")
+                ):
+                    used_by.setdefault(name, []).append(macro.get("name", ""))
+            return flask.jsonify(
+                configured=filename is not None,
+                path=filename or "",
+                exists=bool(filename and os.path.isfile(filename)),
+                variables=variables or {},
+                usedBy=used_by,
+            )
+        elif command == "saveVariable":
+            # Validate and send SAVE_VARIABLE to Klipper so the in-memory dict
+            # and the on-disk file stay in sync (Klipper reloads the file at
+            # startup).
+            name = data.get("name", "")
+            value = data.get("value", "")
+            if not SaveVariables.is_valid_variable_name(name):
+                return flask.jsonify(
+                    status="error",
+                    data=dict(message=gettext("Invalid variable name")),
+                )
+            if not SaveVariables.is_valid_literal(value):
+                return flask.jsonify(
+                    status="error",
+                    data=dict(message=gettext("Value must be a valid Python literal")),
+                )
+            try:
+                operational = self._printer.is_operational()
+            except Exception:
+                operational = False
+            if not operational:
+                return flask.jsonify(
+                    status="error",
+                    data=dict(message=gettext("Printer not connected")),
+                )
+            self._printer.commands(
+                ["SAVE_VARIABLE VARIABLE={} VALUE={}".format(name, value)]
+            )
+            return flask.jsonify(status="success")
 
     def is_blueprint_protected(self):
         return True
@@ -1305,6 +1432,77 @@ class KlipperPlugin(
             r = flask.make_response(flask.jsonify(folder=folder, done=True), 201)
             r.headers["Location"] = location
             return r
+        elif "filename" in flask.request.values:
+            filename = flask.request.values["filename"]
+
+            if target not in [_FILE_DESTINATION]:
+                flask.abort(400, description="target is invalid")
+
+            canonPath, canonName = self._file_manager.canonicalize(target, filename)
+            futurePath = self._file_manager.sanitize_path(target, canonPath)
+            futureName = self._file_manager.sanitize_name(target, canonName)
+            if not futureName:
+                flask.abort(400, description="file name is empty")
+
+            if "path" in flask.request.values and flask.request.values["path"]:
+                futurePath = self._file_manager.sanitize_path(
+                    _FILE_DESTINATION, flask.request.values["path"]
+                )
+
+            # A name without an extension gets ".cfg" appended so the file is
+            # a valid, editable Klipper config file.
+            if not octoprint.filemanager.valid_file_type(futureName):
+                if "." not in futureName:
+                    futureName = self._file_manager.sanitize_name(
+                        target, canonName + ".cfg"
+                    )
+                if not futureName or not octoprint.filemanager.valid_file_type(
+                    futureName
+                ):
+                    flask.abort(
+                        409, description="Can't create file, invalid file type"
+                    )
+
+            futureFullPath = self._file_manager.join_path(target, futurePath, futureName)
+            try:
+                added_file = self._file_manager.add_file(
+                    target,
+                    futureFullPath,
+                    octoprint.filemanager.util.StreamWrapper(
+                        futureName, io.BytesIO(b"")
+                    ),
+                    display=futureName,
+                )
+            except octoprint.filemanager.storage.StorageError as e:
+                if (
+                    e.code
+                    == octoprint.filemanager.storage.StorageError.INVALID_DIRECTORY
+                ):
+                    flask.abort(
+                        400, description="Could not create file, invalid directory"
+                    )
+                else:
+                    flask.abort(409, description="Could not create file")
+            except Exception:
+                self._logger.exception("Could not create file {}".format(filename))
+                flask.abort(500, description="Could not create file")
+
+            location = flask.url_for(
+                ".read_config_file",
+                target=_FILE_DESTINATION,
+                file=added_file,
+                _external=True,
+            )
+            file = {
+                "name": futureName,
+                "path": added_file,
+                "origin": target,
+                "refs": {"resource": location},
+            }
+
+            r = flask.make_response(flask.jsonify(file=file, done=True), 201)
+            r.headers["Location"] = location
+            return r
         else:
             flask.abort(400, description="No file to upload and no folder to create")
 
@@ -1335,12 +1533,11 @@ class KlipperPlugin(
             return os.path.dirname(
                 os.path.expanduser(self._settings.get(["configuration", "baseconfig"]))
             )
-        config_path = os.path.expanduser(
-            self._settings.get(["configuration", "config_path"])
-        )
-        if current_file:
-            return os.path.join(config_path, os.path.dirname(current_file))
-        return config_path
+        config_path = self._settings.get(["configuration", "config_path"])
+        relative_dir = os.path.dirname(current_file) if current_file else ""
+        # Clamp the client-supplied directory to the configured config path so
+        # a crafted "CurrentFile" cannot point the include check elsewhere.
+        return cfg_utils.safe_config_subdir(config_path, relative_dir)
 
     # copy all config files to the plugin data "current" folder so OctoPrint's
     # own backup holds every config, not only the ones saved through the plugin
@@ -1398,6 +1595,25 @@ class KlipperPlugin(
             flask.abort(
                 400, description="Invalid request, parsedMacros must be an object"
             )
+        if len(prefs) > 5000:
+            flask.abort(400, description="Invalid request, too many parsed macros")
+        # Validate the value shapes and cap the payload size so arbitrary
+        # blobs cannot bloat the plugin settings file.
+        import json
+
+        total = 0
+        for key, value in prefs.items():
+            if not isinstance(value, dict):
+                flask.abort(
+                    400,
+                    description="Invalid request, parsedMacros values must be objects",
+                )
+            total += len(key) + len(json.dumps(value))
+            if total > 256 * 1024:
+                flask.abort(
+                    400,
+                    description="Invalid request, parsedMacros payload too large",
+                )
         self._settings.set(["parsedMacros"], prefs)
         self._settings.save()
         return flask.jsonify(status="success")
@@ -1874,7 +2090,7 @@ class KlipperPlugin(
         the order under a prefixed phantom key (``plugin_klipper_sidebar``)
         instead of ``sidebar``.
         """
-        self._logger.info(
+        self._logger.debug(
             "OctoKlipper get_template_sorting hook called sorting_keys=%s rules_keys=%s",
             sorted(sorting.keys()),
             sorted(rules.keys()),
@@ -1892,7 +2108,7 @@ class KlipperPlugin(
         """Insert the "Macros" and "Klipper Macros" sidebar entries directly
         below the connection panel; all other missing entries are appended at
         the end (the default behavior)."""
-        self._logger.info(
+        self._logger.debug(
             "OctoKlipper custom_insert_order existing=%s missing=%s", existing, missing
         )
         result = list(existing)
@@ -1914,7 +2130,7 @@ class KlipperPlugin(
                     result.append(key)
             else:
                 result.append(key)
-        self._logger.info("OctoKlipper custom_insert_order result=%s", result)
+        self._logger.debug("OctoKlipper custom_insert_order result=%s", result)
         return result
 
     def get_update_information(self):

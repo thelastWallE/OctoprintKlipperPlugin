@@ -23,6 +23,31 @@
   </div>
 </div>
 
+<div id="klipper_add_file_dialog" class="modal hide fade-in">
+  <div class="modal-header">
+    <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
+    <h3>{{ _('Create File') }}</h3>
+  </div>
+  <div class="modal-body">
+    <p>{{ _('Please specify the name of the file to create in the current folder.') }}</p>
+    <form class="form-horizontal" action="javascript:void(0)">
+      <div class="control-group">
+        <label class="control-label">{{ _('File name') }}</label>
+        <div class="controls">
+          <input type="text" data-bind="value: $root.klipperFilesViewModel.addFileName, valueUpdate: 'afterkeydown'">
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">{{ _('Cancel') }}</a>
+    <a href="#" class="btn btn-primary"
+      data-bind="click: function() { if ($root.klipperFilesViewModel.enableAddFile()) { $root.klipperFilesViewModel.addFile() } }, enabled: $root.klipperFilesViewModel.enableAddFile(), css: {disabled: !$root.klipperFilesViewModel.enableAddFile()}"><i
+        class="fas fa-spinner fa-spin" data-bind="visible: $root.klipperFilesViewModel.addingFile"></i>
+      {{ _('Create') }}</a>
+  </div>
+</div>
+
 <div id="klipper_move_file_or_folder_dialog" class="modal hide fade-in">
   <div class="modal-header">
     <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
