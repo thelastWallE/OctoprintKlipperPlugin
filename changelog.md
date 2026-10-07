@@ -1,3 +1,4 @@
+2026-10-07: let long variable names and "Used by" macro lists wrap in the Save Variables dialog table instead of being cut off (code defaulted to white-space: nowrap)
 2026-10-07: fix a 500 on /config/save when saving an empty config file — the saveCfg client sent an empty body as `[]` (array), which crashed the file write; keep empty content a string and coerce list/None payloads to text in save_cfg
 2026-10-07: fix a 500 on /config/check when saving an empty config file — the editor client sent an empty body as `[]` (array), which crashed configparser's read_string; keep empty content a string and coerce list/None payloads to text backend-side
 2026-10-07: fix the "Create file..." dialog submit button being dead — the dialog element was missing from the KlipperEditorViewModel `elements` list, so Knockout never bound the input/button

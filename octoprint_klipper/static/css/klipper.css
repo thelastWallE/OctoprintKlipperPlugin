@@ -255,6 +255,25 @@ div#klipper_backups_dialog div.modal-body textarea {
   overflow-wrap: anywhere;
 }
 
+/* Save Variables dialog: variable names and the "Used by" macro lists wrap
+   instead of being cut off. code defaults to white-space: nowrap, so undo it
+   for the table cells. */
+#klipper_save_variables_dialog th,
+#klipper_save_variables_dialog td {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+#klipper_save_variables_dialog td code {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+#klipper_save_variables_dialog td:last-child {
+  white-space: nowrap;
+}
+
 /* Keep the action icons on one line so the name column gets the rest. */
 #klipper_backups_dialog td.klipper_baks_action {
   white-space: nowrap;
