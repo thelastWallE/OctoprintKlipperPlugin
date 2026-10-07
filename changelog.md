@@ -1,3 +1,6 @@
+2026-10-07: fix a 500 on /config/save when saving an empty config file — the saveCfg client sent an empty body as `[]` (array), which crashed the file write; keep empty content a string and coerce list/None payloads to text in save_cfg
+2026-10-07: fix a 500 on /config/check when saving an empty config file — the editor client sent an empty body as `[]` (array), which crashed configparser's read_string; keep empty content a string and coerce list/None payloads to text backend-side
+2026-10-07: fix the "Create file..." dialog submit button being dead — the dialog element was missing from the KlipperEditorViewModel `elements` list, so Knockout never bound the input/button
 2026-10-07: add a "Create file..." button to the config editor file browser (next to "Create folder...") — creates an empty config file in the currently open folder (a missing extension gets ".cfg" appended); backed by a new "filename" branch on the storage POST route
 2026-10-07: add a "Save Variables" dialog (Klipper tab > Tools) that reads the [save_variables] file configured in printer.cfg, shows the current variable values, highlights which parsed macros use each variable, and lets you update values via SAVE_VARIABLE gcode (validated name + Python literal)
 2026-10-06: let long backup filenames wrap in the Backups dialog instead of being cut off; keep the action icons on one line

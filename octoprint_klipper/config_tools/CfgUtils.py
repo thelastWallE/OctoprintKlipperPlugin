@@ -139,6 +139,15 @@ def save_cfg(self, content, file, is_new_file=False):
 
     logger.log_debug(self, "Save klipper config", only_logging=False)
 
+    # The frontend used to send an empty editor body as [] (an array).
+    # Normalize any non-string payload so the file write never sees a list.
+    if isinstance(content, list):
+        content = "\n".join(str(line) for line in content)
+    elif content is None:
+        content = ""
+    elif not isinstance(content, str):
+        content = str(content)
+
     configpath = os.path.expanduser(
         self._settings.get(["configuration", "config_path"])
     )
@@ -271,6 +280,14 @@ def check_config(self, data, base_dir=None):
         include is included (each with ``line``, ``message``, ``startColumn``
         and ``endColumn``).
     """
+    # The frontend used to send an empty editor body as [] (an array).
+    # Normalize any non-string payload so configparser never sees a list.
+    if isinstance(data, list):
+        data = "\n".join(str(line) for line in data)
+    elif data is None:
+        data = ""
+    elif not isinstance(data, str):
+        data = str(data)
     try:
         if sys.version_info[0] < 3:
             dataToValidated = configparser.RawConfigParser()

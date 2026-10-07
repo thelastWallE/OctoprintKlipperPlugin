@@ -33,6 +33,26 @@ class TestCheckConfig:
         assert result["status"] == "error"
         assert result["line"] == 2
 
+    def test_list_of_lines_is_joined(self, plugin_self):
+        # The frontend sent an empty editor body as [] (an array). The check
+        # must not crash: a list is joined into text and parsed normally.
+        config = ["[probe]", "x_offset = not_a_number"]
+        result = CfgUtils.check_config(plugin_self, config)
+        assert result["status"] == "error"
+        assert result["line"] == 2
+
+    def test_empty_list_returns_success(self, plugin_self):
+        result = CfgUtils.check_config(plugin_self, [])
+        assert result == {"status": "success"}
+
+    def test_none_content_returns_success(self, plugin_self):
+        result = CfgUtils.check_config(plugin_self, None)
+        assert result == {"status": "success"}
+
+    def test_empty_string_returns_success(self, plugin_self):
+        result = CfgUtils.check_config(plugin_self, "")
+        assert result == {"status": "success"}
+
 
 class TestErrorLine:
     def test_missing_section_header(self):
@@ -219,6 +239,47 @@ class TestSaveCfg:
         assert (data_dir / "current" / "new.cfg").read_text(
             encoding="utf-8"
         ) == new_content
+
+    def test_save_list_content_is_joined(self, plugin_self, tmp_path):
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.return_value = str(config_dir) + os.sep
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        # The frontend sends an empty editor body as [] (an array). save_cfg
+        # must not crash: a list is joined into text and written normally.
+        lines = ["[probe]", "x_offset = 0.0"]
+        result = CfgUtils.save_cfg(plugin_self, lines, "new.cfg", is_new_file=True)
+        assert result["status"] == "success"
+        assert (config_dir / "new.cfg").read_text(encoding="utf-8") == "\n".join(
+            lines
+        )
+
+    def test_save_empty_list_creates_empty_file(self, plugin_self, tmp_path):
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.return_value = str(config_dir) + os.sep
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        result = CfgUtils.save_cfg(plugin_self, [], "empty.cfg", is_new_file=True)
+        assert result["status"] == "success"
+        assert (config_dir / "empty.cfg").read_text(encoding="utf-8") == ""
+
+    def test_save_none_content_creates_empty_file(self, plugin_self, tmp_path):
+        config_dir = tmp_path / "klipper_configs"
+        config_dir.mkdir()
+        plugin_self._settings.get.return_value = str(config_dir) + os.sep
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        plugin_self.get_plugin_data_folder.return_value = str(data_dir)
+
+        result = CfgUtils.save_cfg(plugin_self, None, "empty.cfg", is_new_file=True)
+        assert result["status"] == "success"
+        assert (config_dir / "empty.cfg").read_text(encoding="utf-8") == ""
 
 
 class TestGetBackupType:

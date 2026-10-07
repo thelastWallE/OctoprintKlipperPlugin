@@ -924,6 +924,7 @@ $(function () {
     elements: [
       "#klipper_editor",
       "#klipper_add_folder_dialog",
+      "#klipper_add_file_dialog",
       "#klipper_move_file_or_folder_dialog",
       "#klipper_upload_exists_dialog",
     ],

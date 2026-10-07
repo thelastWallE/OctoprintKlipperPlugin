@@ -1511,7 +1511,7 @@ class KlipperPlugin(
     @Permissions.PLUGIN_KLIPPER_CONFIG.require(403)
     def check_config(self):
         data = flask.request.json
-        data_to_check = data.get("DataToCheck", [])
+        data_to_check = data.get("DataToCheck", "")
         current_file = data.get("CurrentFile", "")
 
         # Resolve the directory the config lives in so [include ...]
@@ -1573,7 +1573,7 @@ class KlipperPlugin(
             results = {"status": "error", "error": {"message": "File already exists"}}
             return flask.jsonify(results)
 
-        filecontent = data.get("DataToSave", [])
+        filecontent = data.get("DataToSave", "")
         is_new_file = True if not file_exist else False
 
         results = cfg_utils.save_cfg(self, filecontent, file, is_new_file)

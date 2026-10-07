@@ -203,7 +203,9 @@
   };
 
   OctoKlipperClient.prototype.checkCfg = function (content, currentFile, opts) {
-    content = content || [];
+    // Keep an empty editor body a string: sending [] made configparser crash
+    // in the backend (read_string requires str).
+    content = content || "";
 
     var data = {
       DataToCheck: content,
@@ -231,8 +233,10 @@
    * @param {object} opts Additional options
    */
   OctoKlipperClient.prototype.saveCfg = function (content, filename, hasNewName, force, opts) {
-    content = content || [];
-    filename = filename || [];
+    // Keep an empty editor body a string: sending [] made the file write
+    // crash in the backend (write() requires str).
+    content = content || "";
+    filename = filename || "";
     hasNewName = hasNewName || false;
     force = force || false;
     opts = opts || {};
