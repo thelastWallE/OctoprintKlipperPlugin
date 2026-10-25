@@ -888,8 +888,7 @@ $(function () {
 
       self.uploadButton = $("#klipperconfig_upload");
 
-      self.uploadProgress = $("#klipperconfig_upload_progress");
-      self.uploadProgressBar = $(".bar", self.uploadProgress);
+      self.uploadProgress = $("#config_upload_progress");
 
       function evaluateUploadButton() {
         var enableLocal =
@@ -951,7 +950,8 @@ $(function () {
     };
 
     self._setProgressBar = function (percentage, text, active) {
-      self.uploadProgressBar.css("width", percentage + "%");
+      // The bar width and the text are bound in the template (klipper_editor.jinja2);
+      // here we only track the numbers and the striped state.
       self.uploadProgressText(text);
       self.uploadProgressPercentage(percentage);
 
@@ -1040,11 +1040,11 @@ $(function () {
       var focus = undefined;
       focus = { location: self.klipperViewModel.storageLocation, path: data.result.files.klipper_configs.path };
 
-      self.requestData({ focus: focus }).done(function () {
-        if (data.result.done) {
-          self.uploadingFile(false);
-          self._setProgressBar(0, "", false);
-        }
+      self.requestData({ focus: focus }).always(function () {
+        // Always clear the progress, otherwise a "done" that isn't true leaves the
+        // bar visible at 100% and the upload spinner running.
+        self.uploadingFile(false);
+        self._setProgressBar(0, "", false);
       });
     };
 

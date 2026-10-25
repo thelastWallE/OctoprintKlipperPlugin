@@ -65,13 +65,6 @@
                   data-bind="text:$root.klipperFilesViewModel.currentPath"></span></small></div>
           </div>
 
-          <div class="klipper-docs-link">
-            <a href="https://www.klipper3d.org/Config_Reference.html" target="_blank" rel="noopener"
-              title="{{ _('Open the Klipper configuration reference') }}">
-              <i class="fas fa-book"></i> {{ _('Klipper Documentation') }}
-            </a>
-          </div>
-
           <div class="scroll-wrapper klipper-vertResize"
             data-bind="foreach:$root.klipperFilesViewModel.filesAndFolders">
             <div class="entry"
@@ -148,8 +141,10 @@
               <!-- /ko -->
             </span>
           </div>
-          <div id="config_upload_progress" class="progress progress-text-centered">
-            <div class="bar"></div>
+          <div id="config_upload_progress" class="progress progress-text-centered"
+            data-bind="visible: ($root.klipperFilesViewModel.uploadProgressPercentage() || 0) > 0">
+            <div class="bar"
+              data-bind="style: { width: ($root.klipperFilesViewModel.uploadProgressPercentage() || 0) + '%' }"></div>
             <span class="progress-text-back"
               data-bind="css: { 'progress-text-front': ($root.klipperFilesViewModel.uploadProgressPercentage() >= 50), 'progress-text-back': ($root.klipperFilesViewModel.uploadProgressPercentage() < 50) }, text: $root.klipperFilesViewModel.uploadProgressText()"></span>
           </div>
@@ -167,6 +162,12 @@
       <span class="control-label">{{ _('Filename') }}:</span>
       <input class="OctoKlipper-input-mb0 klipper-flex-grow" type="text"
         data-bind="value: $root.klipperViewModel.currentCfgFilename" />
+      <div class="klipper-docs-link">
+        <a href="https://www.klipper3d.org/Config_Reference.html" target="_blank" rel="noopener"
+          title="{{ _('Open the Klipper configuration reference') }}">
+          <i class="fas fa-book"></i> {{ _('Klipper Documentation') }}
+        </a>
+      </div>
       <div class="klipper-btn-group klipper-fluid-item-2">
         <button class="btn btn-small" data-bind="click: reloadFromFile" title="{{ _('Reload from file') }}">
           <i class="fas fa-upload"></i> {{ _('Reload from file') }}
