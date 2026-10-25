@@ -74,12 +74,52 @@ monaco.languages.setMonarchTokensProvider("klipper_config", {
       // multi-segment paths / [include ...] targets ("a/b.cfg",
       // "Neuertest/Sub/file.cfg") — one token
       [/[a-zA-Z0-9_.~-]+(?:\/[a-zA-Z0-9_.~\-]+)+/, "string.unquoted"],
+      // MCU pin names (P0.2, PA1, P1.28, PC13): the port letter is an identifier
+      // and the pin number is a number. Must come before the gcode-command rule
+      // below, which would otherwise swallow "P0" as one uppercase word.
+      // variable.parameter (not variable.name) so the port letter doesn't share
+      // the colour of the config keys.
+      [/\bP[A-Z]?(?=[-+]?\d)/, "variable.parameter"],
       // gcode commands
       [/[A-Z][A-Z0-9_]+/, "keyword.operator"],
       // jinja template markers
       [/[{][{%]/, "string.unquoted"],
       [/[}][}]/, "string.unquoted"],
       // generic words
+      [/[a-zA-Z_][a-zA-Z0-9_]*/, "variable"],
+    ],
+  },
+});
+// Standalone gcode tokenizer, used for the read-only preview of a parsed macro's
+// body in the settings (monaco.editor.tokenize). The config language above marks
+// every uppercase word as a keyword, which is right for [section] files but makes
+// a gcode block one flat colour, so command words, parameter letters, numbers and
+// jinja/parameter expressions get their own tokens here.
+monaco.languages.register({ id: "klipper_gcode" });
+
+monaco.languages.setMonarchTokensProvider("klipper_gcode", {
+  defaultToken: "",
+  tokenPostfix: ".klipper-gcode",
+
+  tokenizer: {
+    root: [
+      // comments
+      [/;.*$/, "comment.line.gcode"],
+      [/#.*$/, "comment.line.number-sign"],
+      // jinja expressions and Klipper runtime parameters ({params.X}, {rawparams})
+      [/\{[^{}]*\}/, "variable.parameter"],
+      // gcode command words: G1, M140, T0 (no trailing \b so "G1Z10" still splits)
+      [/\b[GMT]\d+/, "keyword"],
+      // long uppercase commands: PRINT_START, SET_PRESSURE_ADVANCE
+      [/\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b/, "keyword"],
+      // parameter letters directly followed by a value: X10, S-1.5, Z0.2, E0.8.
+      // Must cover the whole alphabet — X/Y/Z are the most common gcode
+      // parameters, and leaving them out made "Z0" one word-like token, so the
+      // digit got the letter's colour.
+      [/\b[A-Z](?=[-+]?\d)/, "variable.name"],
+      // numbers
+      [/-?\d+(?:[.]\d+)?/, "constant.numeric"],
+      // bare words (macro names in comments, free text)
       [/[a-zA-Z_][a-zA-Z0-9_]*/, "variable"],
     ],
   },
