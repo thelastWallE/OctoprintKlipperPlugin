@@ -1,5 +1,4 @@
 """Tests for octoprint_klipper.migration.migrate."""
-import pytest
 
 from octoprint_klipper.migration import migrate
 

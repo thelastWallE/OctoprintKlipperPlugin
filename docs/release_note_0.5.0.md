@@ -6,9 +6,6 @@ ordering and dedicated sidebar panels), the new **Setup Wizard**, the editor
 tooling added afterwards (**Save Variables**, **Create file**, config path
 checks), and the OctoPrint 2.0 connection fixes.
 
-> This note supersedes the earlier `0.4.1 rc` and `0.4.2 rc` notes. Every change
-> made after the `0.4` tag ships in `0.5.0`.
-
 ## 🧩 Macros & Groups
 
 - **Parsed printer.cfg macros** — gcode macros are parsed out of `printer.cfg` and its `[include]`d files (recursively, with cycle protection) and shown as clickable buttons.
@@ -31,16 +28,14 @@ where a fix is safe. It never rewrites your `printer.cfg`.
 - **Serial port check** — verifies the Klipper virtual serial port is registered and present, and suggests the modern `~/printer_data/comms/klippy.serial` path when it finds one.
 - **Error handling check** — Klipper wants OctoPrint set to `cancel`; the wizard offers to set it. On OctoPrint 1.11 it translates between the 2.0 `serial.errorHandling` enum and the 1.11 `disconnectOnErrors` / `ignoreErrorsFromFirmware` booleans.
 - **Connect & verify** — a one-click **Connect & send status** action connects automatically (waiting up to 20 s for the connection), sends `status`, and watches the terminal for the expected response. It skips sending while a print is in progress and reports the captured terminal lines when it fails.
-- **Expected-error guidance** — explains that the `Unable to open config file` message after sending `status` is the *expected success signal*, not a failure.
+- **Expected-error guidance** — explains that the `Unable to open config file` message after sending `status` is the _expected success signal_, not a failure.
 
 ## 🔧 Fixes
 
 - **Klipper serial port was never registered on OctoPrint 2.0.** OctoPrint 2.0 moved the serial settings to `plugins.serial_connector.*` and installs a read-only compatibility overlay for the legacy `serial.*` paths, so the plugin's write to `serial.additionalPorts` was silently dropped (`Prevented write of ... to deprecated settings path`). The port is now written to the correct path for the running OctoPrint version. Without this, the Klipper virtual serial port never appeared in OctoPrint's port list on 2.0.
 - **Connector options were unreachable with "Replace Connection Panel" enabled.** OctoPrint 2.0 renders connector options (the "Connection Type" selector plus each connector's own parameters) only inside the core connection template, which this plugin replaces. OctoKlipper's panel now renders that block itself, preserving the `#connection_options_<connector>` / `data-connection-parameter` DOM contract OctoPrint's connection view model depends on. As a side effect, the serial connector's own port and baudrate dropdowns are now rendered too.
-- **Setup Wizard false negatives** — a Klipper path using `~` or an environment variable was reported as missing because the raw setting was checked with `isdir()`; the path is now expanded first.
 - **Empty config files** — saving or checking an empty file returned HTTP 500 because the client sent `[]` instead of an empty string; empty content is kept as text and list/`None` payloads are coerced backend-side.
 - **Create file dialog** — the submit button was dead because the dialog element was missing from the view model's `elements` list.
-- **Macro parameter dialog** — crashed when a placeholder had no `default:`; every parameter now always gets a `value` observable.
 - **Backups list** — directories returned by the recursive glob are excluded, long backup names wrap instead of being cut off, and the live `current/` duplicates are shown in a dedicated **Current Configs** section.
 
 ## 🌙 Moonraker Connector (experimental)
