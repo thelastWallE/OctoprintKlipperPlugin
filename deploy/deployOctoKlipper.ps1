@@ -216,6 +216,13 @@ Copy-ToRemote -LocalPath $localZip -RemotePath $remoteZip -Step "Upload zip"
 
 # --- 3. pip install ----------------------------------------------------------
 Write-Log -Message "==> Installing plugin on the Pi..." -Level "Step"
+
+# Remove any previous install first. The version carries a git suffix, so a
+# plain reinstall can leave stale octoklipper-*.dist-info directories behind;
+# OctoPrint then keeps reporting the old version even though the files are up
+# to date. `|| true` keeps this a no-op when nothing is installed yet.
+Invoke-RemoteCommand -Command "$remoteVenvPython -m pip uninstall -y OctoKlipper || true" -Step "pip uninstall (clean slate)"
+
 if ($Editable) {
     # Editable installs are NOT usable on OctoPrint 1.11.x with modern
     # setuptools/pip: the legacy `setup.py develop` egg-link mode is deprecated
