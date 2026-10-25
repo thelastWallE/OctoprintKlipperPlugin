@@ -10,7 +10,7 @@
       <div id="klipper-messages-pane" class="tab-pane active">
         <label class="klipper-inline"> <i class="icon-tasks"></i> {{ _("Messages") }} </label>
         <button class="btn btn-small pull-right"
-          data-bind="visible: hasPermKo('CONFIG'), click: openOctoKlipperSettings('klipper-basic')"
+          data-bind="visible: canOpenSettings(), click: openOctoKlipperSettings('klipper-basic')"
           title="{{ _('Open the OctoKlipper Settings') }}">
           <i class="fa icon-black fa-wrench"></i>
         </button>
@@ -59,7 +59,7 @@
         <label class="klipper-inline"> <i class="icon-file-text-alt"></i> {{ _("Klippy Log") }} </label>
         <div class="pull-right">
           <button class="btn btn-mini klipper-flex-shrink"
-            data-bind="visible: hasPermKo('CONFIG'), click: openOctoKlipperSettings('klipper-basic')"
+            data-bind="visible: canOpenSettings(), click: openOctoKlipperSettings('klipper-basic')"
             title="{{ _('Open the OctoKlipper Settings') }}">
             <i class="fa icon-black fa-wrench"></i>
           </button>
@@ -168,7 +168,11 @@
       </div>
       <div class="control-group">
         <div class="controls" data-bind="visible: hasPermKo('MACRO')">
-          <div class="control-label"><i class="icon-list-alt"></i> {{ _("Macros") }}</div>
+          <div class="control-label"><i class="icon-list-alt"></i> {{ _("Macros") }}
+            <a href="javascript:void(0)" class="klipper-settings-gear"
+              data-bind="visible: canOpenSettings(), click: openOctoKlipperSettings('klipper-macros')"
+              title="{{ _('Open the macro settings') }}"><i class="fa fa-cog"></i></a>
+          </div>
           <div data-bind="foreach: macroGroups">
             <!-- ko if: name -->
             <div class="klipper-macro-group">
@@ -205,7 +209,11 @@
       <!-- ko if: settings.settings.plugins.klipper.configuration.parse_macros -->
       <div class="control-group">
         <div class="controls" data-bind="visible: hasPermKo('MACRO')">
-          <div class="control-label"><i class="icon-list-alt"></i> {{ _("Klipper Macros") }}</div>
+          <div class="control-label"><i class="icon-list-alt"></i> {{ _("Klipper Macros") }}
+            <a href="javascript:void(0)" class="klipper-settings-gear"
+              data-bind="visible: canOpenSettings(), click: openOctoKlipperSettings('klipper-parsed-macros')"
+              title="{{ _('Open the Klipper macro settings') }}"><i class="fa fa-cog"></i></a>
+          </div>
           <!-- ko if: klipperMacrosLoaded -->
           <!-- ko if: klipperMacros().length -->
           <div data-bind="foreach: klipperMacroGroups">

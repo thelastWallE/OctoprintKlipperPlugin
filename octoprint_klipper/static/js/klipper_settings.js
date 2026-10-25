@@ -202,6 +202,187 @@ $(function () {
       // Load the parsed printer.cfg macros so the "Klipper Macros" settings
       // tab can show/configure them.
       self.klipperViewModel.loadKlipperMacros();
+
+      // Highlight the macro gcode whenever the parsed macro list is rebuilt
+      // (initial load, "Re-parse", settings dialog opening).
+      if (self.klipperViewModel.klipperMacros && self.klipperViewModel.klipperMacros.subscribe) {
+        self.klipperViewModel.klipperMacros.subscribe(function () {
+          _.defer(self._highlightMacroCommands);
+        });
+      }
+
+      $("#klipper_settings_dialog").on("show", self._onSettingsDialogShown);
+    };
+
+    // Refresh the derived state each time the settings dialog is opened, so it
+    // never shows stale paths/macros.
+    self._onSettingsDialogShown = function () {
+      self.getConfigPath();
+      self.updateMacroList();
+      self.checkLogPath();
+      self.checkConfigPath();
+      self.checkBaseConfig();
+      self.klipperViewModel.loadKlipperMacros();
+      _.defer(self._highlightMacroCommands);
+    };
+
+    // -- Monaco highlighting for the parsed macro gcode ---------------------
+    //
+    // Monaco is bundled for the config editor. Rather than creating an editor per
+    // macro row, this uses monaco.editor.tokenize(), which only returns token
+    // positions and is therefore theme independent: the spans get our own classes,
+    // which keep the snippet readable on the light read-only box. The tokenizer is
+    // the "klipper_gcode" language from lib/monaco/klipper-config.js.
+
+    var tokenClassFor = function (type) {
+      if (!type) return "";
+      if (type.indexOf("comment") === 0) return "klipper-tok-comment";
+      if (type.indexOf("keyword") === 0) return "klipper-tok-keyword";
+      if (type.indexOf("constant") === 0) return "klipper-tok-number";
+      if (type.indexOf("string") === 0) return "klipper-tok-string";
+      if (type.indexOf("variable") === 0) return "klipper-tok-variable";
+      if (type.indexOf("entity") === 0) return "klipper-tok-function";
+      if (
+        type.indexOf("storage") === 0 ||
+        type.indexOf("type") === 0 ||
+        type.indexOf("support") === 0
+      ) {
+        return "klipper-tok-type";
+      }
+      return "";
+    };
+
+    var escapeHtml = function (text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    };
+
+    self._tokenizeGcode = function (code) {
+      var lines = code.split(/\r?\n/);
+      var tokenLines = window.monaco.editor.tokenize(code, "klipper_gcode");
+      var html = [];
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        var tokens = (tokenLines[i] || []).slice();
+        // Monaco omits the trailing plain-text token; walk the offsets so the
+        // untouched remainders are escaped and kept as-is.
+        var out = "";
+        var pos = 0;
+        for (var t = 0; t < tokens.length; t++) {
+          var start = tokens[t].offset;
+          var end = t + 1 < tokens.length ? tokens[t + 1].offset : line.length;
+          if (start > pos) out += escapeHtml(line.substring(pos, start));
+          var text = line.substring(start, end);
+          var cls = tokenClassFor(tokens[t].type);
+          out += cls ? '<span class="' + cls + '">' + escapeHtml(text) + "</span>" : escapeHtml(text);
+          pos = end;
+        }
+        if (pos < line.length) out += escapeHtml(line.substring(pos));
+        html.push(out);
+      }
+      return html.join("\n");
+    };
+
+    self._highlightMacroCommands = function () {
+      var snippets = $(".settings_plugin_klipper pre.klipper-macro-code");
+      if (!snippets.length) return;
+
+      var apply = function () {
+        if (!window.monaco || !window.monaco.editor || !window.monaco.editor.tokenize) return;
+        snippets.each(function () {
+          var snippet = $(this);
+          var code = snippet.text();
+          if (!code) return;
+          try {
+            snippet.html(self._tokenizeGcode(code));
+          } catch (error) {
+            // Tokenizing is cosmetic — keep the plain text if it fails (e.g. the
+            // Klipper language definition did not load).
+          }
+        });
+      };
+
+      if (window.__klipperMonacoReady && window.monaco) {
+        apply();
+      } else if (window.__klipperMonacoPromise) {
+        window.__klipperMonacoPromise.then(apply);
+      }
+    };
+
+    // -- OctoKlipper's own settings dialog ----------------------------------
+    //
+    // The plugin ships a dedicated settings dialog: OctoPrint's plugin pane can
+    // never be wider than the span9 column of its 975px settings dialog, which is
+    // too narrow for the 7-column Klipper Macros table. The dialog edits
+    // OctoPrint's settings tree through settingsViewModel, so validation,
+    // onSettingsBeforeSave hooks and the restart hints keep working.
+
+    self.showSettingsDialog = function (profileType) {
+      var type = typeof profileType === "string" && profileType ? profileType : "klipper-basic";
+
+      var open = function () {
+        $("#klipper_settings_dialog").modal("show");
+        $("#klipper-settings a[data-profile-type='" + type + "']").click();
+      };
+
+      // Bootstrap 2 modals share a single backdrop that is removed when a modal
+      // finishes hiding, so wait for OctoPrint's settings dialog to be gone
+      // before opening ours.
+      var settingsDialog = $("#settings_dialog");
+      if (self.settings.hide && settingsDialog.hasClass("in")) {
+        settingsDialog.one("hidden", open);
+        self.settings.hide();
+      } else {
+        open();
+      }
+      return false;
+    };
+
+    // The Klipper tab's wrench button and the macro panel gears live in
+    // klipper.js; they trigger this so the dialog is opened from one place.
+    $(document).on("octoklipper:show-settings", function (event, profileType) {
+      self.showSettingsDialog(profileType);
+    });
+
+    self.hideSettingsDialog = function () {
+      $("#klipper_settings_dialog").modal("hide");
+    };
+
+    self.saveSettings = function () {
+      // Goes through OctoPrint's own settings view model so the normal save API
+      // is used and onSettingsBeforeSave hooks (ours included) run.
+      self.settings.saveData(undefined, function () {
+        self.hideSettingsDialog();
+      });
+    };
+
+    self.cancelSettings = function () {
+      // Re-read the settings from the server, which discards the local edits.
+      // Deliberately not using settingsViewModel.cancelData(): that calls
+      // settingsDialog.modal("hide"), and doing that before OctoPrint's settings
+      // dialog was ever shown creates its modal instance from the *default*
+      // options (no minHeight), which left that dialog collapsed to a thin strip
+      // for the rest of the session.
+      self.settings.requestData();
+      self.hideSettingsDialog();
+    };
+
+    // Leave this dialog (discarding unsaved changes) and open OctoPrint's own
+    // settings dialog, e.g. to reach the plugin manager or the API settings.
+    self.showOctoPrintSettings = function () {
+      var openOctoPrintSettings = function () {
+        self.settings.show();
+      };
+
+      if ($("#klipper_settings_dialog").hasClass("in")) {
+        $("#klipper_settings_dialog").one("hidden", openOctoPrintSettings);
+        self.cancelSettings();
+      } else {
+        openOctoPrintSettings();
+      }
+      return false;
     };
 
     // Re-parse the macros from the config files (used by the "Refresh" button
@@ -577,6 +758,9 @@ $(function () {
       "klipperBackupViewModel",
       "accessViewModel",
     ],
-    elements: ["#settings_plugin_klipper"],
+    // The install/servicefile/logfilter dialogs live inside the settings dialog
+    // markup, i.e. inside #klipper_settings_dialog, so they are bound with it —
+    // listing them again here would bind them twice.
+    elements: ["#settings_plugin_klipper", "#klipper_settings_dialog"],
   });
 });

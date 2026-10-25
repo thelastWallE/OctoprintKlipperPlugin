@@ -437,6 +437,12 @@ class KlipperPlugin(
             dict(type="settings", custom_bindings=True),
             dict(
                 type="generic",
+                name="OctoKlipper Settings",
+                template="klipper_settings_dialog.jinja2",
+                custom_bindings=True,
+            ),
+            dict(
+                type="generic",
                 name="Assisted Bed Leveling",
                 template="klipper_leveling_dialog.jinja2",
                 custom_bindings=True,

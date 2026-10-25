@@ -1,3 +1,8 @@
+<div class="klipper-panel-toolbar" data-bind="visible: canOpenSettings()">
+  <a href="javascript:void(0)" class="klipper-settings-gear"
+    data-bind="click: openOctoKlipperSettings('klipper-parsed-macros')"
+    title="{{ _('Open the Klipper macro settings') }}"><i class="fa fa-cog"></i></a>
+</div>
 <!-- ko if: settings.settings.plugins.klipper.configuration.parse_macros -->
 <div class="control-group" data-bind="visible: hasPermKo('MACRO')">
   <div class="controls">

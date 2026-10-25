@@ -1777,15 +1777,18 @@ $(function () {
 
     // OctoKlipper settings link
     self.openOctoKlipperSettings = function (profile_type) {
-      if (!self.hasPerm("CONFIG")) return;
+      if (!self.canOpenSettings()) return;
 
-      $("a#navbar_show_settings").click();
-      $("li#settings_plugin_klipper_link a").click();
-      if (profile_type) {
-        var query = "#klipper-settings a[data-profile-type='" + profile_type + "']";
-        $(query).click();
-      }
+      // OctoKlipper ships its own, wider settings dialog. The settings view model
+      // owns it (and the settings data), so just ask it to open.
+      $(document).trigger("octoklipper:show-settings", [profile_type || "klipper-basic"]);
     };
+
+    // Saving goes through OctoPrint's settings API, so the settings buttons are
+    // only useful (and only shown) for users with the core settings permission.
+    self.canOpenSettings = ko.pureComputed(function () {
+      return self.hasPerm("CONFIG") && self.loginState.hasPermission(self.access.permissions.SETTINGS);
+    });
 
     // trigger tooltip a first time to "enable"
     $("#klipper-copyToClipboard").tooltip("hide");

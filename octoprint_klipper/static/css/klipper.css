@@ -209,6 +209,50 @@ ul#klipper-settings {
   }
 }
 
+/* OctoKlipper's own settings dialog: 90% of the window (max 1200px), centered
+   horizontally, with a fixed body height so the tab content scrolls inside it.
+   The !important flags are needed because OctoPrint's bootstrap-modal.css
+   repositions every .modal and its modal plugin writes inline max-height/
+   overflow/margin-top onto .modal-body when the dialog opens. */
+#klipper_settings_dialog.modal {
+  width: 90% !important;
+  max-width: 1200px !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto !important;
+  top: 50% !important;
+  bottom: auto !important;
+  height: auto !important;
+  transform: translateY(-50%);
+  overflow: hidden;
+}
+
+#klipper_settings_dialog .modal-body {
+  height: calc(100vh - 170px) !important;
+  min-height: 260px !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  box-sizing: border-box;
+  padding-bottom: 0;
+}
+
+/* Launcher shown in OctoPrint's settings dialog in place of the full pane. */
+.klipper-settings-launcher {
+  padding: 10px 0;
+}
+
+/* "OctoPrint settings", "Reset all settings" and "Donate" sit on the left. */
+#klipper_settings_dialog .klipper-settings-footer-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#klipper_settings_dialog .klipper-settings-footer-tools .octoklipper-donate {
+  float: none;
+}
+
+/* OctoPrint's plugin pane only holds the launcher now. */
 #settings_plugin_klipper {
   height: -webkit-fill-available;
   height: 100%;
@@ -282,6 +326,44 @@ div#klipper_backups_dialog div.modal-body textarea {
   color: inherit;
 }
 
+/* In the editor footer it sits between the filename input and the button group.
+   The button group stops growing (it is right-aligned by the footer anyway) and
+   the link shares the free space with the input, so its label ends up centred
+   between the two. */
+div#klipper_editor .modal-footer .editor-controls .klipper-btn-group {
+  flex: 0 0 auto;
+}
+
+div#klipper_editor .modal-footer .editor-controls .klipper-docs-link {
+  flex: 1 1 auto;
+  align-self: center;
+  min-width: 0;
+  margin: 0 10px;
+  text-align: center;
+}
+
+div#klipper_editor .modal-footer .editor-controls .klipper-docs-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #f5f5f5;
+  color: #555;
+  font-size: 0.9em;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+div#klipper_editor .modal-footer .editor-controls .klipper-docs-link a:hover,
+div#klipper_editor .modal-footer .editor-controls .klipper-docs-link a:focus {
+  border-color: #999;
+  background: #e9e9e9;
+  color: #222;
+  text-decoration: none;
+}
+
 /* Keep the action icons on one line so the name column gets the rest. */
 #klipper_backups_dialog td.klipper_baks_action {
   white-space: nowrap;
@@ -301,22 +383,22 @@ body.UICResponsiveMode #settings_dialog_content {
   width: calc(100% - 15px);
 }
 
-div#settings_plugin_klipper form {
+div.settings_plugin_klipper form {
   margin: 0px;
   height: 100%;
 }
 
-div#settings_plugin_klipper div.tab-content {
+div.settings_plugin_klipper div.tab-content {
   height: calc(100% - 76px);
   overflow: auto;
 }
 
-div#settings_plugin_klipper div.tab-content .border {
+div.settings_plugin_klipper div.tab-content .border {
   border-bottom: 1px solid;
   border-top: 1px solid;
 }
 
-div#settings_plugin_klipper div.tab-footer {
+div.settings_plugin_klipper div.tab-footer {
   height: 20px;
   width: 100%;
   top: 10px;
@@ -325,13 +407,13 @@ div#settings_plugin_klipper div.tab-footer {
   padding-top: 3px;
 }
 
-div#settings_plugin_klipper div.tab-content div#conf.tab-pane {
+div.settings_plugin_klipper div.tab-content div#conf.tab-pane {
   height: 100%;
   min-height: 200px;
   width: 100%;
 }
 
-div#settings_plugin_klipper div.tab-content div#macros.tab-pane.active {
+div.settings_plugin_klipper div.tab-content div#macros.tab-pane.active {
   height: 100%;
   min-height: 200px;
   /* Bootstrap's .tab-pane.active sets display:block; re-assert flex here with
@@ -343,14 +425,14 @@ div#settings_plugin_klipper div.tab-content div#macros.tab-pane.active {
   justify-content: space-between;
 }
 
-div#settings_plugin_klipper div.tab-content div#conf.tab-pane div.control-group {
+div.settings_plugin_klipper div.tab-content div#conf.tab-pane div.control-group {
   height: 100%;
   margin: 0;
   display: flex;
   flex-direction: column;
 }
 
-div#settings_plugin_klipper div.control-group div.controls p {
+div.settings_plugin_klipper div.control-group div.controls p {
   padding-top: 5px;
 }
 
@@ -359,20 +441,20 @@ div#settings_plugin_klipper div.control-group div.controls p {
   width: 100%;
 }
 
-#settings_plugin_klipper .m-0 {
+.settings_plugin_klipper .m-0 {
   margin: 0;
 }
 
-#settings_plugin_klipper .scroll-y {
+.settings_plugin_klipper .scroll-y {
   overflow-y: scroll;
 }
 
-#settings_plugin_klipper table,
+.settings_plugin_klipper table,
 table.plugin-octoklipper {
   table-layout: unset !important;
 }
 
-#settings_plugin_klipper .table-fixed thead th,
+.settings_plugin_klipper .table-fixed thead th,
 .plugin-octoklipper.table-fixed thead th {
   position: sticky;
   top: 0;
@@ -380,7 +462,7 @@ table.plugin-octoklipper {
   color: rgb(200, 200, 200);
 }
 
-#settings_plugin_klipper .pagination-mini {
+.settings_plugin_klipper .pagination-mini {
   margin: 5;
 }
 
@@ -484,7 +566,7 @@ div#klipper_editor div.conf-editor div#plugin-klipper-config {
 }
 
 /*checkboxes*/
-div#settings_plugin_klipper.tab-pane.active form.form-horizontal div.tab-content div.tab-pane.active input.inline-checkbox {
+div.settings_plugin_klipper form.form-horizontal div.tab-content div.tab-pane.active input.inline-checkbox {
   vertical-align: -0.2em;
 }
 
@@ -501,52 +583,63 @@ div#settings_plugin_klipper.tab-pane.active form.form-horizontal div.tab-content
   margin-left: 5px;
 }
 
-div#settings_plugin_klipper.tab-pane.active form.form-horizontal div.tab-content div.tab-pane.active div.controls input.controls-checkbox {
+/* The checkbox rows are flex containers with justify-content: space-between, so
+   a help text sitting between the checkbox and the reset button was pushed to
+   the middle of the row. Let it take the free space instead, which keeps the
+   text left-aligned right after its checkbox. */
+.klipper-reset-row .klipper-help-inline {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+div.settings_plugin_klipper form.form-horizontal div.tab-content div.tab-pane.active div.controls input.controls-checkbox {
   margin-top: 8px;
 }
 
 /*macros*/
-div#settings_plugin_klipper div#macros label.control-label {
+div.settings_plugin_klipper div#macros label.control-label {
   width: 80px;
 }
 
-#settings_plugin_klipper .klipper-macros-table {
+.settings_plugin_klipper .klipper-macros-table {
   margin-bottom: 10px;
 }
 
-#settings_plugin_klipper .klipper-macros-table th,
-#settings_plugin_klipper .klipper-macros-table td {
+.settings_plugin_klipper .klipper-macros-table th,
+.settings_plugin_klipper .klipper-macros-table td {
   vertical-align: middle;
 }
 
 /* The Group column should be wide enough to show the group names and grow
    dynamically with the longest option. input-block-level forces width:100%,
    which fills a cell sized to the select's tiny intrinsic width — so let the
-   select size to its content with a sensible minimum instead. */
-#settings_plugin_klipper .klipper-macros-table td select[data-bind*="GroupOptions"] {
-  width: auto;
-  min-width: 120px;
+   select size to its content with a generous minimum instead. */
+.settings_plugin_klipper .klipper-macros-table td select[data-bind*="GroupOptions"] {
+  width: 100%;
+  min-width: 220px;
 }
 
 /* Align the Klipper Tab / Sidebar checkboxes with their labels: Bootstrap
    gives checkboxes a margin-top that shifts them down inside the flex row */
-#settings_plugin_klipper .klipper-macros-table input[type="checkbox"] {
+.settings_plugin_klipper .klipper-macros-table input[type="checkbox"] {
   margin-top: 0;
 }
 
-/* Visually separate each macro (3 rows) with a stronger top border */
-#settings_plugin_klipper .klipper-macros-table tbody tr td {
+/* Visually separate each macro (its rows) from the next one */
+.settings_plugin_klipper .klipper-macros-table tbody tr td {
   border-top: 0px solid #ccc;
 }
 
-/* Visually separate each macro (3 rows) with a stronger top border */
-#settings_plugin_klipper .klipper-macros-table tbody tr.klipper-macro-item td {
-  border-top: 2px solid #ccc;
+/* The macro group's own top line (see .klipper-macro-group-border) already
+   separates the items, so the first row doesn't add a second line in another
+   colour on top of it. */
+.settings_plugin_klipper .klipper-macros-table tbody tr.klipper-macro-item td {
+  border-top: 0;
 }
 
 /* The command label inside the macro table is a plain block label, not a
    floated form-horizontal control-label */
-#settings_plugin_klipper .klipper-macros-table .control-label {
+.settings_plugin_klipper .klipper-macros-table .control-label {
   float: none;
   width: auto;
   padding-top: 0;
@@ -555,11 +648,196 @@ div#settings_plugin_klipper div#macros label.control-label {
 
 /* Tighten the gap between the button-style box and the command label so the
    command row reads as part of the same macro item */
-#settings_plugin_klipper .klipper-macros-table .klipper-bordered {
+.settings_plugin_klipper .klipper-macros-table tbody tr:not(.klipper-macro-item) .klipper-bordered {
   margin: 4px;
 }
 
-#settings_plugin_klipper .klipper-macros-table tr.klipper-border-bottom td {
+/* Every field of a macro row is its own labelled box: the column title floats on
+   the box border, so the tables need no header row. */
+.settings_plugin_klipper .klipper-macros-table tr.klipper-macro-item > td > .klipper-wrapper {
+  margin-top: 10px;
+}
+
+.settings_plugin_klipper .klipper-macros-table tr.klipper-macro-item > td > .klipper-wrapper > .klipper-bordered {
+  margin: 0;
+  padding: 6px 6px;
+  min-height: 30px;
+  box-sizing: border-box;
+}
+
+.settings_plugin_klipper .klipper-macros-table tr.klipper-macro-item > td > .klipper-wrapper > .klipper-control-label-bordered {
+  top: -0.4em;
+  left: 6px;
+  padding: 0 4px;
+  font-size: 0.8em;
+  line-height: 0.8em;
+  color: #555;
+  white-space: nowrap;
+}
+
+/* OctoPrint clips every table cell (table td, table th { overflow: hidden }), which
+   would cut the floating labels of the narrow columns; the cell itself has no
+   content that needs clipping, the value boxes do that themselves. */
+.settings_plugin_klipper .klipper-macros-table tr.klipper-macro-item > td {
+  overflow: visible;
+}
+
+/* The macro name is the primary field, so it gets more room than the group
+   dropdown: a min-width on the name box makes the auto-layout table allocate
+   the space to that column instead of to the select. Kept at 300px so the
+   7-column table (with the read-only lock icons) still fits the pane. */
+.settings_plugin_klipper .klipper-macros-table tr.klipper-macro-item > td:first-child > .klipper-wrapper > .klipper-bordered {
+  min-width: 300px;
+}
+
+/* The settings dialog is 90% of the window, so on narrower windows the columns
+   have less room; relax the name floor instead of overflowing the pane. */
+@media (max-width: 1200px) {
+  .settings_plugin_klipper .klipper-macros-table tr.klipper-macro-item > td:first-child > .klipper-wrapper > .klipper-bordered {
+    min-width: 240px;
+  }
+}
+
+/* Fill the box so the field looks like one control rather than a box in a box */
+.settings_plugin_klipper .klipper-macros-table tr.klipper-macro-item .klipper-bordered input,
+.settings_plugin_klipper .klipper-macros-table tr.klipper-macro-item .klipper-bordered select,
+.settings_plugin_klipper .klipper-macros-table tr.klipper-macro-item .klipper-bordered textarea {
+  margin-bottom: 0;
+}
+
+/* Read-only values (parsed macro name / source) stay on one line with an ellipsis */
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Fields that come from printer.cfg and cannot be edited here: dashed border,
+   muted background and text, plus a lock, so they read differently from the group
+   dropdown and the checkboxes next to them. */
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-readonly {
+  border-style: dashed;
+  border-color: #ccc;
+  background-color: #f7f7f7;
+  color: #777;
+  cursor: default;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-value.klipper-macro-readonly {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-value.klipper-macro-readonly > span {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-readonly .klipper-readonly-lock {
+  flex: 0 0 auto;
+  color: #bbb;
+  font-size: 0.85em;
+}
+
+/* The lock in a floating label chip ("Command" of a parsed macro) */
+.settings_plugin_klipper .klipper-macros-table .klipper-control-label-bordered .klipper-readonly-lock {
+  color: #bbb;
+  font-size: 0.85em;
+  margin-left: 3px;
+}
+
+/* Read-only gcode of a parsed macro, highlighted with Monaco's Klipper
+   tokenizer (see _highlightMacroCommands in klipper_settings.js). A <pre> holds
+   the highlighted spans; the colours are set here so the snippet stays readable
+   on the light box (Monaco's own monokai palette is meant for a dark editor). */
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-code {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #444;
+  font-family: "Lucida Console", "Courier New", monospace;
+  font-size: 0.9em;
+  line-height: 1.4;
+  max-height: 108px;
+  overflow: auto;
+  /* pre-wrap (not pre): a long gcode line must not widen the table, which is
+     laid out automatically and would grow to the snippet's max-content width. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: default;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-code .klipper-tok-comment {
+  color: #7a7568;
+  font-style: italic;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-code .klipper-tok-keyword {
+  color: #bd1a4c;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-code .klipper-tok-number {
+  color: #7b3fbf;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-code .klipper-tok-string {
+  color: #7c6a00;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-code .klipper-tok-variable {
+  color: #b35c00;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-code .klipper-tok-function {
+  color: #2f7d18;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-code .klipper-tok-type {
+  color: #0a7288;
+}
+
+/* "Tab", "Sidebar" and the row actions share one merged cell: checkbox labels and
+   the action icons sit side by side in a single row, so there is no gap between
+   separate boxes. */
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-options {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+  padding: 3px 0;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 0.85em;
+  color: #555;
+  cursor: pointer;
+}
+
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Centre the "has parameters" icon in its box. The box keeps a minimum width so
+   its floating "Params" label fits on the top border instead of running past the
+   right edge. */
+.settings_plugin_klipper .klipper-macros-table .klipper-macro-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+}
+
+.settings_plugin_klipper .klipper-macros-table tr.klipper-border-bottom td {
   padding-top: 0;
 }
 
@@ -577,6 +855,31 @@ div#settings_plugin_klipper div#macros label.control-label {
 
 .klipper-macros + .klipper-macros {
   margin-top: 12px;
+}
+
+/* Small gear that jumps from a macro panel to the matching settings tab */
+.klipper-settings-gear {
+  color: #999;
+  font-size: 0.9em;
+  margin-left: 6px;
+  text-decoration: none;
+}
+
+.klipper-settings-gear:hover,
+.klipper-settings-gear:focus {
+  color: #333;
+  text-decoration: none;
+}
+
+/* Right-aligned gear row at the top of the sidebar macro panels */
+.klipper-panel-toolbar {
+  line-height: 1;
+  margin-bottom: 2px;
+  text-align: right;
+}
+
+.klipper-panel-toolbar .klipper-settings-gear {
+  margin-left: 0;
 }
 
 .klipper-macro-group {
@@ -653,26 +956,31 @@ div#settings_plugin_klipper div#macros label.control-label {
 
 .klipper-wrapper {
   position: relative;
+  margin-top: 5px;
 }
 
 .klipper-bordered {
-  border: 1px solid gray;
+  border: 1px solid lightgray;
   border-radius: 6px;
   position: relative;
-  margin: 11px;
+  margin: 12px;
   padding: 10px;
 }
 
 .klipper-control-label-bordered {
   position: absolute;
-  top: -1.3ex;
+  top: -0.4em;
   z-index: 1;
   left: 2em;
-  /* Solid background matching the settings dialog so the label blends in and
-     hides the box border line behind it. Override --klipper-label-bg to match
-     a different theme. */
+  /* Brighter chip: pure white (override --klipper-label-bg to match a theme) with
+     a soft white halo, so the box border line never touches the text and the
+     label stands out from the surrounding box. */
   background-color: var(--klipper-label-bg, #fff);
-  padding: 0 5px;
+  box-shadow: 0 0 0 2px var(--klipper-label-bg, #fff);
+  border-radius: 3px;
+  color: #000;
+  padding: 1px 4px;
+  line-height: 0.8em;
 }
 
 /* ============================================================
@@ -923,7 +1231,7 @@ div#settings_plugin_klipper div#macros label.control-label {
   white-space: nowrap;
 }
 
-#settings_plugin_klipper .klipper-macros-table .klipper-button-style-row {
+.settings_plugin_klipper .klipper-macros-table .klipper-button-style-row {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   align-items: center;
@@ -932,13 +1240,13 @@ div#settings_plugin_klipper div#macros label.control-label {
 
 /* Bootstrap's clearfix adds ::before/::after (display: table) which would
    become extra grid items and shift the three controls out of order. */
-#settings_plugin_klipper .klipper-macros-table .klipper-button-style-row::before,
-#settings_plugin_klipper .klipper-macros-table .klipper-button-style-row::after {
+.settings_plugin_klipper .klipper-macros-table .klipper-button-style-row::before,
+.settings_plugin_klipper .klipper-macros-table .klipper-button-style-row::after {
   display: none;
 }
 
-#settings_plugin_klipper .klipper-macros-table .klipper-button-style-row select,
-#settings_plugin_klipper .klipper-macros-table .klipper-button-style-row input {
+.settings_plugin_klipper .klipper-macros-table .klipper-button-style-row select,
+.settings_plugin_klipper .klipper-macros-table .klipper-button-style-row input {
   width: 100%;
   /* Keep padding/border inside the 100% width so the input/select don't
      overflow their grid cell and clip the bordered container. */
@@ -1025,34 +1333,59 @@ div#settings_plugin_klipper div#macros label.control-label {
   border-radius: 3px;
 }
 
-/* Border around each parsed macro group (its main row + button style row).
+/* Border around each macro group (its main row + button style row).
    Each macro is its own tbody; box-shadow is used instead of border because
    the table uses border-collapse: collapse, which would swallow a tbody
-   border. */
-#settings_plugin_klipper .klipper-macros-table tbody.klipper-macro-group-border {
-  box-shadow: 0 0 0 1px #ccc;
-  margin-bottom: 4px;
-  border-radius: 4px;
+   border. Only a top and a bottom line: a full frame clashed with the row
+   borders and the spacer rows between the groups. */
+.settings_plugin_klipper .klipper-macros-table tbody.klipper-macro-group-border {
+  box-shadow:
+    0 -1px 0 #000,
+    0 1px 0 #000;
+  border-top: 1px solid #000;
 }
 
-.klipper-spacer-row {
-  height: 0px;
+/* Gap between the macro groups. A margin on the tbody cannot do this — table
+   layout ignores margins on row groups — so the templates put an empty spacer
+   tbody between two groups and this cell gives it a height. */
+.settings_plugin_klipper .klipper-macros-table tbody.klipper-spacer-row td {
+  border: 0;
+  font-size: 0;
+  height: 4px;
+  line-height: 0;
+  padding: 0;
 }
 
 /* Make the macro tables slightly narrower than the scrollable tab-content so
    the tbody box-shadow border isn't hidden behind the scrollbar. (Margin or
    padding on the table doesn't shrink the tbody — it always spans the table
    width — so the width itself is reduced.) */
-#settings_plugin_klipper .klipper-macros-table {
+.settings_plugin_klipper .klipper-macros-table {
   width: calc(100% - 20px);
 }
 
+/* An auto-layout table treats `width` as a minimum, so a long macro name, a
+   long config path or the Group select's min-width could force the table wider
+   than the pane — the width above was then ignored and the group border ended
+   up under the scrollbar again. Allowing long words to wrap lowers the
+   minimum enough for the table to always fit. `anywhere` (not `break-word`) is
+   required because only it shrinks the intrinsic minimum width. */
+.settings_plugin_klipper .klipper-macros-table td {
+  overflow-wrap: anywhere;
+}
+
+/* Only the checkbox labels are forced onto one line (they'd break mid-word when
+   space gets tight); the name/source text and the headers wrap normally. */
+.settings_plugin_klipper .klipper-macros-table .klipper-flex {
+  white-space: nowrap;
+}
+
 .klipper-border-bottom {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #444;
 }
 
 .klipper-border-top {
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #444;
 }
 
 /* Prevent the horizontal line that appears in the middle of buttons on hover.
@@ -1063,7 +1396,7 @@ div#settings_plugin_klipper div#macros label.control-label {
 #tab_plugin_klipper_main .btn:hover,
 #sidebar_plugin_klipper .btn:hover,
 #navbar_plugin_klipper .btn:hover,
-#settings_plugin_klipper .btn:hover,
+.settings_plugin_klipper .btn:hover,
 #klipper_editor .btn:hover,
 #klipper_graph_dialog .btn:hover,
 #klipper_leveling_dialog .btn:hover,
@@ -1132,7 +1465,7 @@ div#settings_plugin_klipper div#macros label.control-label {
 }
 
 /* Per-setting reset buttons: inline next to each value, pushed to the right */
-#settings_plugin_klipper .klipper-reset-row {
+.settings_plugin_klipper .klipper-reset-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1140,20 +1473,20 @@ div#settings_plugin_klipper div#macros label.control-label {
   width: 100%;
 }
 
-#settings_plugin_klipper .klipper-reset-row input[type="text"],
-#settings_plugin_klipper .klipper-reset-row input[type="password"],
-#settings_plugin_klipper .klipper-reset-row select {
+.settings_plugin_klipper .klipper-reset-row input[type="text"],
+.settings_plugin_klipper .klipper-reset-row input[type="password"],
+.settings_plugin_klipper .klipper-reset-row select {
   flex: 1 1 auto;
   min-width: 0;
 }
 
-#settings_plugin_klipper .klipper-reset-row .klipper-reset-btn {
+.settings_plugin_klipper .klipper-reset-row .klipper-reset-btn {
   flex-shrink: 0;
 }
 
 /* Normalize the label cursor in the settings dialog (plugin + OctoPrint's
    builtin settings) so labels don't show a pointer cursor */
-#settings_plugin_klipper label,
+.settings_plugin_klipper label,
 #settings_dialog label {
   cursor: default;
 }
@@ -1209,7 +1542,7 @@ div#settings_plugin_klipper div#macros label.control-label {
 }
 
 /* Settings hint under the "Klipper Log File" input, showing the resolved path */
-#settings_plugin_klipper .klippy-log-path-resolved {
+.settings_plugin_klipper .klippy-log-path-resolved {
   display: block;
   margin-top: 5px;
   padding: 4px 8px;
@@ -1221,13 +1554,32 @@ div#settings_plugin_klipper div#macros label.control-label {
   word-break: break-all;
 }
 
-#settings_plugin_klipper .klippy-log-path-resolved code {
+/* Inside a button row (the "Check path" rows on the Basic tab) the result sits
+   directly to the right of its button instead of on its own line below it.
+   margin-right:auto keeps it next to the button — the row uses
+   justify-content: space-between, which would otherwise push it to the edge. */
+.settings_plugin_klipper .klipper-reset-row .klippy-log-path-resolved {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 1 auto;
+  min-width: 0;
+  margin: 0 0 0 10px;
+  margin-right: auto;
+  text-align: left;
+}
+
+.settings_plugin_klipper .klipper-reset-row > button {
+  flex: 0 0 auto;
+}
+
+.settings_plugin_klipper .klippy-log-path-resolved code {
   background: transparent;
   color: inherit;
   padding: 0;
 }
 
-#settings_plugin_klipper .klippy-log-path-resolved-missing {
+.settings_plugin_klipper .klippy-log-path-resolved-missing {
   border-color: #f2dede;
   background-color: #f2dede;
   color: #a94442;
