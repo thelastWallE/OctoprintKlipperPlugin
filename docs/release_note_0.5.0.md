@@ -1,8 +1,8 @@
 # OctoKlipper 0.5.0 rc1
 
-This release collects everything since **0.4**: macros parsed from your config,
+This release contains: macros parsed from your config,
 a Setup Wizard that actually checks your setup, new editor tools, and
-OctoKlipper's own settings dialog.
+OctoKlipper's own dedicated settings dialog.
 
 ## 🧩 Macros
 
