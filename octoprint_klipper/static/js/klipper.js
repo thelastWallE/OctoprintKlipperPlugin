@@ -967,6 +967,59 @@ $(function () {
       self._applyParsedMacrosSidebarCollapse();
       self._applyMacrosSidebarVisibility();
       self._applyParsedMacrosSidebarVisibility();
+      self._installSidebarPanelGears();
+    };
+
+    // OctoPrint renders the sidebar panel heading itself (from the template
+    // config), so the gear that opens the matching settings tab can only be added
+    // afterwards. It goes into the heading, next to the panel title, instead of
+    // taking a row inside the panel body.
+    self._installSidebarPanelGears = function () {
+      // Keep the titles as literal gettext() calls so Babel still extracts them
+      // (a translation lookup on a variable would drop them from the catalog).
+      var panels = [
+        {
+          id: "sidebar_plugin_klipper_macros",
+          profile: "klipper-macros",
+          title: gettext("Open the macro settings"),
+        },
+        {
+          id: "sidebar_plugin_klipper_parsed_macros",
+          profile: "klipper-parsed-macros",
+          title: gettext("Open the Klipper macro settings"),
+        },
+      ];
+
+      _.each(panels, function (panel) {
+        var heading = $("#" + panel.id + "_wrapper > .accordion-heading");
+        if (!heading.length || heading.find(".klipper-settings-gear").length) return;
+
+        var gear = $("<a/>", {
+          href: "javascript:void(0)",
+          class: "klipper-settings-gear klipper-sidebar-heading-gear",
+          title: panel.title,
+          html: '<i class="fa fa-cog"></i>',
+        });
+
+        gear.on("click", function (event) {
+          // Don't let the click reach the collapse toggle underneath.
+          event.preventDefault();
+          event.stopPropagation();
+          self.openOctoKlipperSettings(panel.profile);
+        });
+
+        heading.append(gear);
+      });
+
+      // Keep the gears in sync with the permission check used elsewhere.
+      if (!self._sidebarGearsBound) {
+        self._sidebarGearsBound = true;
+        var apply = function () {
+          $(".klipper-sidebar-heading-gear").toggle(self.canOpenSettings());
+        };
+        self.canOpenSettings.subscribe(apply);
+        apply();
+      }
     };
 
     self._applyConnectionPanelCollapse = function () {
