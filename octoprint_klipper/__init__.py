@@ -188,9 +188,7 @@ class KlipperPlugin(
         Returns:
             str: ``disconnect``, ``cancel`` or ``ignore``.
         """
-        if SetupWizard.is_octoprint_2(
-            octoprint_version.get_octoprint_version_string()
-        ):
+        if SetupWizard.is_octoprint_2(octoprint_version.get_octoprint_version_string()):
             return self._settings.global_get(
                 ["plugins", "serial_connector", "errorHandling"]
             )
@@ -205,17 +203,29 @@ class KlipperPlugin(
         On 1.11 this writes the two booleans that encode the same intent;
         ``serial.errorHandling`` does not exist there, which is why writing it
         appeared to succeed but never took effect.
+
+        Clients cache the whole settings tree, so they are told to reload:
+        otherwise OctoPrint's own serial settings keep showing the value from
+        before the fix, and a later save from that stale tree writes it back.
         """
-        if SetupWizard.is_octoprint_2(
-            octoprint_version.get_octoprint_version_string()
-        ):
+        if SetupWizard.is_octoprint_2(octoprint_version.get_octoprint_version_string()):
             self._settings.global_set(
                 ["plugins", "serial_connector", "errorHandling"], value
             )
         else:
             for key, boolean in SetupWizard.error_handling_to_settings(value).items():
                 self._settings.global_set(["serial", key], boolean)
-        self._settings.save()
+        # force: the in-memory value can equal the requested one while the file
+        # still holds the old one, and Settings.save() skips untouched paths.
+        self._settings.save(force=True, trigger_event=True)
+
+    def _serial_port_candidates(self):
+        """Klipper serial ports we suggest and accept as a wizard fix."""
+        candidates = []
+        modern = os.path.expanduser(SetupWizard.MODERN_SERIAL_PORT)
+        if os.path.exists(modern):
+            candidates.append(SetupWizard.MODERN_SERIAL_PORT)
+        return candidates
 
     def on_after_startup(self):
         klipper_port = self._settings.get(["connection", "port"])
@@ -225,7 +235,31 @@ class KlipperPlugin(
             ["configuration", "debug_logging"]
         )
 
-        if klipper_port not in additional_ports:
+        # Modern Klipper writes its virtual serial port to
+        # ~/printer_data/comms/klippy.serial and never creates /tmp/printer, so
+        # the legacy default can never work on such an install. Upgrade it once
+        # the modern port file shows up (a port the user chose is left alone).
+        modern_port = SetupWizard.preferred_serial_port(
+            klipper_port,
+            os.path.exists(os.path.expanduser(SetupWizard.MODERN_SERIAL_PORT)),
+        )
+        if modern_port:
+            additional_ports = SetupWizard.with_serial_port(
+                additional_ports, modern_port, klipper_port
+            )
+            self._settings.set(["connection", "port"], modern_port)
+            self._settings.global_set(ports_path, additional_ports)
+            self._settings.save()
+            logger.log_info(
+                self,
+                "Switched the klipper serial port from {} to {}.".format(
+                    klipper_port, modern_port
+                ),
+                only_logging=False,
+            )
+            klipper_port = modern_port
+
+        if klipper_port and klipper_port not in additional_ports:
             additional_ports.append(klipper_port)
             self._settings.global_set(ports_path, additional_ports)
             self._settings.save()
@@ -271,7 +305,7 @@ class KlipperPlugin(
         # TODO #69 put some settings on the localStorage
         return dict(
             connection=dict(
-                port="/tmp/printer",
+                port="~/printer_data/comms/klippy.serial",
                 replace_connection_panel=True,
                 hide_editor_button=False,
                 hide_config_button=False,
@@ -316,7 +350,7 @@ class KlipperPlugin(
                 config_path="~/klipper_configs",
                 baseconfig="~/printer.cfg",
                 openLastConfig=True,
-                logpath="/tmp/",
+                logpath="~/printer_data/logs/",
                 restart_service_system_command="sudo service klipper restart",
                 restart_host_command="RESTART",
                 restart_firmware_command="FIRMWARE_RESTART",
@@ -800,9 +834,11 @@ class KlipperPlugin(
         if baseconfig_exists:
             sections = SetupWizard.collect_sections(baseconfig)
             tree = [
-                os.path.relpath(path, config_path)
-                if config_path and path.startswith(config_path)
-                else path
+                (
+                    os.path.relpath(path, config_path)
+                    if config_path and path.startswith(config_path)
+                    else path
+                )
                 for path, _content in SetupWizard.iter_config_tree(baseconfig)
             ]
             missing_includes = SetupWizard.find_missing_includes(baseconfig)
@@ -812,10 +848,7 @@ class KlipperPlugin(
         additional_ports = self._settings.global_get(ports_path) or []
         port_exists = os.path.exists(os.path.expanduser(klipper_port or ""))
 
-        candidates = []
-        modern = os.path.expanduser(SetupWizard.MODERN_SERIAL_PORT)
-        if os.path.exists(modern):
-            candidates.append(SetupWizard.MODERN_SERIAL_PORT)
+        candidates = self._serial_port_candidates()
 
         error_handling = self._get_error_handling()
 
@@ -887,26 +920,26 @@ class KlipperPlugin(
     def _apply_setup_wizard(self, data):
         """Apply one whitelisted wizard fix.
 
-        Only the three named actions are accepted, and every value is
+        Only the four named actions are accepted, and every value is
         validated, so this cannot be used as a generic settings writer.
         """
         action = data.get("action")
 
         if action == "addPort":
             klipper_port = self._settings.get(["connection", "port"])
-            if not klipper_port or not os.path.isabs(
-                os.path.expanduser(klipper_port)
-            ):
+            if not klipper_port or not os.path.isabs(os.path.expanduser(klipper_port)):
                 return flask.jsonify(
                     status="error",
-                    message=gettext("The configured serial port is not an absolute path."),
+                    message=gettext(
+                        "The configured serial port is not an absolute path."
+                    ),
                 )
             ports_path = self._additional_ports_path()
             additional_ports = self._settings.global_get(ports_path) or []
             if klipper_port not in additional_ports:
                 additional_ports.append(klipper_port)
                 self._settings.global_set(ports_path, additional_ports)
-                self._settings.save()
+                self._settings.save(force=True, trigger_event=True)
             return flask.jsonify(status="ok", path=ports_path)
 
         if action == "setErrorHandling":
@@ -927,8 +960,31 @@ class KlipperPlugin(
                     message=gettext("The serial port must be an absolute path."),
                 )
             self._settings.set(["connection", "port"], value)
-            self._settings.save()
+            self._settings.save(force=True, trigger_event=True)
             return flask.jsonify(status="ok", value=value)
+
+        if action == "useDetectedPort":
+            # Switch to a port Klipper actually creates (the modern
+            # printer_data path) and register that one instead of the
+            # configured port, in a single step.
+            port = SetupWizard.validate_detected_port(
+                data.get("value"), self._serial_port_candidates()
+            )
+            if not port:
+                return flask.jsonify(
+                    status="error",
+                    message=gettext("The detected serial port is not available."),
+                )
+            old_port = self._settings.get(["connection", "port"])
+            ports_path = self._additional_ports_path()
+            additional_ports = self._settings.global_get(ports_path) or []
+            self._settings.set(["connection", "port"], port)
+            self._settings.global_set(
+                ports_path,
+                SetupWizard.with_serial_port(additional_ports, port, old_port),
+            )
+            self._settings.save(force=True, trigger_event=True)
+            return flask.jsonify(status="ok", value=port)
 
         return flask.jsonify(
             status="error", message=gettext("Unknown setup wizard action.")

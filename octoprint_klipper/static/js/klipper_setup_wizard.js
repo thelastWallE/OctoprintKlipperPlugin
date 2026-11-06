@@ -341,6 +341,31 @@ $(function () {
           text: gettext("a modern Klipper serial port was found — consider using it"),
         });
       }
+
+      // Switching to a port Klipper actually creates beats merely registering
+      // the configured one, so it wins when a candidate was found.
+      var serialFix = null;
+      if (sc.suggestion) {
+        serialFix = {
+          fixLabel: gettext("Use detected port"),
+          fixHint: _.sprintf(
+            gettext("Uses %(port)s and registers it as an additional serial port."),
+            { port: sc.suggestion },
+          ),
+          action: "useDetectedPort",
+          actionValue: sc.suggestion,
+        };
+      } else if (!sc.registered) {
+        serialFix = {
+          fixLabel: gettext("Add port"),
+          fixHint: _.sprintf(
+            gettext("Adds %(port)s to OctoPrint's additional serial ports."),
+            { port: s.serial.port },
+          ),
+          action: "addPort",
+        };
+      }
+
       steps.push(
         step(
           sc.ok ? "ok" : "error",
@@ -348,17 +373,7 @@ $(function () {
           sc.ok
             ? gettext("The Klipper virtual serial port is registered and available.")
             : gettext("OctoPrint cannot use the Klipper virtual serial port yet."),
-          {
-            items: portItems,
-            fixLabel: sc.registered ? null : gettext("Add port"),
-            fixHint: sc.registered
-              ? null
-              : _.sprintf(
-                  gettext("Adds %(port)s to OctoPrint's additional serial ports."),
-                  { port: s.serial.port },
-                ),
-            action: sc.registered ? null : "addPort",
-          },
+          _.extend({ items: portItems }, serialFix),
         ),
       );
 

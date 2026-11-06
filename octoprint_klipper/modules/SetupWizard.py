@@ -276,6 +276,87 @@ def check_required_sections(baseconfig_path_or_sections):
     return result
 
 
+def preferred_serial_port(current_port, modern_exists, modern_port=None, legacy_port=None):
+    """Return the serial port to switch to, or ``None`` to leave it alone.
+
+    Modern Klipper installs write their virtual serial port to
+    ``~/printer_data/comms/klippy.serial`` and never create ``/tmp/printer``, so
+    the legacy default can only ever fail on such a host. Only the legacy
+    default (or an empty value) is upgraded — a port the user picked is left
+    untouched.
+
+    Args:
+        current_port (str): the port configured in OctoKlipper.
+        modern_exists (bool): whether the modern port file exists.
+        modern_port (str, optional): the modern path; defaults to
+            :data:`MODERN_SERIAL_PORT`.
+        legacy_port (str, optional): the legacy default; defaults to
+            :data:`LEGACY_SERIAL_PORT`.
+
+    Returns:
+        str or None: the absolute modern path to store, or ``None``.
+    """
+    modern_port = modern_port or MODERN_SERIAL_PORT
+    legacy_port = legacy_port or LEGACY_SERIAL_PORT
+    if not modern_exists:
+        return None
+
+    modern_path = os.path.expanduser(modern_port)
+    current = (current_port or "").strip()
+    if current and current != legacy_port and current != modern_port:
+        return None
+    if os.path.expanduser(current) == modern_path:
+        return None
+    return modern_path
+
+
+def with_serial_port(additional_ports, new_port, old_port=None):
+    """Return the additional-ports list with ``new_port`` in place.
+
+    The previous entry is removed so the port list does not accumulate dead
+    paths, and the new one is appended unless it is already there.
+
+    Args:
+        additional_ports (list): OctoPrint's configured additional ports.
+        new_port (str): the port to add; an empty value changes nothing.
+        old_port (str, optional): the entry to drop, e.g. the legacy default.
+
+    Returns:
+        list: the new list (never ``None``).
+    """
+    ports = [port for port in (additional_ports or []) if port and port != old_port]
+    if new_port and new_port not in ports:
+        ports.append(new_port)
+    return ports
+
+
+def validate_detected_port(value, candidates):
+    """Validate a detected serial port before it is written to the settings.
+
+    Only a path from the server's own candidate list, resolving to an existing
+    file, is accepted, so the wizard fix cannot be abused as a generic settings
+    writer.
+
+    Args:
+        value (str): the port reported by the client.
+        candidates (list): known candidates from the wizard payload.
+
+    Returns:
+        str or None: the absolute path to store, or ``None`` when rejected.
+    """
+    if not value or not candidates:
+        return None
+
+    expanded = os.path.expanduser(value)
+    if not os.path.isabs(expanded):
+        return None
+    if expanded not in [os.path.expanduser(candidate) for candidate in candidates if candidate]:
+        return None
+    if not os.path.exists(expanded):
+        return None
+    return expanded
+
+
 def check_serial_port(port, additional_ports, port_exists, candidates=None):
     """Check whether the Klipper virtual serial port is usable.
 

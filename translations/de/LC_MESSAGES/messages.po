@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OctoKlipper 0.3.8.4\n"
 "Report-Msgid-Bugs-To: i18n@octoprint.org\n"
-"POT-Creation-Date: 2026-11-01 19:45+0100\n"
+"POT-Creation-Date: 2026-11-01 20:55+0100\n"
 "PO-Revision-Date: 2021-05-13 17:32+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -19,60 +19,64 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: octoprint_klipper/__init__.py:247
+#: octoprint_klipper/__init__.py:279
 msgid "Allows to config klipper"
 msgstr "Erlaubt Klipper zu konfigurieren"
 
-#: octoprint_klipper/__init__.py:255
+#: octoprint_klipper/__init__.py:287
 msgid "Allows to list klipper files"
 msgstr "Erlaubt das Auflisten von Klipper-Dateien"
 
-#: octoprint_klipper/__init__.py:263
+#: octoprint_klipper/__init__.py:295
 msgid "Allows to use klipper macros"
 msgstr "Erlaubt Makros zu benutzen"
 
-#: octoprint_klipper/__init__.py:710
+#: octoprint_klipper/__init__.py:742
 msgid "Help for configuring OctoPrint to use Klipper"
 msgstr "Hilfe beim Konfigurieren von OctoPrint für die Verwendung von Klipper"
 
-#: octoprint_klipper/__init__.py:902
+#: octoprint_klipper/__init__.py:931
 msgid "The configured serial port is not an absolute path."
 msgstr "Der konfigurierte serielle Port ist kein absoluter Pfad."
 
-#: octoprint_klipper/__init__.py:917
+#: octoprint_klipper/__init__.py:946
 msgid "Invalid error handling value."
 msgstr "Ungültiger Wert für die Fehlerbehandlung."
 
-#: octoprint_klipper/__init__.py:927
+#: octoprint_klipper/__init__.py:956
 msgid "The serial port must be an absolute path."
 msgstr "Der serielle Port muss ein absoluter Pfad sein."
 
-#: octoprint_klipper/__init__.py:934
+#: octoprint_klipper/__init__.py:972
+msgid "The detected serial port is not available."
+msgstr "Der erkannte serielle Port ist nicht verfügbar."
+
+#: octoprint_klipper/__init__.py:986
 msgid "Unknown setup wizard action."
 msgstr "Unbekannte Aktion des Einrichtungsassistenten."
 
-#: octoprint_klipper/__init__.py:1049
+#: octoprint_klipper/__init__.py:1101
 msgid "Invalid variable name"
 msgstr "Ungültiger Variablenname"
 
-#: octoprint_klipper/__init__.py:1054
+#: octoprint_klipper/__init__.py:1106
 msgid "Value must be a valid Python literal"
 msgstr "Der Wert muss ein gültiges Python-Literal sein"
 
-#: octoprint_klipper/__init__.py:1063
+#: octoprint_klipper/__init__.py:1115
 #: octoprint_klipper/static/js/klipper.js:486
 msgid "Printer not connected"
 msgstr "Drucker nicht verbunden"
 
-#: octoprint_klipper/__init__.py:2278
+#: octoprint_klipper/__init__.py:2330
 msgid "Restart Klipper"
 msgstr "Klipper Neustart"
 
-#: octoprint_klipper/__init__.py:2285
+#: octoprint_klipper/__init__.py:2337
 msgid "You are about to restart Klipper!"
 msgstr "Sie sind dabei Klipper neu zu starten!"
 
-#: octoprint_klipper/__init__.py:2287
+#: octoprint_klipper/__init__.py:2339
 msgid "This will stop ongoing prints!"
 msgstr "Dies wird laufende Aufträge abbrechen!"
 
@@ -188,7 +192,7 @@ msgstr ""
 "„Variablen speichern“ und die Log-Analyse von OctoKlipper basieren auf "
 "der seriellen Verbindung und sind damit nicht geprüft."
 
-#: octoprint_klipper/modules/SetupWizard.py:476
+#: octoprint_klipper/modules/SetupWizard.py:557
 #, python-format
 msgid ""
 "Klipper's host software only runs on Linux, so it cannot run on this "
@@ -200,20 +204,20 @@ msgstr ""
 "Klipper-Pfad kann als Quellcode-Kopie existieren, aber OctoPrint kann "
 "keine Verbindung zu einer hier laufenden Klipper-Instanz herstellen."
 
-#: octoprint_klipper/modules/SetupWizard.py:480
+#: octoprint_klipper/modules/SetupWizard.py:561
 msgid "non-Linux"
 msgstr "Nicht-Linux"
 
-#: octoprint_klipper/modules/SetupWizard.py:483
+#: octoprint_klipper/modules/SetupWizard.py:564
 #, python-format
 msgid "No Klipper installation found at %(path)s."
 msgstr "Keine Klipper-Installation unter %(path)s gefunden."
 
-#: octoprint_klipper/modules/SetupWizard.py:486
+#: octoprint_klipper/modules/SetupWizard.py:567
 msgid "The Klipper service is running."
 msgstr "Der Klipper-Dienst läuft."
 
-#: octoprint_klipper/modules/SetupWizard.py:490
+#: octoprint_klipper/modules/SetupWizard.py:571
 msgid ""
 "Klipper is installed but its service is not running. Start it before "
 "connecting."
@@ -221,7 +225,7 @@ msgstr ""
 "Klipper ist installiert, aber der zugehörige Dienst läuft nicht. Starten "
 "Sie ihn vor dem Verbinden."
 
-#: octoprint_klipper/modules/SetupWizard.py:496
+#: octoprint_klipper/modules/SetupWizard.py:577
 msgid ""
 "The Klipper service is in a failed state. Check the Klipper log for the "
 "reason it could not start."
@@ -229,7 +233,7 @@ msgstr ""
 "Der Klipper-Dienst befindet sich in einem Fehlerzustand. Prüfen Sie das "
 "Klipper-Log, um den Grund für den fehlgeschlagenen Start zu ermitteln."
 
-#: octoprint_klipper/modules/SetupWizard.py:502
+#: octoprint_klipper/modules/SetupWizard.py:583
 msgid ""
 "Klipper is installed, but the state of its service could not be "
 "determined."
@@ -1154,38 +1158,47 @@ msgstr ""
 "ein moderner Klipper-Seriellport wurde gefunden — erwägen Sie dessen "
 "Verwendung"
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:383
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:388
+msgid "Use detected port"
+msgstr "Erkannten Port verwenden"
+
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:390
+#, python-format
+msgid "Uses %(port)s and registers it as an additional serial port."
+msgstr "Verwendet %(port)s und registriert ihn als zusätzlichen seriellen Port."
+
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:398
+msgid "Add port"
+msgstr "Port hinzufügen"
+
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:400
+#, python-format
+msgid "Adds %(port)s to OctoPrint's additional serial ports."
+msgstr "Fügt %(port)s zu den zusätzlichen seriellen Ports von OctoPrint hinzu."
+
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:410
 msgid "Serial port"
 msgstr "Serieller Port"
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:385
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:412
 msgid "The Klipper virtual serial port is registered and available."
 msgstr "Der virtuelle serielle Port von Klipper ist registriert und verfügbar."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:386
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:413
 msgid "OctoPrint cannot use the Klipper virtual serial port yet."
 msgstr ""
 "OctoPrint kann den virtuellen seriellen Port von Klipper noch nicht "
 "verwenden."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:389
-msgid "Add port"
-msgstr "Port hinzufügen"
-
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:393
-#, python-format
-msgid "Adds %(port)s to OctoPrint's additional serial ports."
-msgstr "Fügt %(port)s zu den zusätzlichen seriellen Ports von OctoPrint hinzu."
-
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:407
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:424
 msgid "Error handling"
 msgstr "Fehlerbehandlung"
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:409
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:426
 msgid "OctoPrint is set to \"cancel\" — correct for Klipper."
 msgstr "OctoPrint ist auf \\\"cancel\\\" eingestellt — korrekt für Klipper."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:411
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:428
 #, python-format
 msgid ""
 "OctoPrint is set to \"%(current)s\". Klipper expects \"cancel\" so the "
@@ -1195,30 +1208,30 @@ msgstr ""
 "\\\"cancel\\\", damit die Verbindung bestehen bleibt, wenn ein Druck "
 "abgebrochen wird."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:414
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:431
 msgid "unset"
 msgstr "nicht gesetzt"
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:417
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:434
 msgid "Set to cancel"
 msgstr "Auf cancel setzen"
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:420
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:437
 msgid "Changes a global OctoPrint setting that also affects non-Klipper setups."
 msgstr ""
 "Ändert eine globale OctoPrint-Einstellung, die auch Nicht-Klipper-Setups "
 "betrifft."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:435
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:443
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:452
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:460
 msgid "Connect & verify"
 msgstr "Verbinden und prüfen"
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:436
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:453
 msgid "Verification is not available for the Moonraker connector."
 msgstr "Die Überprüfung ist für den Moonraker-Connector nicht verfügbar."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:444
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:461
 msgid ""
 "Click \"Connect & send status\" to connect (if needed) and send "
 "\"status\" automatically. An error about the config file is the expected "
@@ -1228,11 +1241,11 @@ msgstr ""
 "nötig) und automatisch \"status\" zu senden. Ein Fehler bezüglich der "
 "Konfigurationsdatei ist das erwartete Ergebnis."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:457
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:474
 msgid "Slicer"
 msgstr "Slicer"
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:458
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:475
 msgid ""
 "Set your slicer's g-code flavor to Marlin, do not enable \"coasting\", "
 "and prefer START_PRINT/END_PRINT macros."
@@ -1240,55 +1253,55 @@ msgstr ""
 "Stellen Sie den G-Code-Dialekt Ihres Slicers auf Marlin, aktivieren Sie "
 "\\\"coasting\\\" nicht und bevorzugen Sie START_PRINT/END_PRINT-Makros."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:470
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:487
 msgid "Optional: Moonraker (experimental)"
 msgstr "Optional: Moonraker (experimentell)"
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:472
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:489
 #, python-format
 msgid "Moonraker Connector %(version)s is installed."
 msgstr "Moonraker Connector %(version)s ist installiert."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:473
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:490
 msgid "unknown version"
 msgstr "unbekannte Version"
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:475
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:492
 msgid "The Moonraker Connector is not installed."
 msgstr "Der Moonraker Connector ist nicht installiert."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:494
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:511
 msgid "Failed to load the setup wizard state."
 msgstr "Der Status des Einrichtungsassistenten konnte nicht geladen werden."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:511
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:517
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:526
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:528
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:534
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:543
 #: octoprint_klipper/templates/klipper_settings_dialog.jinja2:33
 #: octoprint_klipper/templates/klipper_setup_wizard_dialog.jinja2:5
 msgid "Setup Wizard"
 msgstr "Einrichtungsassistent"
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:512
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:527
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:529
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:544
 msgid "Could not apply the fix."
 msgstr "Die Korrektur konnte nicht angewendet werden."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:518
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:535
 msgid "Fix applied."
 msgstr "Korrektur angewendet."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:541
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:558
 #, python-format
 msgid "%(count)s problem(s) need attention."
 msgstr "%(count)s Problem(e) erfordern Aufmerksamkeit."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:544
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:561
 #, python-format
 msgid "%(count)s warning(s)."
 msgstr "%(count)s Warnung(en)."
 
-#: octoprint_klipper/static/js/klipper_setup_wizard.js:546
+#: octoprint_klipper/static/js/klipper_setup_wizard.js:563
 msgid "Everything looks good."
 msgstr "Alles sieht gut aus."
 

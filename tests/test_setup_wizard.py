@@ -585,3 +585,81 @@ class TestAdditionalPortsPath:
             "serial",
             "additionalPorts",
         ]
+
+
+class TestPreferredSerialPort:
+    """A modern ``printer_data`` install should stop defaulting to /tmp/printer."""
+
+    def test_upgrades_the_legacy_default(self):
+        assert SetupWizard.preferred_serial_port(
+            "/tmp/printer", modern_exists=True
+        ) == os.path.expanduser(SetupWizard.MODERN_SERIAL_PORT)
+
+    def test_upgrades_an_empty_port(self):
+        assert SetupWizard.preferred_serial_port(
+            "", modern_exists=True
+        ) == os.path.expanduser(SetupWizard.MODERN_SERIAL_PORT)
+
+    def test_keeps_the_legacy_port_when_the_modern_one_is_missing(self):
+        assert (
+            SetupWizard.preferred_serial_port("/tmp/printer", modern_exists=False)
+            is None
+        )
+
+    def test_keeps_a_user_chosen_port(self):
+        assert (
+            SetupWizard.preferred_serial_port("/dev/ttyUSB0", modern_exists=True)
+            is None
+        )
+
+    def test_keeps_the_modern_port_it_is_already_using(self):
+        modern = os.path.expanduser(SetupWizard.MODERN_SERIAL_PORT)
+        assert SetupWizard.preferred_serial_port(modern, modern_exists=True) is None
+
+
+class TestWithSerialPort:
+    """The additional-ports list must lose the old entry, not accumulate both."""
+
+    def test_replaces_the_old_port_and_keeps_the_others(self):
+        assert SetupWizard.with_serial_port(
+            ["/tmp/printer", "/dev/ttyACM0"], "/home/pi/klippy.serial", "/tmp/printer"
+        ) == ["/dev/ttyACM0", "/home/pi/klippy.serial"]
+
+    def test_appends_when_the_port_is_missing(self):
+        assert SetupWizard.with_serial_port(
+            ["/dev/ttyACM0"], "/home/pi/klippy.serial"
+        ) == ["/dev/ttyACM0", "/home/pi/klippy.serial"]
+
+    def test_does_not_duplicate_an_entry(self):
+        assert SetupWizard.with_serial_port(["/home/pi/klippy.serial"], "/home/pi/klippy.serial") == [
+            "/home/pi/klippy.serial"
+        ]
+
+    def test_ignores_an_empty_port(self):
+        assert SetupWizard.with_serial_port(["/dev/ttyACM0"], "") == ["/dev/ttyACM0"]
+        assert SetupWizard.with_serial_port(None, "") == []
+
+
+class TestValidateDetectedPort:
+    """Only a real, existing serial-port file from the candidate list is accepted."""
+
+    def test_accepts_a_candidate_that_exists(self, tmp_path):
+        port = tmp_path / "klippy.serial"
+        port.write_text("", encoding="utf-8")
+        assert SetupWizard.validate_detected_port(str(port), [str(port)]) == str(port)
+
+    def test_rejects_a_path_that_is_not_a_candidate(self, tmp_path):
+        port = tmp_path / "klippy.serial"
+        port.write_text("", encoding="utf-8")
+        assert SetupWizard.validate_detected_port(str(port), ["/tmp/printer"]) is None
+
+    def test_rejects_a_candidate_that_does_not_exist(self, tmp_path):
+        port = str(tmp_path / "klippy.serial")
+        assert SetupWizard.validate_detected_port(port, [port]) is None
+
+    def test_rejects_a_relative_path(self):
+        assert SetupWizard.validate_detected_port("klippy.serial", ["klippy.serial"]) is None
+
+    def test_rejects_an_empty_value(self):
+        assert SetupWizard.validate_detected_port("", []) is None
+        assert SetupWizard.validate_detected_port(None, []) is None

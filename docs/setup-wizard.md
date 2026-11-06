@@ -125,9 +125,29 @@ used as a generic settings writer.
 | Action | What it changes |
 |---|---|
 | **Add port** | Adds the configured Klipper port to OctoPrint's additional serial ports |
+| **Use detected port** | Switches to a Klipper port that actually exists (the modern `~/printer_data/comms/klippy.serial`), stores it as the configured port **and** swaps it into the additional serial ports, so no dead entry is left behind |
 | **Set to cancel** | Sets OctoPrint's "on unhandled error" behaviour to `cancel` |
 
 Both require an explicit click. The wizard shows the current value first.
+
+**Use detected port** only appears when the configured port is not usable and
+another Klipper serial port was found on the host. Only paths from the server's
+own candidate list that resolve to an existing file are accepted, so the action
+cannot be used to point OctoPrint at an arbitrary path.
+
+### The legacy `/tmp/printer` default
+
+Older Klipper setups created the virtual serial port at `/tmp/printer`. Modern
+installs (with `~/printer_data`) write it to
+`~/printer_data/comms/klippy.serial` instead and never create `/tmp/printer`,
+so the old default can never work there. OctoKlipper therefore upgrades the
+configured port on startup **once that file exists** — but only if the port is
+still the legacy default; a port the user chose is left alone. The switch is
+logged as:
+
+```
+Switched the klipper serial port from /tmp/printer to /home/pi/printer_data/comms/klippy.serial.
+```
 
 ### OctoPrint 2.0 and the additional serial ports
 
